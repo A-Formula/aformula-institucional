@@ -20,6 +20,7 @@
   /* ---- Header background on scroll ---- */
   var header = document.getElementById("header");
   function onScroll(){
+    if (!header) return;
     if (window.scrollY > 40) header.classList.add("is-scrolled");
     else header.classList.remove("is-scrolled");
   }
