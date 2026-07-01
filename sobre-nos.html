@@ -270,7 +270,7 @@
     [data-essencia-img]{order:1;height:300px !important}
     [data-essencia-img] img{clip-path:none !important;border-radius:14px}
   }
-</style><style id="unpack-reveal-fix">[data-fade]{opacity:1 !important;transform:none !important}.reveal{opacity:1 !important;transform:none !important}[data-reveal]{opacity:1 !important;transform:none !important}[data-faq-a]{max-height:none !important;opacity:1 !important;overflow:visible !important;margin-top:14px !important}[data-faq-plus]{display:none !important}[data-dif-group]{position:relative !important;opacity:1 !important;pointer-events:auto !important;inset:auto !important;margin-bottom:22px}[data-dif-group] .dc-card{opacity:1 !important;transform:none !important}</style></head>
+</style><style id="unpack-reveal-fix">[data-fade]{opacity:1 !important;transform:none !important}.reveal{opacity:1 !important;transform:none !important}[data-reveal]{opacity:1 !important;transform:none !important}[data-faq-item][data-open] [data-faq-a]{max-height:1200px !important;opacity:1 !important;margin-top:14px !important}</style></head>
 <body>
 
 <div id="dc-root"><div class="sc-host" data-sc-name="sobre-nos"><div data-dc-tpl="5" data-ready="1" style="background: rgb(245, 248, 248);"><section data-dc-tpl="6" data-screen-label="Hero - Sobre Nos" style="position: relative; min-height: 100vh; background: rgb(6, 50, 55); overflow: hidden; display: flex; flex-direction: column;">
@@ -794,4 +794,4 @@ class Component extends DCLogic {
 </script>
 
 
-</body></html>
+<script id="unpack-rehydrate">(function(){var items=document.querySelectorAll("[data-faq-item]");items.forEach(function(it){var q=it.querySelector("[data-faq-q]"); if(!q)return; q.style.cursor="pointer";q.addEventListener("click",function(){var open=it.hasAttribute("data-open");document.querySelectorAll("[data-faq-item][data-open]").forEach(function(o){o.removeAttribute("data-open");});if(!open)it.setAttribute("data-open","");});});var dots=document.querySelectorAll("[data-dif-dot]");var groups=document.querySelectorAll("[data-dif-group]");var ranges=["01 \u2013 03","04 \u2013 06","07 \u2013 09"];function act(i){groups.forEach(function(g){ if(g.getAttribute("data-dif-group")===String(i)){g.setAttribute("data-active","");}else{g.removeAttribute("data-active");} });dots.forEach(function(d){ if(d.getAttribute("data-dif-dot")===String(i)){d.setAttribute("data-active","");}else{d.removeAttribute("data-active");} });document.querySelectorAll("[data-dif-range]").forEach(function(r){ if(ranges[i])r.textContent=ranges[i]; });}dots.forEach(function(d){ d.style.cursor="pointer"; d.addEventListener("click",function(){ act(parseInt(d.getAttribute("data-dif-dot"),10)); }); });})();</script></body></html>
