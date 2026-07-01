@@ -1,32 +1,31 @@
-# A Fórmula — Site Institucional v3
+# A Fórmula — Site Institucional
 
-Versão atual e correta da Home institucional. Substitui o design anterior (réplica do Canva).
+Site institucional multipágina exportado do **Claude Design**. Cinco páginas HTML self-contained (imagens, fontes e scripts embutidos no próprio arquivo — sem build, sem assets externos).
 
-## Origem
+## Páginas
 
-Home exportada como bundle self-contained (`A Formula - Home.html`) e **desempacotada** em arquivos estáticos limpos:
-- `index.html` — 81 KB, HTML/CSS/JS vanilla, inline (sem build).
-- `assets/bundle/` — 31 assets self-hosted: imagens (jpg/png), fontes Playfair Display (woff2, todos os ranges) e 5 scripts.
+| Arquivo | Rota | Conteúdo |
+|---------|------|----------|
+| `index.html` | `/` | Home institucional |
+| `sobre-nos.html` | `/sobre-nos.html` | Sobre nós |
+| `blog.html` | `/blog.html` | Blog |
+| `area-do-prescritor.html` | `/area-do-prescritor.html` | Área do prescritor (login) |
+| `pet.html` | `/pet.html` | A Fórmula Pet |
 
-O bundle original renderiza um único arquivo de 6 MB que se descompacta no cliente (ruim p/ SEO/perf/preview social). A versão desempacotada serve o HTML real direto — mesmo render, sem runtime de unpacking.
+## Navegação
 
-## Seções
-
-Hero · "Uma das maiores empresas de manipulação do Brasil" (stats: todos os estados, ABF 9 anos, +1M atendimentos/ano) · 37 anos / Sobre · Nossos Diferenciais · Newsletter · Blog.
+Navbar cabeada entre todas as páginas: logo → Home, e os links **Sobre nós · Blog · Área do prescritor · A Fórmula Pet** apontam para cada página. Links sem página dedicada (Encontre uma loja, Contato, Seja um franqueado) ficam em `#`.
 
 ## Stack
 
-HTML + CSS + JS vanilla, sem build. Fontes self-hosted. Único ref externo: preconnect ao Google Fonts (fontes também embutidas → funciona offline).
+HTML/CSS/JS exportado pelo Claude Design. Cada página é um bundle self-contained que se descompacta no cliente (runtime do bundler embutido). Único ref externo: preconnect ao Google Fonts.
 
 ## Deploy
 
-Servida pelo projeto Vercel `a-formula` (output = raiz do repo). Acessível em `/site-institucional/v3/`.
+Autodeploy Vercel (projeto `aformula-institucional`) na branch `main`. Root do repo = root do site.
 
 ## Pendências
 
-- Links reais (Área do prescritor, Encontre uma loja, Seja um franqueado, redes).
-- Páginas internas não construídas (escopo = Home).
-
-## Histórico
-
-Assets do design v3 anterior movidos para `temp/_arquivar/v3-old-assets-20260622/` (recuperáveis via git).
+- **Peso / SEO:** os arquivos são bundles pesados (home ~6 MB) que renderizam via JavaScript no cliente — ruim para SEO, performance e preview social. Uma versão anterior desempacotava o bundle em HTML estático (~81 KB). Reavaliar se vale reempacotar.
+- Páginas para links ainda em `#`: Encontre uma loja, Contato, Seja um franqueado.
+- CTA "Manipule sua receita" (em Blog/Sobre/Prescritor) aponta para `uploads/v3_ZIP/receita.html`, que não está publicado.
