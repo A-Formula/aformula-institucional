@@ -3,3 +3,9 @@ node_modules/
 .DS_Store
 Thumbs.db
 Telas - Visao Geral (standalone).html
+# material de exploração local (não faz parte do site)
+telas/
+v2/
+v3/
+_blueprint/
+*.zip
