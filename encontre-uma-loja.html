@@ -2,11 +2,13 @@
 <html lang="pt-BR" data-tw-palette="teal" data-tw-shape="suave" data-tw-density="conf"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>A Fórmula — A ciência da personalização</title>
-<meta name="description" content="Há 37 anos transformamos a manipulação em ciência, cuidado e inovação. Fórmulas únicas para vidas únicas. Manipule sua receita com a maior rede magistral do Brasil.">
+<title>Encontre uma loja — A Fórmula</title>
+<meta name="description" content="Explore o mapa 3D e encontre a farmácia de manipulação A Fórmula mais próxima. 87 unidades em 24 estados — busque por CEP ou use sua localização.">
 <link rel="icon" href="index_assets/a1.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com">
+<link rel="stylesheet" href="encontre-uma-loja_assets/maplibre-gl.css">
+
 <style>/* cyrillic */
 @font-face {
   font-family: 'Playfair Display';
@@ -116,6 +118,7 @@
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 </style>
+
 <style>/* =========================================================
    A FÓRMULA — Site Institucional v3 (premium polish)
    Mesma estrutura da v2 · imagens reais + refino de design
@@ -860,14 +863,121 @@ ol,ul{margin:0;padding:0;list-style:none}
   .footer__social a{border-color:rgba(0,40,48,.28);color:#16282b}
   .footer__social a:hover{background:#008896;border-color:#008896;color:#fff}
 </style>
-<style id="unpack-reveal-fix">[data-fade]{opacity:1 !important;transform:none !important}html:not(.anim) .reveal{opacity:1 !important;transform:none !important}[data-reveal]{opacity:1 !important;transform:none !important}[data-photo]{clip-path:inset(0) !important;-webkit-clip-path:inset(0) !important;transform:none !important;opacity:1 !important}[data-faq-item][data-open] [data-faq-a]{max-height:1200px !important;opacity:1 !important;margin-top:14px !important}</style><meta name="theme-color" content="#008896">
-<link rel="canonical" href="https://aformula-institucional.vercel.app/">
+<style id="unpack-reveal-fix">[data-fade]{opacity:1 !important;transform:none !important}html:not(.anim) .reveal{opacity:1 !important;transform:none !important}[data-reveal]{opacity:1 !important;transform:none !important}[data-photo]{clip-path:inset(0) !important;-webkit-clip-path:inset(0) !important;transform:none !important;opacity:1 !important}[data-faq-item][data-open] [data-faq-a]{max-height:1200px !important;opacity:1 !important;margin-top:14px !important}</style>
+
+<style id="stores3d-css">
+/* ===== Encontre uma loja — experiência imersiva ===== */
+#stores{background:var(--teal-900,#063237)}
+.mapx{position:relative;height:100svh;min-height:640px;overflow:hidden}
+#map{position:absolute;inset:0}
+#map canvas{outline:none}
+
+/* véu superior pra fundir com o header fixo */
+.mapx::before{content:"";position:absolute;left:0;right:0;top:0;height:130px;z-index:5;pointer-events:none;
+  background:linear-gradient(180deg,rgba(4,42,48,.55),transparent)}
+
+/* ---- painel de busca flutuante (glass) ---- */
+.mapx__panel{position:absolute;z-index:10;top:104px;left:clamp(16px,3vw,44px);width:min(400px,calc(100vw - 32px));
+  background:rgba(5,44,50,.72);backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3);
+  border:1px solid rgba(255,255,255,.14);border-radius:22px;padding:26px 26px 20px;color:#fff;
+  box-shadow:0 30px 80px rgba(0,16,20,.45)}
+.mapx__eyebrow{font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent-bright,#4FB6C0);font-weight:700;margin:0 0 10px}
+.mapx__panel h1{font-family:"Playfair Display",serif;font-weight:700;font-size:clamp(26px,3vw,34px);line-height:1.05;letter-spacing:-.02em;margin:0 0 8px;color:#fff}
+.mapx__lead{font-size:13.5px;line-height:1.5;color:rgba(255,255,255,.82);margin:0 0 18px}
+.mapx__lead b{color:#fff}
+.mapx__form{display:flex;flex-direction:column;gap:10px}
+.mapx__cep{display:flex;gap:8px}
+.mapx__cep input{flex:1;height:46px;padding:0 16px;border-radius:12px;border:1.5px solid rgba(255,255,255,.22);
+  background:rgba(255,255,255,.1);color:#fff;font-size:14.5px;font-family:inherit;min-width:0;transition:border-color .25s,background .25s}
+.mapx__cep input::placeholder{color:rgba(255,255,255,.55)}
+.mapx__cep input:focus{outline:none;border-color:var(--accent-bright,#4FB6C0);background:rgba(255,255,255,.16)}
+.mapx__cep .btn{height:46px;padding:0 18px;border-radius:12px;white-space:nowrap;font-size:13.5px}
+.mapx__filters{display:flex;gap:8px}
+.mapx__filters select{flex:1;height:42px;padding:0 12px;border-radius:11px;border:1.5px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.08);color:#fff;font-size:13px;font-family:inherit;min-width:0}
+.mapx__filters select:focus{outline:none;border-color:var(--accent-bright,#4FB6C0)}
+.mapx__filters select option{color:#111}
+.mapx__filters .ghost{height:42px;padding:0 14px;border-radius:11px;border:1.5px solid rgba(255,255,255,.28);
+  background:transparent;color:#fff;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .2s}
+.mapx__filters .ghost:hover{background:rgba(255,255,255,.14)}
+.mapx__meta{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px}
+.mapx__count{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:rgba(255,255,255,.66)}
+.mapx__status{font-size:12.5px;color:var(--accent-bright,#9fd4d9);min-height:18px;margin:6px 0 0}
+.mapx__status.is-error{color:#ffb9a6}
+
+/* ---- trilho de cards na base ---- */
+.mapx__railwrap{position:absolute;z-index:10;left:0;right:0;bottom:0;padding:34px 0 18px;pointer-events:none;
+  background:linear-gradient(180deg,transparent,rgba(4,38,44,.78) 70%)}
+.mapx__rail{display:flex;gap:14px;overflow-x:auto;padding:6px clamp(16px,3vw,44px) 8px;scroll-snap-type:x mandatory;
+  scrollbar-width:none;-ms-overflow-style:none;pointer-events:auto}
+.mapx__rail::-webkit-scrollbar{display:none}
+.railcard{flex:0 0 288px;scroll-snap-align:start;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);
+  border:1.5px solid transparent;border-radius:16px;padding:15px 17px;cursor:pointer;
+  transition:transform .28s var(--ease,ease),box-shadow .28s,border-color .28s}
+.railcard:hover{transform:translateY(-5px);box-shadow:0 18px 44px rgba(0,20,26,.35)}
+.railcard.is-active{border-color:var(--accent-bright,#4FB6C0);box-shadow:0 18px 44px rgba(0,20,26,.4);transform:translateY(-5px)}
+.railcard__top{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.railcard__top h3{font-size:15.5px;font-weight:700;color:var(--teal-850,#06343a);margin:0;line-height:1.2}
+.railcard__dist{font-size:11.5px;font-weight:700;color:var(--brand,#008896);background:#dff0f1;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.railcard__loc{font-size:11.5px;font-weight:700;color:var(--brand,#008896);margin:4px 0 0;letter-spacing:.02em}
+.railcard__addr{font-size:12px;color:var(--muted,#5c7075);line-height:1.4;margin:5px 0 0;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.railcard__acts{display:flex;gap:7px;margin-top:11px}
+.railcard__acts a{font-size:11.5px;font-weight:700;padding:6px 12px;border-radius:999px;border:1.5px solid var(--line,#dbe6e6);
+  color:var(--teal-800,#0a3f45);text-decoration:none;transition:background .2s,color .2s,border-color .2s}
+.railcard__acts a:hover{background:var(--brand,#008896);border-color:var(--brand,#008896);color:#fff}
+.railcard__acts a.wa{background:#25d366;border-color:#25d366;color:#fff}
+.railcard__acts a.wa:hover{background:#1eb85a;border-color:#1eb85a}
+.mapx__empty{color:#fff;font-size:14px;padding:12px 24px;pointer-events:auto}
+
+/* ---- pin do usuário ---- */
+@keyframes pinpulse{0%{transform:scale(.5);opacity:.9}70%{transform:scale(1.7);opacity:0}100%{transform:scale(.5);opacity:0}}
+.upin{width:30px;height:30px;position:relative}
+.upin__dot{position:absolute;inset:8px;border-radius:50%;background:#0e2f4f;border:2.5px solid #fff;box-shadow:0 2px 10px rgba(0,10,20,.55)}
+.upin__pulse{position:absolute;inset:0;border-radius:50%;background:rgba(14,47,79,.35);animation:pinpulse 2s ease-out infinite}
+
+/* ---- popup da marca ---- */
+.af-pop .maplibregl-popup-content{border-radius:16px;padding:0;box-shadow:0 22px 60px rgba(0,20,26,.4);overflow:hidden;font-family:inherit}
+.af-pop__in{padding:16px 18px}
+.af-pop__in strong{display:block;font-size:15.5px;color:var(--teal-850,#06343a);font-weight:700}
+.af-pop__loc{display:block;font-size:11.5px;font-weight:700;color:var(--brand,#008896);margin-top:3px;letter-spacing:.02em}
+.af-pop__in p{font-size:12.5px;color:var(--muted,#5c7075);line-height:1.45;margin:7px 0 0}
+.af-pop__acts{display:flex;gap:7px;margin-top:12px}
+.af-pop__acts a{font-size:11.5px;font-weight:700;padding:6px 12px;border-radius:999px;border:1.5px solid var(--line,#dbe6e6);
+  color:var(--teal-800,#0a3f45);text-decoration:none}
+.af-pop__acts a:hover{background:var(--brand,#008896);border-color:var(--brand,#008896);color:#fff}
+.af-pop__acts a.wa{background:#25d366;border-color:#25d366;color:#fff}
+.af-pop .maplibregl-popup-tip{border-top-color:#fff}
+.af-pop .maplibregl-popup-close-button{font-size:18px;color:var(--muted,#5c7075);right:6px;top:4px}
+
+/* controles nativos afinados */
+.maplibregl-ctrl-bottom-right{margin:0 14px 190px 0}
+.maplibregl-ctrl-group{border-radius:12px;overflow:hidden;box-shadow:0 8px 26px rgba(0,20,26,.3)}
+.maplibregl-ctrl-attrib{font-size:10px}
+
+/* underline do item ativo da nav */
+.main-nav a[aria-current]::after{width:100%}
+
+/* ---- responsivo ---- */
+@media(max-width:760px){
+  .mapx{height:100svh;min-height:560px}
+  .mapx__panel{top:88px;left:12px;right:12px;width:auto;padding:18px 18px 14px;border-radius:18px}
+  .mapx__panel h1{font-size:22px}
+  .mapx__lead{display:none}
+  .mapx__filters{flex-wrap:wrap}
+  .railcard{flex-basis:252px}
+  .maplibregl-ctrl-bottom-right{margin-bottom:206px}
+}
+</style>
+
+<meta name="theme-color" content="#008896">
+<link rel="canonical" href="https://aformula-institucional.vercel.app/encontre-uma-loja.html">
 <meta property="og:site_name" content="A Fórmula">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="pt_BR">
-<meta property="og:title" content="A Fórmula — A ciência da personalização">
-<meta property="og:description" content="Há 37 anos transformamos a manipulação em ciência, cuidado e inovação. Fórmulas únicas para vidas únicas. Manipule sua receita com a maior rede magistral do Brasil.">
-<meta property="og:url" content="https://aformula-institucional.vercel.app/">
+<meta property="og:title" content="Encontre uma loja — A Fórmula">
+<meta property="og:description" content="Explore o mapa 3D e encontre a farmácia de manipulação A Fórmula mais próxima. 87 unidades em 24 estados — busque por CEP ou use sua localização.">
+<meta property="og:url" content="https://aformula-institucional.vercel.app/encontre-uma-loja.html">
 <meta property="og:image" content="https://aformula-institucional.vercel.app/index_assets/a18.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <style id="polish-css">
@@ -879,8 +989,6 @@ ol,ul{margin:0;padding:0;list-style:none}
 <script id="polish-anim">(function(){try{if("IntersectionObserver" in window&&!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("anim");}catch(_){}})();</script>
 </head>
 <body>
-
-<!-- ============ HEADER ============ -->
 <header class="site-header" id="header">
   <div class="navbar" data-comment-anchor="a109deeca9-div">
     <div class="container navbar__inner" data-comment-anchor="2cebb966d1-div">
@@ -892,7 +1000,7 @@ ol,ul{margin:0;padding:0;list-style:none}
         <a href="sobre-nos.html">Sobre nós</a>
         <a href="blog.html">Blog</a>
         <a href="area-do-prescritor.html">Área do prescritor</a>
-        <a href="encontre-uma-loja.html">Encontre uma loja</a>
+        <a href="encontre-uma-loja.html" aria-current="page">Encontre uma loja</a>
         <a href="contato.html">Contato</a>
       </nav>
 
@@ -908,187 +1016,35 @@ ol,ul{margin:0;padding:0;list-style:none}
   </div>
 </header>
 
-<!-- ============ HERO ============ -->
-<section class="hero" id="topo">
-  <div class="hero__media">
-    <img src="index_assets/a18.jpg" alt="Farmacêutica examinando cápsula em laboratório de manipulação A Fórmula" fetchpriority="high" width="1537" height="1023">
-    <div class="hero__overlay"></div>
-    <div class="hero__glow" aria-hidden="true"></div>
-  </div>
-  <div class="container hero__inner">
-    <div class="hero__content reveal is-in">
-      <h1 class="hero__title">
-        A ciência da<br>
-        <em class="accent">personalização</em>
-      </h1>
-      <p class="hero__lead">Fórmulas únicas para vidas únicas.</p>
-      <p class="hero__text">Há 37 anos transformamos a manipulação em ciência,<br>
-        cuidado e inovação para promover saúde e bem-estar.</p>
-    </div>
-    <div class="hero__brandmark" aria-hidden="true" data-comment-anchor="a5f758f522-div" hidden=""></div>
-  </div>
-</section>
+<main id="stores">
+  <section class="mapx" aria-label="Mapa das unidades A Fórmula">
+    <div id="map"></div>
 
-<!-- ============ MAIORES EMPRESAS ============ -->
-<section class="empresas">
-  <div class="sec-fx" aria-hidden="true">
-    <span class="fx-blob fx-blob--1"></span>
-    <span class="fx-blob fx-blob--2"></span>
-  </div>
-  <div class="container">
-    <header class="empresas__head reveal is-in">
-      <h2 class="display display--center">UMA DAS MAIORES EMPRESAS DE<br><span class="display__hl">MANIPULAÇÃO DO BRASIL</span></h2>
-    </header>
-    <div class="empresas__grid">
-      <article class="pillar reveal" data-comment-anchor="7b83ec356f-article">
-        <span class="pillar__badge"><svg viewBox="0 0 1024 1024" fill="currentColor" aria-hidden="true"><g transform="translate(0,1024) scale(0.1,-0.1)"><path d="M3255 9936 c-38 -13 -112 -44 -162 -69 -70 -36 -104 -47 -138 -47 -29 0 -60 -8 -84 -22 -32 -18 -40 -30 -47 -65 l-9 -44 -57 36 c-53 34 -64 37 -140 38 -46 1 -91 -2 -100 -6 -13 -7 -20 -1 -33 22 l-16 31 -91 0 -91 0 84 -60 84 -60 -4 -80 c-3 -75 -1 -84 24 -120 23 -32 26 -45 20 -78 -7 -44 -11 -42 110 -57 28 -4 56 -8 63 -10 19 -7 -70 -83 -114 -99 -29 -10 -40 -20 -44 -40 -3 -14 -18 -42 -34 -62 l-28 -36 -25 24 -25 23 -30 -37 c-16 -21 -56 -52 -88 -69 -40 -21 -69 -47 -96 -84 -41 -56 -54 -60 -54 -19 0 31 -4 30 -85 -6 -76 -34 -63 -38 -159 47 -52 47 -65 53 -103 53 l-43 0 0 56 c0 51 -4 61 -46 115 -51 67 -47 67 -137 1 l-49 -35 -36 19 c-20 10 -40 20 -44 22 -5 2 -8 -5 -8 -16 0 -28 -77 -36 -247 -27 l-133 7 -20 -46 c-10 -25 -22 -69 -26 -96 l-7 -50 44 -1 c24 0 64 -8 89 -17 38 -15 46 -23 53 -55 5 -21 7 -41 4 -44 -3 -3 -21 4 -39 15 l-33 20 -72 -33 -73 -34 0 -96 0 -96 59 -54 c52 -49 62 -65 91 -146 l33 -91 -22 -62 c-18 -49 -24 -99 -33 -251 l-10 -190 -48 -125 c-32 -84 -53 -124 -62 -122 -7 2 -37 6 -67 9 -42 5 -57 3 -65 -9 -16 -22 -111 -68 -140 -68 -75 0 -254 -58 -296 -96 -14 -12 -57 -43 -97 -68 -77 -49 -87 -70 -82 -156 2 -24 -6 -48 -25 -77 l-28 -42 17 -58 17 -58 -24 -14 c-12 -8 -44 -37 -70 -63 -37 -36 -48 -55 -48 -79 0 -22 5 -32 20 -36 27 -7 25 -16 -8 -31 -67 -29 -99 -97 -50 -104 17 -2 24 -12 28 -38 7 -43 139 -243 188 -286 l36 -31 -27 -46 c-15 -25 -27 -48 -27 -51 0 -3 31 -6 69 -6 38 0 92 -5 120 -12 46 -10 51 -14 51 -38 0 -15 7 -34 16 -41 9 -7 20 -23 24 -35 9 -23 51 -34 135 -34 47 1 56 5 155 80 57 44 110 80 116 80 6 0 17 -7 24 -15 10 -12 8 -25 -10 -69 -21 -50 -22 -59 -11 -130 6 -42 11 -97 11 -121 0 -39 4 -46 30 -60 40 -21 60 -19 102 10 35 24 44 25 175 25 76 0 152 -4 168 -8 48 -14 110 7 140 47 14 21 43 42 68 51 23 9 71 37 106 63 35 26 74 47 87 47 14 0 30 10 41 26 23 36 83 72 166 100 55 19 92 24 168 24 113 0 117 -4 93 -93 -19 -70 -18 -137 2 -166 12 -17 15 -35 10 -68 -3 -25 -2 -62 4 -82 5 -20 12 -48 15 -63 4 -21 15 -30 54 -43 33 -11 58 -28 76 -51 17 -22 34 -34 50 -34 20 0 25 -7 31 -35 6 -31 9 -35 51 -41 25 -4 76 -4 114 -1 53 4 70 2 80 -9 23 -28 68 -45 88 -35 14 8 24 4 46 -19 16 -17 36 -30 45 -30 9 0 31 -11 50 -25 25 -18 46 -25 82 -25 43 0 48 -3 54 -25 3 -14 20 -36 38 -49 27 -20 47 -24 146 -30 146 -8 162 -11 205 -50 29 -25 36 -41 43 -86 6 -40 20 -73 50 -117 28 -42 42 -73 42 -95 0 -33 0 -33 -45 -30 -41 4 -45 2 -51 -23 -5 -20 0 -34 23 -63 22 -27 31 -52 35 -92 4 -30 14 -74 23 -97 l17 -43 157 -1 c86 -1 183 0 217 1 72 2 83 -10 59 -67 -9 -20 -15 -66 -15 -107 l0 -71 73 -47 c39 -26 84 -52 100 -59 38 -17 50 -69 49 -206 l0 -113 -40 -47 c-38 -46 -82 -158 -82 -210 0 -35 41 -178 61 -209 24 -39 25 -105 2 -189 -14 -54 -15 -68 -4 -88 10 -18 10 -30 2 -45 -19 -35 -13 -40 58 -52 59 -11 75 -11 116 4 45 15 50 15 66 0 17 -15 20 -15 45 5 27 22 44 20 44 -5 0 -10 14 -14 56 -14 48 0 62 -5 95 -31 22 -17 44 -41 51 -52 21 -39 48 -161 54 -245 7 -78 9 -84 36 -98 25 -13 36 -13 108 4 l81 19 18 -23 c50 -64 48 -164 -8 -311 -30 -80 -30 -83 -11 -93 10 -5 32 -10 48 -10 16 0 50 -9 74 -20 65 -29 78 -68 77 -235 0 -129 0 -130 -27 -151 -15 -11 -54 -31 -87 -44 -36 -14 -85 -46 -124 -79 -34 -31 -88 -77 -120 -102 -118 -97 -228 -213 -241 -254 -7 -22 -35 -66 -61 -98 -27 -32 -56 -72 -66 -88 -10 -16 -26 -32 -38 -35 -11 -4 -36 -19 -56 -35 -30 -23 -35 -33 -31 -58 3 -24 10 -31 35 -37 26 -5 34 -2 54 22 29 37 78 35 108 -4 11 -15 48 -55 82 -90 35 -34 63 -71 63 -81 0 -10 8 -25 19 -35 16 -15 19 -15 31 -1 7 9 22 21 33 27 18 9 28 2 82 -56 51 -55 67 -66 94 -66 27 0 44 -12 107 -78 41 -42 77 -80 81 -84 5 -4 50 -48 102 -98 82 -79 169 -140 200 -140 5 0 20 17 32 38 12 20 64 80 114 132 51 52 107 118 125 145 19 28 65 88 104 135 114 136 127 156 143 216 19 74 80 159 184 259 88 84 209 228 209 248 0 7 16 45 35 85 33 69 34 75 20 102 -8 16 -15 46 -15 66 0 21 -7 60 -16 88 -16 51 -15 52 21 171 54 178 82 224 174 289 42 30 110 87 151 128 96 94 154 131 256 165 l82 26 62 -26 c34 -15 66 -27 71 -27 5 0 18 14 28 31 15 24 17 38 10 57 -5 14 -8 27 -5 29 2 3 36 15 75 27 70 22 71 23 51 41 -27 25 -17 35 37 35 32 0 50 -5 59 -17 12 -17 17 -14 63 32 l51 49 0 -36 0 -36 163 -6 c89 -4 191 -8 227 -9 l65 -2 10 61 c13 78 36 105 115 133 87 31 130 78 130 142 0 38 5 50 34 78 22 21 36 46 40 71 5 32 17 47 85 101 71 58 81 69 96 121 14 45 24 60 51 74 28 15 40 34 73 114 28 66 41 115 44 160 8 116 35 189 88 241 l47 46 16 134 c9 81 28 176 47 239 29 95 33 122 39 290 6 157 12 206 39 325 18 77 43 165 55 195 l22 55 56 5 57 5 63 85 c66 87 146 216 191 306 15 29 48 70 80 97 31 26 72 69 91 96 31 41 45 51 87 62 44 12 58 23 127 101 204 234 233 273 294 393 117 230 134 303 93 404 -14 36 -25 84 -25 107 0 77 -22 198 -42 233 -10 19 -22 63 -25 99 -6 63 -8 67 -65 124 l-58 58 -107 0 c-241 1 -429 93 -560 277 -38 54 -57 70 -117 99 -46 24 -95 60 -141 105 -65 63 -77 71 -173 104 -102 35 -109 36 -320 45 -130 5 -241 15 -277 24 -33 8 -84 15 -113 16 -40 0 -70 9 -124 36 -39 20 -101 42 -138 50 -38 7 -74 16 -82 19 -8 3 -23 -7 -36 -25 -19 -25 -29 -30 -66 -30 -40 0 -47 -4 -81 -46 l-38 -46 -13 23 c-12 22 -9 27 27 64 21 23 39 48 39 56 0 8 -20 30 -44 48 -37 28 -46 41 -53 80 -7 39 -14 49 -43 63 -23 12 -48 16 -72 13 -32 -4 -47 1 -102 39 -35 24 -81 49 -103 56 -21 7 -92 37 -158 68 l-120 56 -133 4 -133 4 -30 -28 c-17 -16 -51 -60 -77 -98 -50 -73 -98 -106 -152 -106 l-30 0 75 104 c93 127 103 157 72 203 -26 39 -59 52 -147 60 -76 6 -167 53 -172 87 -3 18 -11 21 -60 24 -53 3 -57 5 -72 36 -22 47 -20 66 7 66 42 0 48 11 37 71 -7 38 -7 72 0 109 10 54 10 56 -17 77 -16 13 -42 23 -59 23 -29 0 -32 3 -37 38 -4 21 -13 46 -21 57 -13 18 -15 18 -41 1 -15 -10 -29 -16 -31 -13 -3 2 -9 32 -15 66 -6 37 -22 81 -39 110 -23 37 -30 60 -30 102 -1 143 -58 259 -127 259 -27 0 -45 -10 -85 -47 -63 -60 -171 -267 -183 -351 -6 -44 -14 -59 -47 -90 l-39 -37 -111 9 c-79 7 -126 6 -167 -2 -32 -7 -83 -12 -115 -12 -51 0 -64 4 -107 35 l-48 36 -67 -12 c-37 -6 -94 -9 -127 -5 -48 5 -64 3 -79 -11 -22 -20 -23 -64 -2 -105 23 -44 8 -50 -122 -45 -90 2 -117 7 -146 24 l-36 21 -58 -48 c-48 -39 -87 -58 -199 -99 -167 -61 -199 -63 -269 -18 -28 19 -65 42 -83 52 -35 20 -43 39 -43 105 0 25 -7 70 -15 100 -8 30 -14 78 -13 106 1 39 -4 59 -20 82 l-22 30 50 42 c48 41 50 43 50 95 0 50 -2 55 -39 84 -30 24 -49 31 -81 31 -33 0 -50 7 -77 30 -42 37 -95 39 -198 6z" data-comment-anchor="ec9d5eae74-path"></path></g></svg></span>
-        <h3>PRESENTE EM<br>TODOS OS ESTADOS<br>BRASILEIROS</h3>
-        <p>Presentes em todos os estados, levando saúde e qualidade de vida a todo o Brasil.</p>
-      </article>
-      <article class="pillar reveal" data-comment-anchor="295ec32ffe-article">
-        <span class="pillar__badge"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v3c0 2.44 1.72 4.48 4 4.9V19H4v2h16v-2h-3v-4.1c2.28-.42 4-2.46 4-4.9V7c0-1.1-.9-2-2-2zM5 10V7h2v3H5zm14 0h-2V7h2v3z" data-comment-anchor="c90cfebaaa-path"></path></svg></span>
-        <h3>EXCELÊNCIA EM<br>FRANCHISING</h3>
-        <p>Vencedora por 9 anos consecutivos do selo de excelência em Franchising da ABF.</p>
-      </article>
-      <article class="pillar reveal">
-        <span class="pillar__badge" data-comment-anchor="6d1ea055ee-span"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"></path></svg></span>
-        <h3>MAIS DE 100<br>UNIDADES</h3>
-        <p>Levando saúde e qualidade de vida do norte ao sul do país.</p>
-      </article>
-      <article class="pillar reveal">
-        <span class="pillar__badge"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" data-comment-anchor="08d4c37990-svg"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"></path></svg></span>
-        <h3>MAIS DE 1 MILHÃO DE<br>ATENDIMENTOS POR ANO</h3>
-        <p data-comment-anchor="9b80851912-p">Cada atendimento é uma história de cuidado personalizado e busca pela excelência.</p>
-      </article>
-    </div>
-  </div>
-</section>
-
-<!-- ============ HÁ 37 ANOS ============ -->
-<section class="anos" id="sobre">
-  <div class="container anos__overlay" data-comment-anchor="d7509d1637-div">
-    <div class="anos__content reveal">
-      <p class="eyebrow-mark">HÁ <strong>37 ANOS</strong></p>
-      <h2 class="anos__title">PREZANDO PELO<br><strong data-comment-anchor="c070a4511d-strong">seu bem estar</strong></h2>
-      <p class="anos__text">Nossa fórmula é resultado da paixão incansável por oferecer produtos e serviços de qualidade. Ao longo dessas mais de três décadas, aprendemos que não há atalhos para o sucesso, mas sim uma mistura cuidadosa de dedicação, inovação e compromisso com a excelência.</p>
-      <p class="anos__highlight">São 37 anos cuidando de pessoas e transformando vidas.</p>
-      <a href="sobre-nos.html" class="btn btn--ghost-teal">SAIBA MAIS →</a>
-    </div>
-  </div>
-  <div class="anos__media">
-    <img class="anos__img" src="index_assets/a19.webp" alt="A Fórmula — 37 anos de manipulação, ciência e cuidado">
-  </div>
-</section>
-
-<!-- ============ NOSSOS DIFERENCIAIS ============ -->
-<section class="dif2">
-  <div class="sec-fx" aria-hidden="true">
-    <span class="fx-blob fx-blob--1"></span>
-    <span class="fx-blob fx-blob--2"></span>
-  </div>
-  <div class="container">
-    <header class="dif2__head reveal">
-      <p class="dif__eyebrow">CONHEÇA</p>
-      <h2 class="dif__title">NOSSOS DIFERENCIAIS</h2>
-      <span class="dif__rule" aria-hidden="true"></span>
-      <p class="dif__sub">Excelência, inovação e cuidado em cada detalhe para entregar saúde e bem-estar todos os dias.</p>
-    </header>
-
-    <div class="dif2__layout"><svg class="dif2__wires" aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 1112 529" width="1112" height="529"><path d="M357.2,26.1 H437.2 L556.0,264.6"></path><circle r="3.4" cx="357.2" cy="26.1"></circle><path d="M357.2,217.2 H437.2 L556.0,264.6"></path><circle r="3.4" cx="357.2" cy="217.2"></circle><path d="M357.2,388.0 H437.2 L556.0,264.6"></path><circle r="3.4" cx="357.2" cy="388.0"></circle><path d="M754.8,16.0 H674.8 L556.0,264.6"></path><circle r="3.4" cx="754.8" cy="16.0"></circle><path d="M754.8,207.0 H674.8 L556.0,264.6"></path><circle r="3.4" cx="754.8" cy="207.0"></circle><path d="M754.8,398.1 H674.8 L556.0,264.6"></path><circle r="3.4" cx="754.8" cy="398.1"></circle></svg>
-      <div class="dif2__col dif2__col--left">
-        <article class="dif2feat reveal reveal--left">
-          <span class="dif2feat__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m14.5 12.5 2-2M11.5 9.5l2-2M8.5 6.5l2-2M17.5 15.5l2-2"></path></svg></span>
-          <h3>PERSONALIZAÇÃO<br>SOB MEDIDA</h3>
-          <p>Cada atendimento é moldado para as necessidades exclusivas de cada pessoa.</p>
-        </article>
-        <article class="dif2feat reveal reveal--left">
-          <span class="dif2feat__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"></path></svg></span>
-          <h3>COMBINAÇÕES<br>ÚNICAS</h3>
-          <p>Combinações únicas de ingredientes ativos para resultados eficazes.</p>
-        </article>
-        <article class="dif2feat reveal reveal--left">
-          <span class="dif2feat__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2 21c0-3 1.85-5.36 5.08-6"></path></svg></span>
-          <h3>INGREDIENTES NATURAIS<br>DE ALTA QUALIDADE</h3>
-          <p>Ingredientes de alta pureza, com segurança, eficácia e bem-estar garantidos.</p>
-        </article>
-      </div>
-
-      <div class="dif2__bottle reveal reveal--scale">
-        <img src="index_assets/a20.webp" alt="Pote teal A Fórmula com cápsulas manipuladas" width="615" height="1000" data-comment-anchor="e019eb2259-img">
-      </div>
-
-      <div class="dif2__col dif2__col--right">
-        <article class="dif2feat reveal reveal--right">
-          <span class="dif2feat__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M5.636 18.364l3.536-3.536m5.656 0l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.172a4 4 0 105.656-5.656 4 4 0 00-5.656 5.656z"></path></svg></span>
-          <h3>TECNOLOGIA DE<br>LIBERAÇÃO CONTROLADA</h3>
-          <p>Benefícios prolongados e absorção otimizada para resultados consistentes e duradouros.</p>
-        </article>
-        <article class="dif2feat reveal reveal--right">
-          <span class="dif2feat__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg></span>
-          <h3>EQUIPE<br>ESPECIALIZADA</h3>
-          <p>Corpo técnico de farmacêuticos especialistas em farmácia clínica, cosmetologia e magistral.</p>
-        </article>
-        <article class="dif2feat reveal reveal--right">
-          <span class="dif2feat__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21H3m15-4v-4m0 4h3m-3 0h-3m-6-4l3-3m-3 3l-3-3m3 3V5a2 2 0 012-2h2a2 2 0 012 2v2"></path></svg></span>
-          <h3>INOVAÇÃO<br>CONSTANTE</h3>
-          <p>Departamento operacional exclusivo de pesquisa e desenvolvimento sempre à frente.</p>
-        </article>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ BLOG ============ -->
-<section class="blog" id="blog" data-comment-anchor="b7a75450d6-section">
-  <div class="sec-fx" aria-hidden="true">
-    <span class="fx-blob fx-blob--1"></span>
-    <span class="fx-blob fx-blob--2"></span>
-  </div>
-  <div class="container">
-    <header class="blog__head reveal">
-      <p class="eyebrow-thin eyebrow-thin--teal">BLOG</p>
-      <h2 class="blog__title">Conteúdo que <em class="accent accent--teal">inspira</em></h2>
-      <p class="blog__sub">Informação, ciência e bem-estar para transformar sua rotina<br>e a vida das pessoas todos os dias.</p>
-    </header>
-
-    <div class="blog__gallery" id="blogGallery" aria-label="Galeria de artigos do blog A Fórmula" tabindex="0" style="--cgal-cw: 300px;">
-      <div class="blog__fallback">
-        <a class="fcard" href="#"><img src="index_assets/a21.jpg" alt="Creatina na vida da mulher" loading="lazy" width="1024" height="1536"><span class="fcard__t">Creatina na vida da mulher</span></a>
-        <a class="fcard" href="#"><img src="index_assets/a22.jpg" alt="Início do outono" loading="lazy" width="1024" height="1536"><span class="fcard__t">Início do Outono</span></a>
-        <a class="fcard" href="#"><img src="index_assets/a23.jpg" alt="Suplementação 2026" loading="lazy" width="1024" height="1536"><span class="fcard__t">Suplementação 2026</span></a>
-        <a class="fcard" href="#"><img src="index_assets/a24.jpg" alt="Skincare com inteligência" loading="lazy" width="1024" height="1536"><span class="fcard__t">Skincare com inteligência</span></a>
-        <a class="fcard" href="#"><img src="index_assets/a25.jpg" alt="Imunidade em alta" loading="lazy" width="1024" height="1536"><span class="fcard__t">Imunidade em alta</span></a>
-      </div>
-    </div>
-    <p class="blog__hint">Arraste ou use as setas para explorar →</p>
-    <div class="blog__cta reveal reveal--scale">
-      <a href="#" class="btn btn--solid">Ver todos os artigos</a>
-    </div>
-  </div>
-</section>
-
-<!-- ============ NEWSLETTER ============ -->
-<section class="news">
-  <div class="news__media" aria-hidden="true"><img src="index_assets/a26.png" alt=""></div>
-  <div class="container news__inner">
-    <div class="news__left reveal reveal--left" data-comment-anchor="586cdda32c-div">
-      <p class="news__eyebrow" data-comment-anchor="2920030e2e-p">RECEBA O MELHOR DA</p>
-      <h2 class="news__title" data-comment-anchor="0a26070dfb-h2">SAÚDE</h2>
-      <p class="news__copy">Conteúdos exclusivos, lançamentos e <strong>promoções</strong> que fazem a diferença na sua rotina de bem-estar.</p>
-    </div>
-    <div class="news__right reveal reveal--right">
-      <h3 class="news__formtitle">Inscreva-se na nossa newsletter</h3>
-      <p class="news__formsub">E fique por dentro de tudo em primeira mão.</p>
-      <form class="news__form" id="newsForm">
-        <input type="email" placeholder="Seu melhor e-mail" required="" aria-label="Seu melhor e-mail">
-        <button type="submit" class="btn btn--solid">Quero receber</button>
+    <div class="mapx__panel reveal reveal--left">
+      <p class="mapx__eyebrow">Nossas unidades</p>
+      <h1>Encontre uma loja</h1>
+      <p class="mapx__lead">São <b>87 unidades em 24 estados</b>. Busque pelo CEP, use sua localização ou explore o mapa.</p>
+      <form class="mapx__form" id="cepForm" autocomplete="off">
+        <div class="mapx__cep">
+          <input id="cepInput" inputmode="numeric" maxlength="9" placeholder="Digite seu CEP" aria-label="CEP">
+          <button type="submit" class="btn btn--solid">Buscar</button>
+        </div>
+        <div class="mapx__filters">
+          <select id="stateFilter" aria-label="Estado"><option value="">Estado</option></select>
+          <select id="cityFilter" aria-label="Cidade" disabled><option value="">Cidade</option></select>
+          <button type="button" id="clearBtn" class="ghost">Limpar</button>
+        </div>
+        <p class="mapx__status" id="status" role="status"></p>
       </form>
-      <p class="news__note">🔒 Seus dados estão seguros. Não enviamos spam.</p>
+      <div class="mapx__meta"><span class="mapx__count" id="count">Carregando…</span></div>
     </div>
-  </div>
-</section>
 
-<!-- ============ FOOTER ============ -->
+    <div class="mapx__railwrap reveal">
+      <div class="mapx__rail" id="rail" aria-label="Lista de unidades"></div>
+    </div>
+  </section>
+</main>
+
 <footer class="footer">
   <div class="container footer__inner">
     <div class="footer__brand" data-comment-anchor="01722db0dc-div">
@@ -1130,7 +1086,6 @@ ol,ul{margin:0;padding:0;list-style:none}
 
   </footer>
 
-<!-- ============ TWEAKS (controles expressivos) ============ -->
 <style id="tw-overrides">
   /* ---- PALETA ---- */
   html[data-tw-palette="oceano"]{
@@ -1204,18 +1159,11 @@ ol,ul{margin:0;padding:0;list-style:none}
 </style>
 
 
-
-
-
-
+<script src="encontre-uma-loja_assets/maplibre-gl.js"></script>
 <script src="index_assets/a28.js"></script>
-<script src="index_assets/a29.js"></script>
-<script src="index_assets/a30.js"></script>
-<script src="index_assets/a31.js"></script>
-<script src="index_assets/a32.js"></script>
+<script src="encontre-uma-loja_assets/finder3d.js"></script>
 
-
-<script id="unpack-rehydrate">(function(){var items=document.querySelectorAll("[data-faq-item]");items.forEach(function(it){var q=it.querySelector("[data-faq-q]"); if(!q)return; q.style.cursor="pointer";q.addEventListener("click",function(){var open=it.hasAttribute("data-open");document.querySelectorAll("[data-faq-item][data-open]").forEach(function(o){o.removeAttribute("data-open");});if(!open)it.setAttribute("data-open","");});});var dots=document.querySelectorAll("[data-dif-dot]");var groups=document.querySelectorAll("[data-dif-group]");var ranges=["01 \u2013 03","04 \u2013 06","07 \u2013 09"];function act(i){groups.forEach(function(g){ if(g.getAttribute("data-dif-group")===String(i)){g.setAttribute("data-active","");}else{g.removeAttribute("data-active");} });dots.forEach(function(d){ if(d.getAttribute("data-dif-dot")===String(i)){d.setAttribute("data-active","");}else{d.removeAttribute("data-active");} });document.querySelectorAll("[data-dif-range]").forEach(function(r){ if(ranges[i])r.textContent=ranges[i]; });}dots.forEach(function(d){ d.style.cursor="pointer"; d.addEventListener("click",function(){ act(parseInt(d.getAttribute("data-dif-dot"),10)); }); });})();</script><script id="polish-anim-safety">setTimeout(function(){
+<script id="polish-anim-safety">setTimeout(function(){
 var any=document.querySelector(".reveal.is-in,.ani-in");
 document.querySelectorAll(".reveal:not(.is-in)").forEach(function(el){
  if(!any||el.getBoundingClientRect().top<innerHeight)el.classList.add("is-in");});

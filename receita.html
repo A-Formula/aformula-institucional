@@ -271,8 +271,9 @@ ol,ul{margin:0;padding:0;list-style:none}
   transition:background .25s,border-color .25s,color .25s,transform .25s var(--ease)}
 .chip__arrow{font-size:1.05em;line-height:0;transition:transform .25s var(--ease)}
 .chip:hover .chip__arrow{transform:translateX(3px)}
-.chip--pet{background:transparent;color:var(--brand-deep);border:1px solid color-mix(in srgb,var(--brand) 50%,transparent)}
-.chip--pet:hover{background:color-mix(in srgb,var(--brand) 9%,transparent);border-color:var(--brand)}
+.chip--pet{background:#000;border:1px solid #000;padding:0 18px}
+.chip--pet img{height:22px;width:auto;display:block}
+.chip--pet:hover{background:#1c1c1c;border-color:#1c1c1c}
 .chip--gold{background:var(--brand);color:#fff}
 .chip--gold:hover{background:var(--brand-deep);color:#fff}
 .nav-toggle{display:none;flex-direction:column;gap:5px;padding:8px;margin-left:auto}
@@ -832,7 +833,24 @@ ol,ul{margin:0;padding:0;list-style:none}
   .dif2feat p{font-size:12.5px}
 }
 </style>
-<style id="unpack-reveal-fix">[data-fade]{opacity:1 !important;transform:none !important}.reveal{opacity:1 !important;transform:none !important}[data-reveal]{opacity:1 !important;transform:none !important}[data-photo]{clip-path:inset(0) !important;-webkit-clip-path:inset(0) !important;transform:none !important;opacity:1 !important}[data-faq-item][data-open] [data-faq-a]{max-height:1200px !important;opacity:1 !important;margin-top:14px !important}</style></head>
+<style id="unpack-reveal-fix">[data-fade]{opacity:1 !important;transform:none !important}html:not(.anim) .reveal{opacity:1 !important;transform:none !important}[data-reveal]{opacity:1 !important;transform:none !important}[data-photo]{clip-path:inset(0) !important;-webkit-clip-path:inset(0) !important;transform:none !important;opacity:1 !important}[data-faq-item][data-open] [data-faq-a]{max-height:1200px !important;opacity:1 !important;margin-top:14px !important}</style><meta name="theme-color" content="#008896">
+<link rel="canonical" href="https://aformula-institucional.vercel.app/receita.html">
+<meta property="og:site_name" content="A Fórmula">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:title" content="A Fórmula — Manipule sua receita">
+<meta property="og:description" content="Veja como é fácil enviar a sua receita para a A Fórmula. Tire uma foto, anexe no WhatsApp ou formulário e entraremos em contato o mais rápido possível.">
+<meta property="og:url" content="https://aformula-institucional.vercel.app/receita.html">
+<meta property="og:image" content="https://aformula-institucional.vercel.app/index_assets/a18.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<style id="polish-css">
+::selection{background:#008896;color:#fff}
+:focus-visible{outline:2.5px solid #4FB6C0;outline-offset:2px;border-radius:4px}
+@media(prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+.btn:active,.chip:active{transform:scale(.97)}
+</style>
+<script id="polish-anim">(function(){try{if("IntersectionObserver" in window&&!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("anim");}catch(_){}})();</script>
+</head>
 <body>
 
 <!-- ============ HEADER ============ -->
@@ -847,12 +865,12 @@ ol,ul{margin:0;padding:0;list-style:none}
         <a href="sobre-nos.html">Sobre nós</a>
         <a href="blog.html">Blog</a>
         <a href="area-do-prescritor.html">Área do prescritor</a>
-        <a href="#">Encontre uma loja</a>
-        <a href="#">Contato</a>
+        <a href="encontre-uma-loja.html">Encontre uma loja</a>
+        <a href="contato.html">Contato</a>
       </nav>
 
       <div class="nav-cta">
-        <a href="#" class="chip chip--pet">A Fórmula Pet <span class="chip__arrow" aria-hidden="true">→</span></a>
+        <a href="#" class="chip chip--pet"><img src="assets/logo-af-pet-branco.svg" alt="A Fórmula Pet"></a>
         <a href="receita.html" class="chip chip--gold">Manipule sua receita <span class="chip__arrow" aria-hidden="true">→</span></a>
       </div>
 
@@ -918,28 +936,28 @@ ol,ul{margin:0;padding:0;list-style:none}
     <div class="footer__brand">
       <img src="receita_assets/a17.png" alt="A Fórmula" class="footer__logo">
       <p>Há 37 anos transformando manipulação em ciência, cuidado e inovação.</p>
-      <a href="#" class="footer__franq">Seja um franqueado →</a>
+      <a href="https://franquia.aformulabr.com.br/seja-um-franqueado/" target="_blank" rel="noopener" class="footer__franq">Seja um franqueado →</a>
     </div>
     <nav class="footer__col">
       <h4>INSTITUCIONAL</h4>
       <a href="sobre-nos.html">Sobre nós</a>
       <a href="blog.html">Blog</a>
       <a href="area-do-prescritor.html">Área do prescritor</a>
-      <a href="#">LGPD</a>
+      <a href="https://aformulabr.com.br/lgpd/" target="_blank" rel="noopener">LGPD</a>
     </nav>
     <nav class="footer__col">
       <h4>FALE CONOSCO</h4>
-      <a href="#">Encontre uma loja</a>
+      <a href="encontre-uma-loja.html">Encontre uma loja</a>
       <a href="receita.html">Manipule sua receita</a>
       <a href="mailto:sac@aformulabr.com.br" class="is-gold">sac@aformulabr.com.br</a>
     </nav>
     <div class="footer__col">
       <h4>REDES SOCIAIS</h4>
       <div class="footer__social">
-        <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"></circle></svg></a>
-        <a href="#" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M15 3h-3a4 4 0 0 0-4 4v3H5v4h3v7h4v-7h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg></a>
-        <a href="#" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2.5" y="6" width="19" height="12" rx="4"></rect><path d="M10 9.5l5 2.5-5 2.5z" fill="currentColor" stroke="none"></path></svg></a>
-        <a href="#" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="3"></rect><path d="M7 10v7M7 7v.01M11 17v-4a2 2 0 0 1 4 0v4M11 17v-7"></path></svg></a>
+        <a href="https://www.instagram.com/aformulafarmacia/" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"></circle></svg></a>
+        <a href="https://www.facebook.com/aformulafarmacia" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M15 3h-3a4 4 0 0 0-4 4v3H5v4h3v7h4v-7h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg></a>
+        <a href="https://www.youtube.com/@aformulafarmacia" target="_blank" rel="noopener" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2.5" y="6" width="19" height="12" rx="4"></rect><path d="M10 9.5l5 2.5-5 2.5z" fill="currentColor" stroke="none"></path></svg></a>
+        <a href="https://www.linkedin.com/company/aformulafarmacia/" target="_blank" rel="noopener" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="3"></rect><path d="M7 10v7M7 7v.01M11 17v-4a2 2 0 0 1 4 0v4M11 17v-7"></path></svg></a>
       </div>
     </div>
   </div>
@@ -957,4 +975,9 @@ ol,ul{margin:0;padding:0;list-style:none}
 <script src="receita_assets/a18.js"></script>
 
 
-<script id="unpack-rehydrate">(function(){var items=document.querySelectorAll("[data-faq-item]");items.forEach(function(it){var q=it.querySelector("[data-faq-q]"); if(!q)return; q.style.cursor="pointer";q.addEventListener("click",function(){var open=it.hasAttribute("data-open");document.querySelectorAll("[data-faq-item][data-open]").forEach(function(o){o.removeAttribute("data-open");});if(!open)it.setAttribute("data-open","");});});var dots=document.querySelectorAll("[data-dif-dot]");var groups=document.querySelectorAll("[data-dif-group]");var ranges=["01 \u2013 03","04 \u2013 06","07 \u2013 09"];function act(i){groups.forEach(function(g){ if(g.getAttribute("data-dif-group")===String(i)){g.setAttribute("data-active","");}else{g.removeAttribute("data-active");} });dots.forEach(function(d){ if(d.getAttribute("data-dif-dot")===String(i)){d.setAttribute("data-active","");}else{d.removeAttribute("data-active");} });document.querySelectorAll("[data-dif-range]").forEach(function(r){ if(ranges[i])r.textContent=ranges[i]; });}dots.forEach(function(d){ d.style.cursor="pointer"; d.addEventListener("click",function(){ act(parseInt(d.getAttribute("data-dif-dot"),10)); }); });})();</script></body></html>
+<script id="unpack-rehydrate">(function(){var items=document.querySelectorAll("[data-faq-item]");items.forEach(function(it){var q=it.querySelector("[data-faq-q]"); if(!q)return; q.style.cursor="pointer";q.addEventListener("click",function(){var open=it.hasAttribute("data-open");document.querySelectorAll("[data-faq-item][data-open]").forEach(function(o){o.removeAttribute("data-open");});if(!open)it.setAttribute("data-open","");});});var dots=document.querySelectorAll("[data-dif-dot]");var groups=document.querySelectorAll("[data-dif-group]");var ranges=["01 \u2013 03","04 \u2013 06","07 \u2013 09"];function act(i){groups.forEach(function(g){ if(g.getAttribute("data-dif-group")===String(i)){g.setAttribute("data-active","");}else{g.removeAttribute("data-active");} });dots.forEach(function(d){ if(d.getAttribute("data-dif-dot")===String(i)){d.setAttribute("data-active","");}else{d.removeAttribute("data-active");} });document.querySelectorAll("[data-dif-range]").forEach(function(r){ if(ranges[i])r.textContent=ranges[i]; });}dots.forEach(function(d){ d.style.cursor="pointer"; d.addEventListener("click",function(){ act(parseInt(d.getAttribute("data-dif-dot"),10)); }); });})();</script><script id="polish-anim-safety">setTimeout(function(){
+var any=document.querySelector(".reveal.is-in,.ani-in");
+document.querySelectorAll(".reveal:not(.is-in)").forEach(function(el){
+ if(!any||el.getBoundingClientRect().top<innerHeight)el.classList.add("is-in");});
+},3000);</script>
+</body></html>
