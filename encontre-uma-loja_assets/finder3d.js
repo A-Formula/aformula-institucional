@@ -144,7 +144,7 @@
       }
     });
     /* folha A Fórmula dentro de cada pin */
-    map.loadImage("encontre-uma-loja_assets/folha-af.png").then(function (res) {
+    map.loadImage("encontre-uma-loja_assets/folha-af.webp").then(function (res) {
       if (!map.hasImage("af-leaf")) map.addImage("af-leaf", res.data, { pixelRatio: 2 });
       map.addLayer({
         id: "af-pin-leaf", source: "af-stores", type: "symbol",
