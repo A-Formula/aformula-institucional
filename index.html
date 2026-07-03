@@ -4,7 +4,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>A Fórmula — A ciência da personalização</title>
 <meta name="description" content="Há 37 anos transformamos a manipulação em ciência, cuidado e inovação. Fórmulas únicas para vidas únicas. Manipule sua receita com a maior rede magistral do Brasil.">
-<link rel="icon" href="index_assets/a1.png">
+<link rel="icon" href="index_assets/a1.webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com">
 <style>/* cyrillic */
@@ -885,7 +885,7 @@ ol,ul{margin:0;padding:0;list-style:none}
   <div class="navbar" data-comment-anchor="a109deeca9-div">
     <div class="container navbar__inner" data-comment-anchor="2cebb966d1-div">
       <a href="index.html" class="brand" aria-label="A Fórmula — página inicial">
-        <img src="index_assets/a17.png" alt="A Fórmula" class="brand__logo">
+        <img src="index_assets/a17.webp" alt="A Fórmula" class="brand__logo" decoding="async">
       </a>
 
       <nav class="main-nav" id="mainNav" aria-label="Navegação principal">
@@ -897,7 +897,7 @@ ol,ul{margin:0;padding:0;list-style:none}
       </nav>
 
       <div class="nav-cta">
-        <a href="pet.html" class="chip chip--pet" data-comment-anchor="6709e324f6-a"><img src="assets/logo-af-pet-branco.svg" alt="A Fórmula Pet"></a>
+        <a href="pet.html" class="chip chip--pet" data-comment-anchor="6709e324f6-a"><img src="assets/logo-af-pet-branco.svg" alt="A Fórmula Pet" decoding="async"></a>
         <a href="https://franquia.aformulabr.com.br/seja-um-franqueado/" target="_blank" rel="noopener" class="chip chip--gold" data-comment-anchor="bff5a4abe6-a">Seja um franqueado</a>
       </div>
 
@@ -911,7 +911,7 @@ ol,ul{margin:0;padding:0;list-style:none}
 <!-- ============ HERO ============ -->
 <section class="hero" id="topo">
   <div class="hero__media">
-    <img src="index_assets/a18.jpg" alt="Farmacêutica examinando cápsula em laboratório de manipulação A Fórmula" fetchpriority="high" width="1537" height="1023">
+    <img src="index_assets/a18.jpg" alt="Farmacêutica examinando cápsula em laboratório de manipulação A Fórmula" fetchpriority="high" width="1537" height="1023" loading="lazy" decoding="async">
     <div class="hero__overlay"></div>
     <div class="hero__glow" aria-hidden="true"></div>
   </div>
@@ -976,7 +976,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     </div>
   </div>
   <div class="anos__media">
-    <img class="anos__img" src="index_assets/a19.webp" alt="A Fórmula — 37 anos de manipulação, ciência e cuidado">
+    <img class="anos__img" src="index_assets/a19.webp" alt="A Fórmula — 37 anos de manipulação, ciência e cuidado" loading="lazy" decoding="async">
   </div>
 </section>
 
@@ -1002,7 +1002,7 @@ ol,ul{margin:0;padding:0;list-style:none}
         </div>
         <div class="rot__canvas" id="rotCanvas">
           <svg class="rot__svg" id="rotSvg" viewBox="0 0 1180 660" preserveAspectRatio="none" aria-hidden="true"></svg>
-          <div class="rot__product" id="rotProduct"><img id="rotImg" src="" alt=""></div>
+          <div class="rot__product" id="rotProduct"><img id="rotImg" src="" alt="" loading="lazy" decoding="async"></div>
           <div class="rot__nodes" id="rotNodes"></div>
         </div>
         <div class="rot__mobile" id="rotMobile"></div>
@@ -1113,7 +1113,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     {
       short: "Café Funcional", eyebrow: "☕ CAFÉ FUNCIONAL", headline: "CIÊNCIA NO RITUAL DIÁRIO",
       lead: "Une a tradição do café brasileiro a ativos funcionais selecionados, transformando o hábito mais comum do dia em estratégia de cuidado com a saúde.",
-      img: "index_assets/produto-cafe.png", imgH: "48%",
+      img: "index_assets/produto-cafe.webp", imgH: "48%",
       nodes: [
         { i: "target", t: "DOSE PRECISA E PADRONIZADA", d: "Cada cápsula entrega uma quantidade exata e estável de ativos, com reprodutibilidade, segurança e consistência a cada extração." },
         { i: "cup", t: "PRATICIDADE SEM ESFORÇO", d: "Compatível com máquinas do tipo Nespresso®: preparo rápido, limpo e padronizado, sem alterar a sua rotina." },
@@ -1190,7 +1190,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     svgEl.innerHTML = paths + dots;
     nodesEl.innerHTML = nodes;
 
-    var mob = '<div class="rot__mimg"><img src="' + p.img + '" alt="' + p.short + '"></div><div class="rot__mlist">';
+    var mob = '<div class="rot__mimg"><img src="' + p.img + '" alt="' + p.short + '" loading="lazy" decoding="async"></div><div class="rot__mlist">';
     p.nodes.forEach(function (nd) {
       mob += '<div class="rot__mrow"><div class="ic">' + icon(nd.i) + '</div><div><div class="t">' + nd.t + '</div><div class="d">' + nd.d + "</div></div></div>";
     });
@@ -1226,7 +1226,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     b.type = "button";
     b.className = "rot__thumb";
     b.setAttribute("role", "tab");
-    b.innerHTML = '<span class="rot__ring"><span><img src="' + p.img + '" alt=""></span></span><span class="rot__tlabel">' + p.short + "</span>";
+    b.innerHTML = '<span class="rot__ring"><span><img src="' + p.img + '" alt="" loading="lazy" decoding="async"></span></span><span class="rot__tlabel">' + p.short + "</span>";
     b.addEventListener("click", function () { changeTo(i); });
     thumbsEl.appendChild(b);
   });
@@ -1265,11 +1265,11 @@ ol,ul{margin:0;padding:0;list-style:none}
 
     <div class="blog__gallery" id="blogGallery" aria-label="Galeria de artigos do blog A Fórmula" tabindex="0" style="--cgal-cw: 300px;">
       <div class="blog__fallback">
-        <a class="fcard" href="#"><img src="index_assets/a21.jpg" alt="Creatina na vida da mulher" loading="lazy" width="1024" height="1536"><span class="fcard__t">Creatina na vida da mulher</span></a>
-        <a class="fcard" href="#"><img src="index_assets/a22.jpg" alt="Início do outono" loading="lazy" width="1024" height="1536"><span class="fcard__t">Início do Outono</span></a>
-        <a class="fcard" href="#"><img src="index_assets/a23.jpg" alt="Suplementação 2026" loading="lazy" width="1024" height="1536"><span class="fcard__t">Suplementação 2026</span></a>
-        <a class="fcard" href="#"><img src="index_assets/a24.jpg" alt="Skincare com inteligência" loading="lazy" width="1024" height="1536"><span class="fcard__t">Skincare com inteligência</span></a>
-        <a class="fcard" href="#"><img src="index_assets/a25.jpg" alt="Imunidade em alta" loading="lazy" width="1024" height="1536"><span class="fcard__t">Imunidade em alta</span></a>
+        <a class="fcard" href="#"><img src="index_assets/a21.jpg" alt="Creatina na vida da mulher" loading="lazy" width="1024" height="1536" decoding="async"><span class="fcard__t">Creatina na vida da mulher</span></a>
+        <a class="fcard" href="#"><img src="index_assets/a22.jpg" alt="Início do outono" loading="lazy" width="1024" height="1536" decoding="async"><span class="fcard__t">Início do Outono</span></a>
+        <a class="fcard" href="#"><img src="index_assets/a23.jpg" alt="Suplementação 2026" loading="lazy" width="1024" height="1536" decoding="async"><span class="fcard__t">Suplementação 2026</span></a>
+        <a class="fcard" href="#"><img src="index_assets/a24.jpg" alt="Skincare com inteligência" loading="lazy" width="1024" height="1536" decoding="async"><span class="fcard__t">Skincare com inteligência</span></a>
+        <a class="fcard" href="#"><img src="index_assets/a25.jpg" alt="Imunidade em alta" loading="lazy" width="1024" height="1536" decoding="async"><span class="fcard__t">Imunidade em alta</span></a>
       </div>
     </div>
     <p class="blog__hint">Arraste ou use as setas para explorar →</p>
@@ -1281,7 +1281,7 @@ ol,ul{margin:0;padding:0;list-style:none}
 
 <!-- ============ NEWSLETTER ============ -->
 <section class="news">
-  <div class="news__media" aria-hidden="true"><img src="index_assets/a26.png" alt=""></div>
+  <div class="news__media" aria-hidden="true"><img src="index_assets/a26.webp" alt="" loading="lazy" decoding="async"></div>
   <div class="container news__inner">
     <div class="news__left reveal reveal--left" data-comment-anchor="586cdda32c-div">
       <p class="news__eyebrow" data-comment-anchor="2920030e2e-p">RECEBA O MELHOR DA</p>
@@ -1304,7 +1304,7 @@ ol,ul{margin:0;padding:0;list-style:none}
 <footer class="footer">
   <div class="container footer__inner">
     <div class="footer__brand" data-comment-anchor="01722db0dc-div">
-      <img src="index_assets/a27.png" alt="A Fórmula" class="footer__logo">
+      <img src="index_assets/a27.webp" alt="A Fórmula" class="footer__logo" loading="lazy" decoding="async">
       <p>Há 37 anos transformando manipulação em ciência, cuidado e inovação.</p>
       <a href="https://franquia.aformulabr.com.br/seja-um-franqueado/" target="_blank" rel="noopener" class="footer__franq">Seja um franqueado →</a>
     </div>
