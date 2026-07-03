@@ -9,3 +9,5 @@ v2/
 v3/
 _blueprint/
 *.zip
+
+.vercel
