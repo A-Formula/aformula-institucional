@@ -271,10 +271,10 @@ ol,ul{margin:0;padding:0;list-style:none}
   transition:background .25s,border-color .25s,color .25s,transform .25s var(--ease)}
 .chip__arrow{font-size:1.05em;line-height:0;transition:transform .25s var(--ease)}
 .chip:hover .chip__arrow{transform:translateX(3px)}
-.chip--pet{background:#000;border:1px solid #000;padding:0 18px}
-.chip--pet img{height:30px;width:auto;display:block}
+.chip--pet{background:#000;border:1px solid #000;padding:0 18px;min-width:174px}
+.chip--pet img{height:34px;width:auto;display:block}
 .chip--pet:hover{background:#1c1c1c;border-color:#1c1c1c}
-.chip--gold{background:var(--brand);color:#fff}
+.chip--gold{background:var(--brand);color:#fff;min-width:174px}
 .chip--gold:hover{background:var(--brand-deep);color:#fff}
 .nav-toggle{display:none;flex-direction:column;gap:5px;padding:8px;margin-left:auto}
 .nav-toggle span{width:26px;height:2px;background:#16282b;border-radius:2px;transition:.3s}
@@ -971,7 +971,7 @@ ol,ul{margin:0;padding:0;list-style:none}
       <p class="eyebrow-mark">HÁ <strong>37 ANOS</strong></p>
       <h2 class="anos__title">PREZANDO PELO<br><strong data-comment-anchor="c070a4511d-strong">seu bem estar</strong></h2>
       <p class="anos__text">Nossa fórmula é resultado da paixão incansável por oferecer produtos e serviços de qualidade. Ao longo dessas mais de três décadas, aprendemos que não há atalhos para o sucesso, mas sim uma mistura cuidadosa de dedicação, inovação e compromisso com a excelência.</p>
-      <p class="anos__highlight">São 37 anos cuidando de pessoas e transformando vidas.</p>
+      <p class="anos__highlight">São 37 anos cuidando de pessoas<br>e transformando vidas.</p>
       <a href="sobre-nos.html" class="btn btn--ghost-teal">SAIBA MAIS →</a>
     </div>
   </div>
@@ -981,7 +981,7 @@ ol,ul{margin:0;padding:0;list-style:none}
 </section>
 
 <!-- ============ NOSSOS DIFERENCIAIS ============ -->
-<section class="dif2">
+<section class="dif2 dif2--rot" id="diferenciais">
   <div class="sec-fx" aria-hidden="true">
     <span class="fx-blob fx-blob--1"></span>
     <span class="fx-blob fx-blob--2"></span>
@@ -991,52 +991,264 @@ ol,ul{margin:0;padding:0;list-style:none}
       <p class="dif__eyebrow">CONHEÇA</p>
       <h2 class="dif__title">NOSSOS DIFERENCIAIS</h2>
       <span class="dif__rule" aria-hidden="true"></span>
-      <p class="dif__sub">Excelência, inovação e cuidado em cada detalhe para entregar saúde e bem-estar todos os dias.</p>
     </header>
 
-    <div class="dif2__layout"><svg class="dif2__wires" aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 1112 529" width="1112" height="529"><path d="M357.2,26.1 H437.2 L556.0,264.6"></path><circle r="3.4" cx="357.2" cy="26.1"></circle><path d="M357.2,217.2 H437.2 L556.0,264.6"></path><circle r="3.4" cx="357.2" cy="217.2"></circle><path d="M357.2,388.0 H437.2 L556.0,264.6"></path><circle r="3.4" cx="357.2" cy="388.0"></circle><path d="M754.8,16.0 H674.8 L556.0,264.6"></path><circle r="3.4" cx="754.8" cy="16.0"></circle><path d="M754.8,207.0 H674.8 L556.0,264.6"></path><circle r="3.4" cx="754.8" cy="207.0"></circle><path d="M754.8,398.1 H674.8 L556.0,264.6"></path><circle r="3.4" cx="754.8" cy="398.1"></circle></svg>
-      <div class="dif2__col dif2__col--left">
-        <article class="dif2feat reveal reveal--left">
-          <span class="dif2feat__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m14.5 12.5 2-2M11.5 9.5l2-2M8.5 6.5l2-2M17.5 15.5l2-2"></path></svg></span>
-          <h3>PERSONALIZAÇÃO<br>SOB MEDIDA</h3>
-          <p>Cada atendimento é moldado para as necessidades exclusivas de cada pessoa.</p>
-        </article>
-        <article class="dif2feat reveal reveal--left">
-          <span class="dif2feat__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"></path></svg></span>
-          <h3>COMBINAÇÕES<br>ÚNICAS</h3>
-          <p>Combinações únicas de ingredientes ativos para resultados eficazes.</p>
-        </article>
-        <article class="dif2feat reveal reveal--left">
-          <span class="dif2feat__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2 21c0-3 1.85-5.36 5.08-6"></path></svg></span>
-          <h3>INGREDIENTES NATURAIS<br>DE ALTA QUALIDADE</h3>
-          <p>Ingredientes de alta pureza, com segurança, eficácia e bem-estar garantidos.</p>
-        </article>
+    <div class="rot" id="rotStage">
+      <div class="rot__fade" id="rotFade">
+        <div class="rot__head">
+          <p class="rot__eyebrow" id="rotEyebrow"></p>
+          <h3 class="rot__headline" id="rotHeadline"></h3>
+          <p class="rot__lead" id="rotLead"></p>
+        </div>
+        <div class="rot__canvas" id="rotCanvas">
+          <svg class="rot__svg" id="rotSvg" viewBox="0 0 1180 660" preserveAspectRatio="none" aria-hidden="true"></svg>
+          <div class="rot__product" id="rotProduct"><img id="rotImg" src="" alt=""></div>
+          <div class="rot__nodes" id="rotNodes"></div>
+        </div>
+        <div class="rot__mobile" id="rotMobile"></div>
       </div>
-
-      <div class="dif2__bottle reveal reveal--scale">
-        <img src="index_assets/a20.webp" alt="Pote teal A Fórmula com cápsulas manipuladas" width="615" height="1000" data-comment-anchor="e019eb2259-img">
-      </div>
-
-      <div class="dif2__col dif2__col--right">
-        <article class="dif2feat reveal reveal--right">
-          <span class="dif2feat__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M5.636 18.364l3.536-3.536m5.656 0l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.172a4 4 0 105.656-5.656 4 4 0 00-5.656 5.656z"></path></svg></span>
-          <h3>TECNOLOGIA DE<br>LIBERAÇÃO CONTROLADA</h3>
-          <p>Benefícios prolongados e absorção otimizada para resultados consistentes e duradouros.</p>
-        </article>
-        <article class="dif2feat reveal reveal--right">
-          <span class="dif2feat__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg></span>
-          <h3>EQUIPE<br>ESPECIALIZADA</h3>
-          <p>Corpo técnico de farmacêuticos especialistas em farmácia clínica, cosmetologia e magistral.</p>
-        </article>
-        <article class="dif2feat reveal reveal--right">
-          <span class="dif2feat__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21H3m15-4v-4m0 4h3m-3 0h-3m-6-4l3-3m-3 3l-3-3m3 3V5a2 2 0 012-2h2a2 2 0 012 2v2"></path></svg></span>
-          <h3>INOVAÇÃO<br>CONSTANTE</h3>
-          <p>Departamento operacional exclusivo de pesquisa e desenvolvimento sempre à frente.</p>
-        </article>
-      </div>
+      <div class="rot__thumbs" id="rotThumbs" role="tablist" aria-label="Produtos A Fórmula"></div>
     </div>
   </div>
 </section>
+
+<style id="dif2x-css">
+.dif2--rot .dif2__head{margin-bottom:clamp(10px,2vw,18px)}
+.rot__head{text-align:center;max-width:660px;margin:0 auto}
+.rot__eyebrow{font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--brand,#008896)}
+.rot__headline{font-size:clamp(22px,3vw,34px);line-height:1.08;letter-spacing:-.015em;font-weight:600;color:#1A2A2E;margin:10px auto 0;max-width:480px;text-wrap:balance}
+.rot__lead{font-size:14.5px;line-height:1.55;color:#43565B;margin:12px auto 0;max-width:540px;text-wrap:pretty}
+.rot__fade{transition:opacity .18s ease}
+.rot[data-out] .rot__fade{opacity:0}
+.rot__canvas{position:relative;width:100%;max-width:860px;margin:8px auto 0;aspect-ratio:1180/660}
+.rot__svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:1}
+.rot__svg path{fill:none;stroke:var(--brand,#008896);stroke-width:1;opacity:.5}
+.rot__svg circle{fill:var(--brand,#008896)}
+.rot__product{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:42%;height:100%;
+  display:flex;align-items:center;justify-content:center;z-index:2}
+.rot__product img{width:auto;max-width:100%;object-fit:contain;display:block;
+  filter:drop-shadow(0 18px 30px rgba(20,50,55,.16));animation:rotFloat 6s ease-in-out infinite}
+.rot__node{position:absolute;width:27.29%;transform:translateY(-50%);z-index:3}
+.rot__node--l{text-align:right}
+.rot__node--r{text-align:left}
+.rot__node .ic{display:flex;margin-bottom:9px}
+.rot__node--l .ic{justify-content:flex-end}
+.rot__node--r .ic{justify-content:flex-start}
+.rot__node .t{font-size:11.5px;font-weight:700;letter-spacing:.12em;line-height:1.32;text-transform:uppercase;color:var(--brand,#008896)}
+.rot__node .d{font-size:11.5px;line-height:1.46;color:#43565B;margin-top:6px;text-wrap:pretty}
+.rot__mobile{display:none}
+.rot__thumbs{display:flex;gap:30px;justify-content:center;align-items:flex-start;margin-top:14px;padding:8px 0}
+.rot__thumb{background:none;border:none;padding:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;flex:none;font-family:inherit}
+.rot__ring{width:64px;height:64px;border-radius:50%;padding:3px;box-sizing:border-box;background:transparent;
+  transition:transform .25s ease,box-shadow .25s ease}
+.rot__thumb.is-active .rot__ring{transform:scale(1.08);box-shadow:0 8px 22px rgba(0,80,90,.2)}
+.rot__ring>span{display:flex;width:100%;height:100%;border-radius:50%;background:#fff;border:1px solid rgba(0,136,150,.16);
+  overflow:hidden;align-items:center;justify-content:center}
+.rot__ring img{width:78%;height:78%;object-fit:contain}
+.rot__tlabel{margin-top:11px;font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;font-weight:500;color:#8b9a9d;
+  transition:color .2s ease;white-space:nowrap}
+.rot__thumb.is-active .rot__tlabel{font-weight:600;color:var(--brand,#008896)}
+@keyframes rotDraw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes rotDot{from{opacity:0;transform:scale(0)}to{opacity:1;transform:scale(1)}}
+@keyframes rotUp{from{opacity:0;transform:translateY(-50%) translateY(12px)}to{opacity:1;transform:translateY(-50%)}}
+@keyframes rotFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@media (max-width:900px){
+  .rot__canvas{display:none}
+  .rot__mobile{display:block;margin:24px auto 0;max-width:520px}
+  .rot__mimg{display:flex;justify-content:center;margin-bottom:8px}
+  .rot__mimg img{height:200px;width:auto;max-width:70%;object-fit:contain;filter:drop-shadow(0 14px 24px rgba(20,50,55,.16))}
+  .rot__mlist{display:flex;flex-direction:column;gap:26px;margin-top:18px}
+  .rot__mrow{display:flex;gap:16px;align-items:flex-start}
+  .rot__mrow .ic{flex:none;width:40px;height:40px;border-radius:50%;border:1px solid rgba(0,136,150,.22);display:flex;align-items:center;justify-content:center}
+  .rot__mrow .t{font-size:12px;font-weight:700;letter-spacing:.12em;line-height:1.34;text-transform:uppercase;color:var(--brand,#008896)}
+  .rot__mrow .d{font-size:13.5px;line-height:1.6;color:#43565B;margin-top:6px}
+  .rot__thumbs{justify-content:flex-start;overflow-x:auto;padding:8px 4px 16px;scrollbar-width:none}
+  .rot__thumbs::-webkit-scrollbar{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  .rot__product img{animation:none}
+  .rot__svg path,.rot__svg circle,.rot__node{animation:none !important;opacity:1 !important}
+}
+</style>
+
+<script id="dif2x-js">
+(function () {
+  "use strict";
+  var stage = document.getElementById("rotStage");
+  if (!stage) return;
+  var fadeEl = document.getElementById("rotFade"),
+      eyeEl = document.getElementById("rotEyebrow"),
+      hlEl = document.getElementById("rotHeadline"),
+      leadEl = document.getElementById("rotLead"),
+      svgEl = document.getElementById("rotSvg"),
+      imgEl = document.getElementById("rotImg"),
+      prodEl = document.getElementById("rotProduct"),
+      nodesEl = document.getElementById("rotNodes"),
+      mobEl = document.getElementById("rotMobile"),
+      thumbsEl = document.getElementById("rotThumbs");
+
+  function icon(name) {
+    var C = {
+      target: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>',
+      cup: '<path d="M6.5 9.5h11v4.5a4 4 0 0 1-4 4h-3a4 4 0 0 1-4-4z"/><path d="M17.5 10.5h1.4a2 2 0 0 1 0 4h-1"/><path d="M9 3.5v2.4M12 3v3M15 3.5v2.4"/>',
+      clock: '<circle cx="12" cy="12" r="8"/><path d="M12 8v4.2l3 1.6"/>',
+      layers: '<path d="M12 3.2l8 4-8 4-8-4z"/><path d="M4 11.6l8 4 8-4"/><path d="M4 15.6l8 4 8-4"/>',
+      waves: '<path d="M4 9c2.5-2.6 5 2.6 7.5 0S16.5 6.4 20 9"/><path d="M4 13c2.5-2.6 5 2.6 7.5 0S16.5 10.4 20 13"/><path d="M4 17c2.5-2.6 5 2.6 7.5 0S16.5 14.4 20 17"/>',
+      biphase: '<circle cx="12" cy="12" r="8"/><path d="M4.5 13.2h15"/><circle cx="9" cy="9" r="1.1" fill="#008896" stroke="none"/><circle cx="14.5" cy="16" r="1.1" fill="#008896" stroke="none"/>',
+      hex: '<path d="M12 3l7.5 4.3v8.6L12 20.2 4.5 15.9V7.3z"/><circle cx="12" cy="12" r="2.3"/>',
+      sparkle: '<path d="M12 3.4l2.3 6.3 6.3 2.3-6.3 2.3L12 20.6l-2.3-6.3L3.4 12l6.3-2.3z"/>',
+      sliders: '<path d="M4 8.5h16M4 15.5h16"/><circle cx="9" cy="8.5" r="2.2" fill="#fff"/><circle cx="15" cy="15.5" r="2.2" fill="#fff"/>',
+      flask: '<path d="M9.5 3.5v5.2l-4.7 8.4a2 2 0 0 0 1.8 3h10.8a2 2 0 0 0 1.8-3l-4.7-8.4V3.5"/><path d="M8 3.5h8"/><path d="M7.6 15h8.8"/>',
+      eye: '<path d="M2.5 12s3.8-6 9.5-6 9.5 6 9.5 6-3.8 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.5"/>',
+      ruler: '<path d="M3.5 8h17v8h-17z"/><path d="M7.5 8v3M11 8v4M14.5 8v3M18 8v4"/>',
+      venn: '<circle cx="9.5" cy="12" r="5"/><circle cx="14.5" cy="12" r="5"/>',
+      people: '<circle cx="9" cy="8.5" r="3"/><circle cx="16.5" cy="9.5" r="2.3"/><path d="M3.8 19a5.2 5.2 0 0 1 10.4 0"/><path d="M15.4 19a4 4 0 0 1 4.8-3.6"/>',
+      leaf: '<path d="M5 19C5 11 11 5 19 5c0 8-6 14-14 14z"/><path d="M8.5 15.5c2.2-4 5-6.2 8.2-7.4"/>',
+      bulb: '<path d="M9.3 17.5h5.4M10.3 20.5h3.4"/><path d="M12 3.2a5.8 5.8 0 0 1 3.8 10.2c-1 .9-1.5 1.8-1.6 2.8h-4.4c-.1-1-.6-1.9-1.6-2.8A5.8 5.8 0 0 1 12 3.2z"/>'
+    };
+    return '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#008896" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' + (C[name] || "") + "</svg>";
+  }
+
+  var DATA = [
+    {
+      short: "Café Funcional", eyebrow: "☕ CAFÉ FUNCIONAL", headline: "CIÊNCIA NO RITUAL DIÁRIO",
+      lead: "Une a tradição do café brasileiro a ativos funcionais selecionados, transformando o hábito mais comum do dia em estratégia de cuidado com a saúde.",
+      img: "index_assets/produto-cafe.png", imgH: "48%",
+      nodes: [
+        { i: "target", t: "DOSE PRECISA E PADRONIZADA", d: "Cada cápsula entrega uma quantidade exata e estável de ativos, com reprodutibilidade, segurança e consistência a cada extração." },
+        { i: "cup", t: "PRATICIDADE SEM ESFORÇO", d: "Compatível com máquinas do tipo Nespresso®: preparo rápido, limpo e padronizado, sem alterar a sua rotina." },
+        { i: "clock", t: "PROPÓSITO PARA CADA MOMENTO", d: "Blends pensados para foco, energia, suporte metabólico, equilíbrio ou relaxamento — respeitando a necessidade individual e a hora do dia." },
+        { i: "layers", t: "UM GESTO, VÁRIOS BENEFÍCIOS", d: "Substitui múltiplos suplementos isolados e preparações complexas: o benefício funcional vem junto com o café que você já toma." },
+        { i: "waves", t: "EXPERIÊNCIA SENSORIAL PRESERVADA", d: "Aroma marcante, sabor equilibrado e corpo ideal — toda a tecnologia nutricional sem abrir mão do prazer do café." }
+      ]
+    },
+    {
+      short: "Dermacream", eyebrow: "🧴 DERMACREAM", headline: "DERMOCOSMÉTICA INTELIGENTE",
+      lead: "Uma nova geração de cosméticos magistrais que une estabilidade, eficácia e prazer sensorial em cada aplicação.",
+      img: "index_assets/derma-jar-2.webp", imgH: "46%",
+      nodes: [
+        { i: "biphase", t: "SISTEMA BIFÁSICO", d: "Cápsulas cremosas suspensas em gel: os ativos ficam protegidos até a aplicação, com liberação otimizada na pele." },
+        { i: "hex", t: "ATIVOS CONCENTRADOS", d: "Ingredientes dermatológicos de alta performance, em concentração eficaz para resultados visíveis." },
+        { i: "sparkle", t: "TEXTURA SENSORIAL PREMIUM", d: "Toque sofisticado e experiência diferenciada, com estética inspirada nos melhores dermocosméticos coreanos." },
+        { i: "sliders", t: "APLICAÇÃO PERSONALIZÁVEL", d: "A proporção entre cápsula e gel se ajusta ao seu tipo de pele — oleosa, seca, mista ou sensível." },
+        { i: "flask", t: "TECNOLOGIA FARMACOTÉCNICA", d: "Inovação magistral que une estabilidade, eficácia e liberação otimizada em uma nova geração de cosméticos inteligentes." },
+        { i: "eye", t: "ESTÉTICA VISUAL ÚNICA", d: "Cápsulas coloridas suspensas no gel: beleza que se vê no pote e se sente na pele." }
+      ]
+    },
+    {
+      short: "Cápsulas A Fórmula", eyebrow: "💊 CÁPSULAS A FÓRMULA", headline: "MANIPULAÇÃO SOB MEDIDA",
+      lead: "Fórmulas personalizadas com tecnologia de liberação controlada, desenvolvidas por um corpo técnico especializado.",
+      img: "index_assets/produto-capsulas.webp", imgH: "66%",
+      nodes: [
+        { i: "ruler", t: "PERSONALIZAÇÃO SOB MEDIDA", d: "Cada atendimento é moldado para as necessidades exclusivas de cada pessoa." },
+        { i: "clock", t: "TECNOLOGIA DE LIBERAÇÃO CONTROLADA", d: "Benefícios prolongados e absorção otimizada para resultados consistentes e duradouros." },
+        { i: "venn", t: "COMBINAÇÕES ÚNICAS", d: "Combinações únicas de ingredientes ativos para resultados eficazes." },
+        { i: "people", t: "EQUIPE ESPECIALIZADA", d: "Corpo técnico de farmacêuticos especialistas em farmácia clínica, cosmetologia e magistral." },
+        { i: "leaf", t: "INGREDIENTES NATURAIS DE ALTA QUALIDADE", d: "Ingredientes de alta pureza, com segurança, eficácia e bem-estar garantidos." },
+        { i: "bulb", t: "INOVAÇÃO CONSTANTE", d: "Departamento operacional exclusivo de pesquisa e desenvolvimento sempre à frente." }
+      ]
+    }
+  ];
+
+  var W = 1180, H = 660, CX = 590, CY = 330;
+  var DUR = 7000;
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var index = 2, elapsed = 0, paused = false, swapping = false, ringEl = null, last = performance.now();
+
+  function slots(n) {
+    return n === 5
+      ? [{ s: "L", y: 120 }, { s: "L", y: 330 }, { s: "L", y: 540 }, { s: "R", y: 225 }, { s: "R", y: 435 }]
+      : [{ s: "L", y: 110 }, { s: "L", y: 330 }, { s: "L", y: 550 }, { s: "R", y: 110 }, { s: "R", y: 330 }, { s: "R", y: 550 }];
+  }
+  function pct(v, total) { return (v / total * 100).toFixed(3) + "%"; }
+
+  function render() {
+    var p = DATA[index];
+    eyeEl.textContent = p.eyebrow;
+    hlEl.textContent = p.headline;
+    leadEl.textContent = p.lead;
+
+    imgEl.src = p.img;
+    imgEl.alt = p.short;
+    imgEl.style.height = p.imgH;
+
+    var sl = slots(p.nodes.length), paths = "", dots = "", nodes = "";
+    p.nodes.forEach(function (nd, i) {
+      var s = sl[i], dx = s.s === "L" ? 378 : 802, dy = s.y;
+      var c1x = CX + (dx - CX) * 0.5, c2x = dx - (dx - CX) * 0.5;
+      var anim = reduced ? "" : ' style="stroke-dasharray:1;stroke-dashoffset:1;animation:rotDraw .55s ease forwards;animation-delay:' + (0.12 + i * 0.05) + 's"';
+      paths += '<path pathLength="1" d="M' + CX + " " + CY + " C " + c1x.toFixed(1) + " " + CY + " " + c2x.toFixed(1) + " " + dy + " " + dx + " " + dy + '"' + anim + "></path>";
+      var danim = reduced ? "" : ' style="opacity:0;transform-box:fill-box;transform-origin:center;animation:rotDot .3s ease forwards;animation-delay:' + (0.48 + i * 0.05) + 's"';
+      dots += '<circle cx="' + dx + '" cy="' + dy + '" r="3.5"' + danim + "></circle>";
+      var left = s.s === "L" ? 40 : 840;
+      var nanim = reduced ? "" : "animation:rotUp .5s ease both;animation-delay:" + (0.15 + i * 0.05) + "s;";
+      nodes += '<div class="rot__node rot__node--' + s.s.toLowerCase() + '" style="left:' + pct(left, W) + ";top:" + pct(dy, H) + ";" + nanim + '">' +
+        '<div class="ic">' + icon(nd.i) + "</div>" +
+        '<div class="t">' + nd.t + "</div>" +
+        '<div class="d">' + nd.d + "</div></div>";
+    });
+    svgEl.innerHTML = paths + dots;
+    nodesEl.innerHTML = nodes;
+
+    var mob = '<div class="rot__mimg"><img src="' + p.img + '" alt="' + p.short + '"></div><div class="rot__mlist">';
+    p.nodes.forEach(function (nd) {
+      mob += '<div class="rot__mrow"><div class="ic">' + icon(nd.i) + '</div><div><div class="t">' + nd.t + '</div><div class="d">' + nd.d + "</div></div></div>";
+    });
+    mobEl.innerHTML = mob + "</div>";
+
+    Array.prototype.forEach.call(thumbsEl.children, function (b, i) {
+      b.classList.toggle("is-active", i === index);
+      b.setAttribute("aria-selected", i === index ? "true" : "false");
+      var ring = b.querySelector(".rot__ring");
+      ring.style.background = i === index ? "conic-gradient(#008896 0deg, rgba(0,136,150,0.14) 0)" : "transparent";
+    });
+    ringEl = thumbsEl.children[index] ? thumbsEl.children[index].querySelector(".rot__ring") : null;
+  }
+
+  function changeTo(i) {
+    if (i === index || swapping) return;
+    elapsed = 0;
+    if (reduced) { index = i; render(); return; }
+    swapping = true;
+    stage.setAttribute("data-out", "");
+    setTimeout(function () {
+      index = i;
+      render();
+      stage.removeAttribute("data-out");
+      swapping = false;
+      elapsed = 0;
+      last = performance.now();
+    }, 180);
+  }
+
+  DATA.forEach(function (p, i) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "rot__thumb";
+    b.setAttribute("role", "tab");
+    b.innerHTML = '<span class="rot__ring"><span><img src="' + p.img + '" alt=""></span></span><span class="rot__tlabel">' + p.short + "</span>";
+    b.addEventListener("click", function () { changeTo(i); });
+    thumbsEl.appendChild(b);
+  });
+
+  stage.addEventListener("mouseenter", function () { paused = true; });
+  stage.addEventListener("mouseleave", function () { paused = false; last = performance.now(); });
+
+  function tick(now) {
+    var dt = now - last; last = now;
+    if (!paused && !reduced && !swapping) {
+      elapsed += dt;
+      var pr = Math.min(elapsed / DUR, 1);
+      if (ringEl) ringEl.style.background = "conic-gradient(#008896 " + (pr * 360).toFixed(1) + "deg, rgba(0,136,150,0.14) 0)";
+      if (pr >= 1) { elapsed = 0; changeTo((index + 1) % DATA.length); }
+    }
+    requestAnimationFrame(tick);
+  }
+
+  render();
+  if (!reduced) requestAnimationFrame(tick);
+})();
+</script>
 
 <!-- ============ BLOG ============ -->
 <section class="blog" id="blog" data-comment-anchor="b7a75450d6-section">
@@ -1106,7 +1318,6 @@ ol,ul{margin:0;padding:0;list-style:none}
     <nav class="footer__col" data-comment-anchor="67cf712b9a-nav">
       <h4>FALE CONOSCO</h4>
       <a href="encontre-uma-loja.html">Encontre uma loja</a>
-      <a href="receita.html" class="btn btn--solid" style="margin-top:16px;align-self:flex-start;width:fit-content;">Manipule sua receita</a>
       <a href="mailto:sac@aformulabr.com.br" class="is-gold">sac@aformulabr.com.br</a>
     </nav>
     <div class="footer__col">

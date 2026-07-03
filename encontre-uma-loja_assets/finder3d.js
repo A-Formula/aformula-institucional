@@ -138,18 +138,33 @@
     map.addLayer({
       id: "af-pin-dot", source: "af-stores", type: "circle",
       paint: {
-        "circle-radius": 7, "circle-color": "#008896",
+        "circle-radius": 9, "circle-color": "#008896",
         "circle-stroke-width": 2.5, "circle-stroke-color": "#ffffff",
         "circle-pitch-alignment": "viewport"
       }
     });
-    map.on("click", "af-pin-dot", function (e) {
-      var id = e.features[0].properties.id;
-      var s = STORES.filter(function (x) { return x.id === id; })[0];
-      if (s) focusStore(s, true);
+    /* folha A Fórmula dentro de cada pin */
+    map.loadImage("encontre-uma-loja_assets/folha-af.png").then(function (res) {
+      if (!map.hasImage("af-leaf")) map.addImage("af-leaf", res.data, { pixelRatio: 2 });
+      map.addLayer({
+        id: "af-pin-leaf", source: "af-stores", type: "symbol",
+        layout: {
+          "icon-image": "af-leaf", "icon-size": 0.48,
+          "icon-allow-overlap": true, "icon-ignore-placement": true,
+          "icon-pitch-alignment": "viewport", "icon-rotation-alignment": "viewport"
+        }
+      });
+      if (leafFilter) map.setFilter("af-pin-leaf", leafFilter);
+    }).catch(function () {});
+    ["af-pin-dot", "af-pin-leaf"].forEach(function (layer) {
+      map.on("click", layer, function (e) {
+        var id = e.features[0].properties.id;
+        var s = STORES.filter(function (x) { return x.id === id; })[0];
+        if (s) focusStore(s, true);
+      });
+      map.on("mouseenter", layer, function () { map.getCanvas().style.cursor = "pointer"; });
+      map.on("mouseleave", layer, function () { map.getCanvas().style.cursor = ""; });
     });
-    map.on("mouseenter", "af-pin-dot", function () { map.getCanvas().style.cursor = "pointer"; });
-    map.on("mouseleave", "af-pin-dot", function () { map.getCanvas().style.cursor = ""; });
     requestAnimationFrame(pulse);
   }
 
@@ -170,9 +185,14 @@
     var col = activeId != null
       ? ["case", ["==", ["get", "id"], activeId], "#4FB6C0", "#008896"] : "#008896";
     var rad = activeId != null
-      ? ["case", ["==", ["get", "id"], activeId], 10, 7] : 7;
+      ? ["case", ["==", ["get", "id"], activeId], 12, 9] : 9;
     map.setPaintProperty("af-pin-dot", "circle-color", col);
     map.setPaintProperty("af-pin-dot", "circle-radius", rad);
+    if (map.getLayer("af-pin-leaf")) {
+      var sz = activeId != null
+        ? ["case", ["==", ["get", "id"], activeId], 0.64, 0.48] : 0.48;
+      map.setLayoutProperty("af-pin-leaf", "icon-size", sz);
+    }
   }
 
   function popupFor(s, dist) {
@@ -231,15 +251,18 @@
     railEl.innerHTML = "";
     arr.forEach(function (s, i) { railEl.appendChild(railCard(s, dists ? dists[i] : null)); });
     railEl.scrollLeft = 0;
-    countEl.textContent = arr.length + (arr.length === 1 ? " unidade" : " unidades");
+    countEl.textContent = (STORES.length && arr.length === STORES.length) ? "" : arr.length + (arr.length === 1 ? " unidade" : " unidades");
   }
 
+  var leafFilter = null;
   function setVisibleMarkers(arr) {
     if (!pinsReady) return;
     var ids = onlyGeo(arr).map(function (s) { return s.id; });
     var f = ["in", ["get", "id"], ["literal", ids]];
     map.setFilter("af-pin-halo", f);
     map.setFilter("af-pin-dot", f);
+    leafFilter = f;
+    if (map.getLayer("af-pin-leaf")) map.setFilter("af-pin-leaf", f);
   }
 
   function fitTo(arr, opts) {
@@ -282,7 +305,7 @@
   });
 
   /* ---------- mais próximas (CEP ou geolocalização) ---------- */
-  function rankNearest(lat, lng, label) {
+  function rankNearest(lat, lng, label, opts) {
     var ranked = onlyGeo(STORES).map(function (s) { return { s: s, d: haversine(lat, lng, s.lat, s.lng) }; })
       .sort(function (a, b) { return a.d - b.d; }).slice(0, 12);
     stateSel.value = ""; citySel.value = ""; populateCities();
@@ -293,9 +316,14 @@
     uel.className = "upin";
     uel.innerHTML = '<span class="upin__pulse"></span><span class="upin__dot"></span>';
     userMarker = new maplibregl.Marker({ element: uel, anchor: "center" }).setLngLat([lng, lat]).addTo(map);
-    var b = new maplibregl.LngLatBounds().extend([lng, lat]);
-    ranked.slice(0, 4).forEach(function (r) { b.extend([r.s.lng, r.s.lat]); });
-    map.fitBounds(b, { padding: { top: 140, bottom: 250, left: 70, right: 70 }, pitch: 38, bearing: -12, maxZoom: 13.5, duration: 2800 });
+    if (opts && opts.exact) {
+      /* CEP: voo com zoom contínuo até centralizar o ponto exato */
+      map.flyTo({ center: [lng, lat], zoom: 15.4, pitch: 48, bearing: 0, curve: 1.55, duration: 4600, essential: true });
+    } else {
+      var b = new maplibregl.LngLatBounds().extend([lng, lat]);
+      ranked.slice(0, 4).forEach(function (r) { b.extend([r.s.lng, r.s.lat]); });
+      map.fitBounds(b, { padding: { top: 140, bottom: 250, left: 70, right: 70 }, pitch: 38, bearing: -12, maxZoom: 13.5, duration: 2800 });
+    }
     status("Mostrando as " + ranked.length + " unidades mais próximas de " + label + ".");
   }
 
@@ -319,7 +347,7 @@
       })
       .then(function (res) {
         if (!res.geo || !res.geo.length) throw new Error("geo");
-        rankNearest(parseFloat(res.geo[0].lat), parseFloat(res.geo[0].lon), res.via.localidade || "você");
+        rankNearest(parseFloat(res.geo[0].lat), parseFloat(res.geo[0].lon), res.via.localidade || "você", { exact: true });
       })
       .catch(function () { status("Não conseguimos localizar esse CEP agora. Tente filtrar por estado e cidade.", true); });
   });
