@@ -210,8 +210,8 @@ ol,ul{margin:0;padding:0;list-style:none}
 .reveal--left.is-in,.reveal--right.is-in,.reveal--scale.is-in{transform:none}
 /* parallax: imagem do bloco "37 anos" e arte decorativa da newsletter */
 .anos .anos__img{height:118%}
-.anos__img,.news__media{will-change:transform}
-@media (prefers-reduced-motion:reduce){.anos .anos__img,.news__media{transform:none!important;height:100%}}
+.anos__img{will-change:transform}
+@media (prefers-reduced-motion:reduce){.anos .anos__img{transform:none!important;height:100%}}
 
 /* shared display headings */
 .display{font-weight:800;line-height:1.02;letter-spacing:-.02em}
@@ -612,8 +612,15 @@ ol,ul{margin:0;padding:0;list-style:none}
    ========================================================= */
 .news{position:relative;background:linear-gradient(125deg,#063237,var(--dark) 45%,#0a6b75);
   color:#fff;overflow:hidden;padding:var(--sy-sm) 0}
-.news__media{position:absolute;right:0;bottom:0;width:42%;max-width:520px;opacity:.3;z-index:0;pointer-events:none}
-.news__media img{width:100%}
+.news__texture{position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(120% 90% at 100% 100%, rgba(95,205,212,.20), transparent 55%),
+    radial-gradient(90% 80% at 0% 0%, rgba(10,107,117,.35), transparent 60%),
+    radial-gradient(circle at center, rgba(255,255,255,.05) 1px, transparent 1.4px);
+  background-size:100% 100%,100% 100%,26px 26px;
+  background-position:0 0,0 0,0 0;
+  -webkit-mask-image:linear-gradient(120deg,transparent,#000 40%);
+  mask-image:linear-gradient(120deg,transparent,#000 40%)}
 .news__inner{position:relative;z-index:1;display:flex;flex-direction:column;gap:28px}
 .news__eyebrow{font-size:clamp(22px,4vw,29px);font-weight:400;color:#fff;letter-spacing:.01em}
 .news__title{font-size:clamp(64px,16vw,104px);font-weight:700;line-height:.9;color:#fff;letter-spacing:-.02em}
@@ -1281,7 +1288,7 @@ ol,ul{margin:0;padding:0;list-style:none}
 
 <!-- ============ NEWSLETTER ============ -->
 <section class="news">
-  <div class="news__media" aria-hidden="true"><img src="index_assets/a26.webp" alt="" loading="lazy" decoding="async"></div>
+  <div class="news__texture" aria-hidden="true"></div>
   <div class="container news__inner">
     <div class="news__left reveal reveal--left" data-comment-anchor="586cdda32c-div">
       <p class="news__eyebrow" data-comment-anchor="2920030e2e-p">RECEBA O MELHOR DA</p>
