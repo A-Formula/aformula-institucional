@@ -345,7 +345,7 @@ button[data-filter].flt-on svg{color:#008896!important;stroke:#008896}
       <a data-dc-tpl="14" href="encontre-uma-loja.html" class="scp0" style="font-family: Avenir, sans-serif; font-weight: 500; font-size: 14px; color: rgb(255, 255, 255); white-space: nowrap; padding: 4px 2px; border-bottom: 2px solid transparent; transition: border-color 0.3s;">Encontre uma loja</a>
       <a data-dc-tpl="15" href="contato.html" class="scp0" style="font-family: Avenir, sans-serif; font-weight: 500; font-size: 14px; color: rgb(255, 255, 255); white-space: nowrap; padding: 4px 2px; border-bottom: 2px solid transparent; transition: border-color 0.3s;">Contato</a>
     </nav>
-    <div data-dc-tpl="16" style="display: flex; gap: 12px; margin-left: auto; flex: 0 0 auto;">
+    <div data-dc-tpl="16" data-nav-cta style="display: flex; gap: 12px; margin-left: auto; flex: 0 0 auto;">
       <a data-dc-tpl="17" href="pet.html" class="scp1" style="display: inline-flex; align-items: center; justify-content: center; height: 40px; padding: 0px 20px; border-radius: 999px; font-family: Avenir, sans-serif; font-weight: 900; font-size: 13px; color: rgb(255, 255, 255); background: #000; border: 1px solid rgba(255, 255, 255, 0.5); transition: background 0.25s;"><img src="assets/logo-af-pet-branco.svg" alt="A Fórmula Pet" style="height: 28px; width: auto; display: block;" decoding="async"></a>
       <a data-dc-tpl="18" href="https://franquia.aformulabr.com.br/seja-um-franqueado/" target="_blank" rel="noopener" class="scp2" style="display: inline-flex; align-items: center; justify-content: center; height: 40px; padding: 0px 20px; border-radius: 999px; font-family: Avenir, sans-serif; font-weight: 900; font-size: 13px; color: rgb(6, 50, 55); background: rgb(255, 255, 255); border: 1px solid rgb(255, 255, 255); transition: background 0.25s;">Seja um franqueado</a>
     </div>
@@ -659,6 +659,23 @@ button[data-filter].flt-on svg{color:#008896!important;stroke:#008896}
   body[data-nav-open] [data-nav-toggle] span:nth-child(1){transform:translateY(7px) rotate(45deg)}
   body[data-nav-open] [data-nav-toggle] span:nth-child(2){opacity:0}
   body[data-nav-open] [data-nav-toggle] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+}
+</style>
+<style id="unpack-responsive">
+/* Grids DC não colapsavam sem o React removido no unpack → mobile-first restaurado */
+@media (max-width:1023px){
+  [data-dc-tpl="19"]{grid-template-columns:1fr !important;gap:clamp(28px,5vw,44px) !important}   /* hero */
+  [data-dc-tpl="37"]{grid-template-columns:1fr !important;min-height:0 !important}               /* artigo em destaque */
+  [data-dc-tpl="134"]{grid-template-columns:repeat(2,1fr) !important}                              /* artigos recentes */
+  [data-dc-tpl="262"]{grid-template-columns:repeat(2,1fr) !important}                              /* especialistas */
+  [data-dc-tpl="255"]{white-space:normal !important}                                               /* título especialistas */
+  [data-trend-row]{grid-auto-columns:min(58vw,300px) !important}                                   /* carrossel Em alta */
+}
+@media (max-width:640px){
+  [data-dc-tpl="134"]{grid-template-columns:1fr !important}
+  [data-dc-tpl="262"]{grid-template-columns:1fr !important}
+  [data-dc-tpl="128"],[data-dc-tpl="254"]{flex-direction:column !important;align-items:flex-start !important;gap:14px !important}
+  [data-trend-row]{grid-auto-columns:min(80vw,300px) !important}
 }
 </style>
 <script id="unpack-mobilenav-js">(function(){

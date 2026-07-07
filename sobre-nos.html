@@ -262,8 +262,15 @@
   }
   @media (max-width:980px){
     [data-dif-section]{grid-template-columns:1fr !important}
-    [data-dif-img]{min-height:300px !important}
+    [data-dif-img]{min-height:240px !important}
     [data-dif-grid]{grid-template-rows:none !important;grid-auto-flow:row !important}
+    /* títulos com white-space:nowrap cortavam à direita no mobile */
+    [data-dif-section] h3{white-space:normal !important}
+    /* stage tinha min-height fixo (488px) + grupos absolutos → cards mais altos no mobile
+       estouravam e sobrepunham o pager. Grupo ativo passa a fluir; inativos somem. */
+    [data-dif-stage]{min-height:0 !important}
+    [data-dif-group]{position:relative !important;display:none !important}
+    [data-dif-group][data-active]{display:flex !important;opacity:1 !important;pointer-events:auto !important}
   }
   @media (max-width:620px){
     [data-dif-grid]{grid-template-columns:1fr !important}
