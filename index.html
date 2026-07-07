@@ -761,20 +761,22 @@ ol,ul{margin:0;padding:0;list-style:none}
   /* texto corrido flui (remove quebras forçadas que ficam ruins no estreito) */
   .hero__text br,.blog__sub br,.news__copy br,.empresas .display br,.anos__text br{display:none}
 
-  /* HERO — mobile: FOTO no topo, texto limpo embaixo (sem sobreposição) */
-  .hero{padding-top:64px;background:#fff;isolation:isolate}
+  /* HERO — mobile: texto SOBRE a foto (título no topo, subtítulo na base, mulher no meio) */
+  .hero{padding-top:0;background:#fff;isolation:isolate;position:relative}
   .hero__media{position:relative;inset:auto;height:auto;z-index:0;overflow:hidden}
-  .hero__media img{position:relative;width:100%;height:auto;aspect-ratio:3/2.5;object-fit:cover;
-    object-position:74% 16%;animation:none;transform:none}
-  /* fade suave da base da foto para o creme — transição sem costura */
-  .hero__media::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:96px;z-index:1;
-    pointer-events:none;background:linear-gradient(180deg,transparent,#fff)}
-  .hero__overlay,.hero__glow{display:none}
-  .hero__inner{position:relative;z-index:2;display:block;padding-top:22px;padding-bottom:clamp(36px,9vw,52px)}
-  .hero__content{padding-top:0;max-width:none}
-  .hero__title{font-size:clamp(42px,11.5vw,62px);line-height:1}
-  .hero__lead{font-size:clamp(19px,5.4vw,24px);margin-top:16px}
-  .hero__text{font-size:16px;line-height:1.6;margin-top:14px;max-width:none}
+  .hero__media img{position:relative;width:100%;height:auto;aspect-ratio:3/4;object-fit:cover;
+    object-position:center;animation:none;transform:none}
+  .hero__media::after{display:none}
+  .hero__glow{display:none}
+  .hero__overlay{display:block;position:absolute;inset:0;z-index:1;
+    background:linear-gradient(180deg,rgba(255,255,255,.95) 0%,rgba(255,255,255,.58) 16%,rgba(255,255,255,0) 37%,rgba(255,255,255,0) 55%,rgba(255,255,255,.55) 80%,rgba(255,255,255,.97) 100%)}
+  .hero__inner{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;
+    padding:clamp(74px,19vw,96px) 24px clamp(28px,7vw,40px)}
+  .hero__content{display:flex;flex-direction:column;flex:1 1 auto;min-width:0;max-width:calc(100vw - 48px);width:100%;padding-top:0}
+  .hero__title{font-size:clamp(40px,10.5vw,58px);line-height:1;max-width:calc(100vw - 48px)}
+  .hero__lead{margin-top:auto;font-size:clamp(19px,5.4vw,24px);max-width:calc(100vw - 48px);overflow-wrap:break-word}
+  .hero__text{font-size:16px;line-height:1.6;margin-top:12px;max-width:calc(100vw - 48px);overflow-wrap:break-word}
+  .hero__text br{display:none}
   .hero__brandmark{display:none}
 
   /* HEADER — logo proporcional, área de toque do menu maior */
@@ -918,7 +920,10 @@ ol,ul{margin:0;padding:0;list-style:none}
 <!-- ============ HERO ============ -->
 <section class="hero" id="topo">
   <div class="hero__media">
-    <img src="index_assets/a18.jpg" alt="Farmacêutica examinando cápsula em laboratório de manipulação A Fórmula" fetchpriority="high" width="1537" height="1023" loading="lazy" decoding="async">
+    <picture>
+      <source media="(max-width:767px)" srcset="index_assets/a18-mobile.webp">
+      <img src="index_assets/a18.jpg" alt="Farmacêutica examinando cápsula em laboratório de manipulação A Fórmula" fetchpriority="high" width="1537" height="1023" loading="lazy" decoding="async">
+    </picture>
     <div class="hero__overlay"></div>
     <div class="hero__glow" aria-hidden="true"></div>
   </div>
@@ -1002,11 +1007,6 @@ ol,ul{margin:0;padding:0;list-style:none}
 
     <div class="rot" id="rotStage">
       <div class="rot__fade" id="rotFade">
-        <div class="rot__head">
-          <p class="rot__eyebrow" id="rotEyebrow"></p>
-          <h3 class="rot__headline" id="rotHeadline"></h3>
-          <p class="rot__lead" id="rotLead"></p>
-        </div>
         <div class="rot__canvas" id="rotCanvas">
           <svg class="rot__svg" id="rotSvg" viewBox="0 0 1180 660" preserveAspectRatio="none" aria-hidden="true"></svg>
           <div class="rot__product" id="rotProduct"><img id="rotImg" src="" alt="" loading="lazy" decoding="async"></div>
@@ -1071,6 +1071,8 @@ ol,ul{margin:0;padding:0;list-style:none}
   .rot__mrow .d{font-size:13.5px;line-height:1.6;color:#43565B;margin-top:6px}
   .rot__thumbs{justify-content:flex-start;overflow-x:auto;padding:8px 4px 16px;scrollbar-width:none}
   .rot__thumbs::-webkit-scrollbar{display:none}
+  #rotStage{display:flex;flex-direction:column}
+  .rot__thumbs{order:-1;margin-top:0}
 }
 @media (prefers-reduced-motion:reduce){
   .rot__product img{animation:none}
@@ -1171,9 +1173,6 @@ ol,ul{margin:0;padding:0;list-style:none}
 
   function render() {
     var p = DATA[index];
-    eyeEl.textContent = p.eyebrow;
-    hlEl.textContent = p.headline;
-    leadEl.textContent = p.lead;
 
     imgEl.src = p.img;
     imgEl.alt = p.short;
