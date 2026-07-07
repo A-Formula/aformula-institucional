@@ -761,21 +761,17 @@ ol,ul{margin:0;padding:0;list-style:none}
   /* texto corrido flui (remove quebras forçadas que ficam ruins no estreito) */
   .hero__text br,.blog__sub br,.news__copy br,.empresas .display br,.anos__text br{display:none}
 
-  /* HERO — mobile: texto SOBRE a foto (título no topo, subtítulo na base, mulher no meio) */
-  .hero{padding-top:0;background:#fff;isolation:isolate;position:relative;min-height:clamp(560px,132vw,760px);overflow:hidden}
-  .hero__media{position:absolute;inset:0;height:auto;z-index:0;overflow:hidden}
-  .hero__media img{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:auto;object-fit:cover;
-    object-position:center;animation:none;transform:none}
+  /* HERO — mobile: FOTO completa no topo + painel de texto centralizado embaixo */
+  .hero{padding-top:0;background:#fff;isolation:isolate;position:relative;min-height:0;overflow:hidden}
+  .hero__media{position:relative;inset:auto;height:auto;z-index:0;overflow:hidden}
+  .hero__media img{position:relative;width:100%;height:auto;aspect-ratio:auto;object-fit:cover;object-position:center;animation:none;transform:none}
   .hero__media::after{display:none}
-  .hero__glow{display:none}
-  .hero__overlay{display:block;position:absolute;inset:0;z-index:1;
-    background:linear-gradient(180deg,rgba(255,255,255,.98) 0%,rgba(255,255,255,.9) 15%,rgba(255,255,255,.58) 27%,rgba(255,255,255,.18) 39%,rgba(255,255,255,0) 50%,rgba(255,255,255,0) 58%,rgba(255,255,255,.5) 80%,rgba(255,255,255,.97) 100%)}
-  .hero__inner{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;
-    padding:clamp(74px,19vw,96px) 24px clamp(28px,7vw,40px)}
-  .hero__content{display:flex;flex-direction:column;align-items:center;text-align:center;flex:1 1 auto;min-width:0;max-width:calc(100vw - 48px);width:100%;margin:0 auto;padding-top:0}
-  .hero__title{font-size:clamp(40px,10.5vw,58px);line-height:1;max-width:calc(100vw - 48px)}
-  .hero__lead{margin-top:auto;font-size:clamp(19px,5.4vw,24px);max-width:calc(100vw - 48px);overflow-wrap:break-word}
-  .hero__text{font-size:16px;line-height:1.6;margin-top:12px;max-width:calc(100vw - 48px);overflow-wrap:break-word}
+  .hero__overlay,.hero__glow{display:none}
+  .hero__inner{position:relative;z-index:2;display:block;text-align:center;padding:clamp(30px,7.5vw,46px) 24px clamp(38px,9vw,56px)}
+  .hero__content{display:block;max-width:none;width:100%;margin:0 auto;padding-top:0}
+  .hero__title{font-size:clamp(40px,10.5vw,58px);line-height:1.02}
+  .hero__lead{margin-top:16px;font-size:clamp(19px,5.4vw,24px);overflow-wrap:break-word}
+  .hero__text{margin:12px auto 0;font-size:16px;line-height:1.62;max-width:46ch;overflow-wrap:break-word}
   .hero__text br{display:none}
   .hero__brandmark{display:none}
 
