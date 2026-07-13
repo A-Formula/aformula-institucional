@@ -332,24 +332,38 @@
     var cep = digits(cepInput.value);
     if (cep.length !== 8) { status("Digite um CEP válido com 8 dígitos.", true); return; }
     status("Localizando você no mapa…");
-    fetch("https://viacep.com.br/ws/" + cep + "/json/")
+    /* 1) AwesomeAPI: coordenada precisa (nível de rua) direto do CEP */
+    fetch("https://cep.awesomeapi.com.br/json/" + cep)
       .then(function (r) { return r.json(); })
-      .then(function (via) {
-        if (via.erro) throw new Error("cep");
-        var q = [via.logradouro, via.bairro, via.localidade, via.uf, "Brasil"].filter(Boolean).join(", ");
-        return fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=br&q=" + encodeURIComponent(q))
+      .then(function (a) {
+        var lat = parseFloat(a && a.lat), lng = parseFloat(a && a.lng);
+        if (isFinite(lat) && isFinite(lng) && lat !== 0 && lng !== 0) {
+          rankNearest(lat, lng, a.city || "você", { exact: true });
+          return;
+        }
+        throw new Error("sem-coords");
+      })
+      .catch(function () {
+        /* 2) fallback: ViaCEP (valida) + Nominatim (geocodifica) */
+        fetch("https://viacep.com.br/ws/" + cep + "/json/")
           .then(function (r) { return r.json(); })
-          .then(function (geo) {
-            if (geo.length) return { geo: geo, via: via };
-            return fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=br&q=" + encodeURIComponent(via.localidade + ", " + via.uf + ", Brasil"))
-              .then(function (r) { return r.json(); }).then(function (g2) { return { geo: g2, via: via }; });
-          });
-      })
-      .then(function (res) {
-        if (!res.geo || !res.geo.length) throw new Error("geo");
-        rankNearest(parseFloat(res.geo[0].lat), parseFloat(res.geo[0].lon), res.via.localidade || "você", { exact: true });
-      })
-      .catch(function () { status("Não conseguimos localizar esse CEP agora. Tente filtrar por estado e cidade.", true); });
+          .then(function (via) {
+            if (via.erro) throw new Error("cep");
+            var q = [via.logradouro, via.bairro, via.localidade, via.uf, "Brasil"].filter(Boolean).join(", ");
+            return fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=br&q=" + encodeURIComponent(q))
+              .then(function (r) { return r.json(); })
+              .then(function (geo) {
+                if (geo.length) return { geo: geo, via: via };
+                return fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=br&q=" + encodeURIComponent(via.localidade + ", " + via.uf + ", Brasil"))
+                  .then(function (r) { return r.json(); }).then(function (g2) { return { geo: g2, via: via }; });
+              });
+          })
+          .then(function (res) {
+            if (!res.geo || !res.geo.length) throw new Error("geo");
+            rankNearest(parseFloat(res.geo[0].lat), parseFloat(res.geo[0].lon), res.via.localidade || "você", { exact: true });
+          })
+          .catch(function () { status("Não conseguimos localizar esse CEP agora. Tente filtrar por estado e cidade.", true); });
+      });
   });
 
   /* ---------- boot ---------- */
