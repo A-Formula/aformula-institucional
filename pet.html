@@ -307,6 +307,22 @@ main article[data-dc-tpl]:hover{transform:translateY(-5px)!important;box-shadow:
 @media (max-width:1080px){.pv-grid{grid-template-columns:1fr !important}}
 @media (max-width:520px){.pv-feature{grid-template-columns:1fr !important}.pv-feature-img{min-height:220px !important;order:-1}}
 </style>
+<style id="pet-nav-cta-css">
+.pet-nav-cta{display:flex;gap:12px;align-items:center;flex:0 0 auto}
+.pet-chip{display:inline-flex;align-items:center;justify-content:center;height:44px;padding:0 22px;border-radius:999px;font-family:Avenir,sans-serif;font-weight:700;font-size:14px;letter-spacing:.02em;text-decoration:none;white-space:nowrap;transition:background .25s,border-color .25s,transform .18s}
+.pet-chip--af{background:#008896;min-width:158px}
+.pet-chip--af img{height:21px;width:auto;display:block;filter:brightness(0) invert(1)}
+.pet-chip--af:hover{background:#04676f}
+.pet-chip--franq{background:transparent;border:1px solid rgba(255,255,255,.55);color:#fff}
+.pet-chip--franq:hover{background:rgba(255,255,255,.12);border-color:#fff}
+.pet-chip:active{transform:scale(.97)}
+.pet-mob-cta{display:none}
+@media(max-width:1023px){
+  .pet-nav-cta{display:none!important}
+  .pet-mob-cta{display:block!important;color:#fff!important;text-decoration:none;font-weight:700}
+  .pet-mob-cta--af{margin-top:10px;padding-top:14px;border-top:1px solid rgba(255,255,255,.2)}
+}
+</style>
 </head>
 <body>
 
@@ -323,7 +339,13 @@ main article[data-dc-tpl]:hover{transform:translateY(-5px)!important;box-shadow:
         <a data-dc-tpl="15" href="#formas" class="lk scp0" style="font-family: Avenir, sans-serif; font-weight: 500; font-size: 14.5px; color: rgb(255, 255, 255); text-decoration: none; white-space: nowrap; padding: 4px 2px; border-bottom: 2px solid transparent;">Formas farmacêuticas</a>
         <a data-dc-tpl="16" href="#sabores" class="lk scp0" style="font-family: Avenir, sans-serif; font-weight: 500; font-size: 14.5px; color: rgb(255, 255, 255); text-decoration: none; white-space: nowrap; padding: 4px 2px; border-bottom: 2px solid transparent;">Sabores</a>
         <a data-dc-tpl="18" href="#faq" class="lk scp0" style="font-family: Avenir, sans-serif; font-weight: 500; font-size: 14.5px; color: rgb(255, 255, 255); text-decoration: none; white-space: nowrap; padding: 4px 2px; border-bottom: 2px solid transparent;">Perguntas frequentes</a>
+        <a href="index.html" class="pet-mob-cta pet-mob-cta--af">A Fórmula</a>
+        <a href="https://franquia.aformulabr.com.br/seja-um-franqueado/" target="_blank" rel="noopener" class="pet-mob-cta">Seja um franqueado</a>
       </nav>
+      <div class="pet-nav-cta">
+        <a href="index.html" class="pet-chip pet-chip--af" aria-label="A Fórmula"><img src="index_assets/a17.webp" alt="A Fórmula" decoding="async"></a>
+        <a href="https://franquia.aformulabr.com.br/seja-um-franqueado/" target="_blank" rel="noopener" class="pet-chip pet-chip--franq">Seja um franqueado</a>
+      </div>
       <button data-dc-tpl="21" data-nav-toggle="" aria-label="Abrir menu" style="display: none; flex-direction: column; gap: 5px; padding: 8px; margin-left: auto; background: none; border: 0px; cursor: pointer;">
         <span data-dc-tpl="22" style="width: 26px; height: 2px; background: rgb(255, 255, 255); border-radius: 2px; display: block;"></span>
         <span data-dc-tpl="23" style="width: 26px; height: 2px; background: rgb(255, 255, 255); border-radius: 2px; display: block;"></span>
@@ -587,31 +609,28 @@ main article[data-dc-tpl]:hover{transform:translateY(-5px)!important;box-shadow:
     </div>
   </div></section><section data-dc-tpl="431" data-screen-label="Universo pet" style="background: rgb(238, 244, 244); color: rgb(22, 40, 43); padding: clamp(44px, 4.6vw, 60px) clamp(20px, 5vw, 64px); overflow: hidden;">
   <div data-dc-tpl="432" style="max-width: 1240px; margin: 0px auto;">
-    <style id="pet-cf-css">
-    .pet-cf-wrap{position:relative;max-width:1180px;margin:0 auto;--cw:clamp(196px,19vw,240px)}
-    .pet-cf{display:flex;gap:16px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;padding:14px 20px 22px;-ms-overflow-style:none;scrollbar-width:none}
-    .pet-cf::-webkit-scrollbar{display:none;height:0}
-    .pet-cf-card{position:relative;flex:0 0 72%;max-width:300px;aspect-ratio:9/16;border-radius:20px;overflow:hidden;background:#0c3a3f;color:#fff;scroll-snap-align:center;box-shadow:0 26px 52px -30px rgba(6,50,55,.6);cursor:pointer}
-    .pet-cf-card>img,.pet-cf-card>video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
-    .pet-cf-card::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(4,30,33,.85) 0%,rgba(4,30,33,.32) 32%,rgba(4,30,33,0) 56%);pointer-events:none}
-    .pet-cf-top{position:absolute;top:0;left:0;right:0;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:14px 15px;filter:drop-shadow(0 1px 4px rgba(0,0,0,.45))}
-    .pet-cf-meta{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:16px 17px 18px}
-    .pet-cf-stats{display:flex;align-items:center;gap:16px;font-family:Avenir,sans-serif;font-weight:900;font-size:13.5px}
-    .pet-cf-stats span{display:inline-flex;align-items:center;gap:6px}
-    .pet-cf-cap{margin-top:9px;font-family:Newsreader,serif;font-weight:400;font-size:clamp(15px,1.5vw,17.5px);line-height:1.26;text-shadow:0 1px 10px rgba(0,0,0,.4)}
-    .pet-cf-bar{margin-top:12px;height:3px;border-radius:3px;background:rgba(255,255,255,.28);overflow:hidden}
-    .pet-cf-bar>i{display:block;height:100%;background:#fff;border-radius:3px}
-    .pet-cf-nav{display:none}
-    .pet-cf.cf-ready{display:block;position:relative;height:clamp(430px,44vw,520px);overflow:visible;padding:0}
-    .pet-cf.cf-ready .pet-cf-card{position:absolute;top:50%;left:50%;flex:none;width:var(--cw);height:calc(var(--cw) * 1.25);max-width:none;transition:transform .55s cubic-bezier(.22,1,.36,1),opacity .4s ease,box-shadow .4s ease;will-change:transform}
-    /* card vertical (reels 9:16) */
-    .pet-cf.cf-ready .pet-cf-card{height:calc(var(--cw) * 1.7778)}
-    .pet-cf.cf-ready .pet-cf-card.is-active{box-shadow:0 40px 72px -34px rgba(6,50,55,.72)}
-    @media(min-width:768px){
-      .pet-cf-nav{position:absolute;top:50%;transform:translateY(-50%);z-index:60;width:54px;height:54px;border-radius:50%;background:#fff;border:1px solid rgba(0,136,150,.16);box-shadow:0 14px 32px -14px rgba(6,50,55,.5);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#008896;transition:transform .25s ease,box-shadow .25s ease}
-      .pet-cf-nav:hover{transform:translateY(-50%) scale(1.07);box-shadow:0 18px 40px -14px rgba(6,50,55,.6)}
-      .pet-cf-prev{left:2px}.pet-cf-next{right:2px}
-    }
+    <style id="pet-ig-css">
+    .pet-ig-gallery{position:relative;width:100%;max-width:1240px;height:clamp(486px,47vw,572px);margin:clamp(18px,2.6vw,32px) auto 0;overflow:hidden;cursor:grab;user-select:none;-webkit-user-select:none;touch-action:pan-y}
+    .pet-ig-gallery:active{cursor:grabbing}
+    .pet-ig-gallery.pig-ready .pet-ig-fallback{display:none}
+    .pet-ig-fallback{display:flex;gap:16px;height:100%;align-items:center;overflow-x:auto;padding:0 6px;-ms-overflow-style:none;scrollbar-width:none}
+    .pet-ig-fallback::-webkit-scrollbar{display:none;height:0}
+    .pig-item{position:relative;flex:0 0 auto;width:clamp(200px,58vw,252px);aspect-ratio:9/16;border-radius:20px;overflow:hidden;background:#0c3a3f;text-decoration:none}
+    .pig-item>video,.pig-item>img{width:100%;height:100%;object-fit:cover;display:block}
+    .pig__stage{position:absolute;inset:0}
+    .pig__card{position:absolute;left:50%;top:50%;width:var(--pig-cw,236px);transform:translate(-50%,-50%);will-change:transform,opacity;text-decoration:none;color:#fff}
+    .pig__media{display:block;position:relative;width:100%;aspect-ratio:9/16;border-radius:20px;overflow:hidden;background:#0c3a3f;box-shadow:0 26px 52px -24px rgba(6,50,55,.6),0 0 0 1px rgba(0,40,48,.05)}
+    .pig__media>video,.pig__media>img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+    .pig__media::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(4,30,33,.85) 0%,rgba(4,30,33,.30) 34%,rgba(4,30,33,0) 58%);pointer-events:none}
+    .pig__top{position:absolute;top:0;left:0;right:0;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:14px 15px;color:#fff;filter:drop-shadow(0 1px 4px rgba(0,0,0,.45))}
+    .pig__meta{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:16px 17px 18px;color:#fff}
+    .pig__stats{display:flex;align-items:center;gap:16px;font-family:Avenir,sans-serif;font-weight:900;font-size:13.5px}
+    .pig__stats span{display:inline-flex;align-items:center;gap:6px}
+    .pig__nav{position:absolute;top:50%;transform:translate(-50%,-50%);z-index:2000;width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fff;border:1px solid rgba(0,136,150,.16);color:#008896;box-shadow:0 14px 32px -14px rgba(6,50,55,.5);cursor:pointer;font-size:26px;line-height:0;padding-bottom:3px;transition:transform .25s,box-shadow .25s}
+    .pig__nav:hover{transform:translate(-50%,-50%) scale(1.08);box-shadow:0 18px 40px -14px rgba(6,50,55,.6)}
+    .pig__nav--prev{left:calc(50% - clamp(146px,21vw,232px))}
+    .pig__nav--next{left:calc(50% + clamp(146px,21vw,232px))}
+    @media(prefers-reduced-motion:reduce){.pig__card{transition:none}}
     </style>
     <header style="text-align:center;max-width:680px;margin:0 auto clamp(18px,2.2vw,28px);">
       <div data-fade="" style="display:inline-flex;align-items:center;gap:14px;">
@@ -627,73 +646,102 @@ main article[data-dc-tpl]:hover{transform:translateY(-5px)!important;box-shadow:
       </div>
       <p data-fade="" style="margin-top:18px;font-family:Avenir,sans-serif;font-weight:400;font-size:16.5px;line-height:1.62;color:rgb(81,104,108);">Conteúdo, bastidores, dicas e cuidados pensados para quem quer oferecer o melhor para o seu pet.</p>
     </header>
-    <div class="pet-cf-wrap">
-      <button type="button" class="pet-cf-nav pet-cf-prev" aria-label="Post anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M15 18l-6-6 6-6"></path></svg></button>
-      <button type="button" class="pet-cf-nav pet-cf-next" aria-label="Próximo post"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M9 6l6 6-6 6"></path></svg></button>
-      <div class="pet-cf" id="petCf">
-        <article class="pet-cf-card" tabindex="0" aria-label="Reel do Instagram — A Fórmula Pet">
-          <video src="pet_assets/pet-reel-1.mp4" poster="pet_assets/pet-reel-1.jpg" autoplay loop muted playsinline preload="metadata"></video>
-          <div class="pet-cf-top"><span style="display:inline-flex"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" width="20" height="20"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r="1.1" fill="currentColor" stroke="none"></circle></svg></span><span style="display:inline-flex"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg></span></div>
-          <div class="pet-cf-meta"><div class="pet-cf-stats"><span><svg viewBox="0 0 24 24" fill="currentColor" width="17" height="17"><path d="M12 20.3l-1.45-1.32C5.4 14.24 2 11.16 2 7.5 2 4.5 4.42 2 7.5 2c1.74 0 3.41.81 4.5 2.09C13.09 2.81 14.76 2 16.5 2 19.58 2 22 4.5 22 7.5c0 3.66-3.4 6.74-8.55 11.48L12 20.3z"></path></svg>7</span></div></div>
-        </article>
-        <article class="pet-cf-card" tabindex="0" aria-label="Reel do Instagram — A Fórmula Pet">
-          <video src="pet_assets/pet-reel-2.mp4" poster="pet_assets/pet-reel-2.jpg" autoplay loop muted playsinline preload="metadata"></video>
-          <div class="pet-cf-top"><span style="display:inline-flex"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" width="20" height="20"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r="1.1" fill="currentColor" stroke="none"></circle></svg></span><span style="display:inline-flex"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg></span></div>
-          <div class="pet-cf-meta"><div class="pet-cf-stats"><span><svg viewBox="0 0 24 24" fill="currentColor" width="17" height="17"><path d="M12 20.3l-1.45-1.32C5.4 14.24 2 11.16 2 7.5 2 4.5 4.42 2 7.5 2c1.74 0 3.41.81 4.5 2.09C13.09 2.81 14.76 2 16.5 2 19.58 2 22 4.5 22 7.5c0 3.66-3.4 6.74-8.55 11.48L12 20.3z"></path></svg>4</span></div></div>
-        </article>
-        <article class="pet-cf-card" tabindex="0" aria-label="Reel do Instagram — A Fórmula Pet">
-          <video src="pet_assets/pet-reel-3.mp4" poster="pet_assets/pet-reel-3.jpg" autoplay loop muted playsinline preload="metadata"></video>
-          <div class="pet-cf-top"><span style="display:inline-flex"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" width="20" height="20"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r="1.1" fill="currentColor" stroke="none"></circle></svg></span><span style="display:inline-flex"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg></span></div>
-          <div class="pet-cf-meta"><div class="pet-cf-stats"><span><svg viewBox="0 0 24 24" fill="currentColor" width="17" height="17"><path d="M12 20.3l-1.45-1.32C5.4 14.24 2 11.16 2 7.5 2 4.5 4.42 2 7.5 2c1.74 0 3.41.81 4.5 2.09C13.09 2.81 14.76 2 16.5 2 19.58 2 22 4.5 22 7.5c0 3.66-3.4 6.74-8.55 11.48L12 20.3z"></path></svg>3</span></div></div>
-        </article>
-        <article class="pet-cf-card" tabindex="0" aria-label="Reel do Instagram — A Fórmula Pet">
-          <video src="pet_assets/pet-reel-4.mp4" poster="pet_assets/pet-reel-4.jpg" autoplay loop muted playsinline preload="metadata"></video>
-          <div class="pet-cf-top"><span style="display:inline-flex"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" width="20" height="20"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r="1.1" fill="currentColor" stroke="none"></circle></svg></span><span style="display:inline-flex"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg></span></div>
-          <div class="pet-cf-meta"><div class="pet-cf-stats"><span><svg viewBox="0 0 24 24" fill="currentColor" width="17" height="17"><path d="M12 20.3l-1.45-1.32C5.4 14.24 2 11.16 2 7.5 2 4.5 4.42 2 7.5 2c1.74 0 3.41.81 4.5 2.09C13.09 2.81 14.76 2 16.5 2 19.58 2 22 4.5 22 7.5c0 3.66-3.4 6.74-8.55 11.48L12 20.3z"></path></svg>8</span></div></div>
-        </article>
-        <article class="pet-cf-card" tabindex="0" aria-label="Reel do Instagram — A Fórmula Pet">
-          <video src="pet_assets/pet-reel-5.mp4" poster="pet_assets/pet-reel-5.jpg" autoplay loop muted playsinline preload="metadata"></video>
-          <div class="pet-cf-top"><span style="display:inline-flex"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" width="20" height="20"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r="1.1" fill="currentColor" stroke="none"></circle></svg></span><span style="display:inline-flex"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg></span></div>
-          <div class="pet-cf-meta"><div class="pet-cf-stats"><span><svg viewBox="0 0 24 24" fill="currentColor" width="17" height="17"><path d="M12 20.3l-1.45-1.32C5.4 14.24 2 11.16 2 7.5 2 4.5 4.42 2 7.5 2c1.74 0 3.41.81 4.5 2.09C13.09 2.81 14.76 2 16.5 2 19.58 2 22 4.5 22 7.5c0 3.66-3.4 6.74-8.55 11.48L12 20.3z"></path></svg>31</span></div></div>
-        </article>
+    <div class="pet-ig-gallery" id="petIgGallery" aria-label="Reels do Instagram A Fórmula Pet" tabindex="0">
+      <div class="pet-ig-fallback">
+        <a class="pig-item" href="https://www.instagram.com/aformulapet/" target="_blank" rel="noopener" data-likes="7"><video src="pet_assets/pet-reel-1.mp4" poster="pet_assets/pet-reel-1.jpg" autoplay loop muted playsinline preload="metadata"></video></a>
+        <a class="pig-item" href="https://www.instagram.com/aformulapet/" target="_blank" rel="noopener" data-likes="4"><video src="pet_assets/pet-reel-2.mp4" poster="pet_assets/pet-reel-2.jpg" autoplay loop muted playsinline preload="metadata"></video></a>
+        <a class="pig-item" href="https://www.instagram.com/aformulapet/" target="_blank" rel="noopener" data-likes="3"><video src="pet_assets/pet-reel-3.mp4" poster="pet_assets/pet-reel-3.jpg" autoplay loop muted playsinline preload="metadata"></video></a>
+        <a class="pig-item" href="https://www.instagram.com/aformulapet/" target="_blank" rel="noopener" data-likes="8"><video src="pet_assets/pet-reel-4.mp4" poster="pet_assets/pet-reel-4.jpg" autoplay loop muted playsinline preload="metadata"></video></a>
+        <a class="pig-item" href="https://www.instagram.com/aformulapet/" target="_blank" rel="noopener" data-likes="31"><video src="pet_assets/pet-reel-5.mp4" poster="pet_assets/pet-reel-5.jpg" autoplay loop muted playsinline preload="metadata"></video></a>
       </div>
     </div>
     <div style="text-align:center;margin-top:clamp(20px,2.4vw,30px);">
       <a href="https://www.instagram.com/aformulapet/" target="_blank" rel="noopener" class="btn scp5" style="display:inline-flex;align-items:center;gap:10px;height:50px;padding:0 26px;border-radius:999px;font-family:Avenir,sans-serif;font-weight:900;font-size:15px;color:rgb(255,255,255);text-decoration:none;background:rgb(0,136,150);border:1px solid rgb(0,136,150);"><svg viewBox="0 0 16 16" fill="currentColor" width="18" height="18"><path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.917 3.917 0 0 0-1.417.923A3.927 3.927 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.916 3.916 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.941a3.926 3.926 0 0 0-.923-1.417A3.911 3.911 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 7.998 0h.002zm-.717 1.442h.718c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599.28.28.453.546.598.92.11.281.24.705.275 1.485.039.843.047 1.096.047 3.231s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.47 2.47 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.478 2.478 0 0 1-.92-.598 2.48 2.48 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.233 0-2.136.008-2.388.046-3.231.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92.28-.28.546-.453.92-.598.282-.11.705-.24 1.485-.276.738-.034 1.024-.044 2.515-.045v.002zm4.988 1.328a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92zm-4.27 1.122a4.109 4.109 0 1 0 0 8.217 4.109 4.109 0 0 0 0-8.217zm0 1.441a2.667 2.667 0 1 1 0 5.334 2.667 2.667 0 0 1 0-5.334z"></path></svg>Seguir no Instagram</a>
     </div>
-    <script>
+    <script id="pet-ig-cgal-js">
     (function(){
-      var stage=document.getElementById('petCf'); if(!stage)return;
-      var cards=[].slice.call(stage.querySelectorAll('.pet-cf-card'));
-      var wrap=stage.closest('.pet-cf-wrap');
-      var prev=wrap.querySelector('.pet-cf-prev'), next=wrap.querySelector('.pet-cf-next');
-      var n=cards.length, half=Math.floor(n/2), active=half;
-      var mq=window.matchMedia('(max-width:767px)');
-      var POS={0:{x:0,y:-14,r:0,s:1.13,z:50,o:1},1:{x:58,y:8,r:7,s:0.93,z:40,o:1},2:{x:112,y:28,r:14,s:0.82,z:30,o:0.94}};
-      function layout(){
-        if(mq.matches){
-          stage.classList.remove('cf-ready');
-          cards.forEach(function(c){c.style.transform='';c.style.zIndex='';c.style.opacity='';c.classList.remove('is-active');});
-          return;
-        }
-        stage.classList.add('cf-ready');
-        cards.forEach(function(c,i){
-          var rel=i-active; if(rel>half)rel-=n; if(rel<-half)rel+=n;
-          var p=POS[Math.abs(rel)]||POS[2], sg=rel<0?-1:1;
-          c.style.transform='translate(-50%,-50%) translateX('+(sg*p.x)+'%) translateY('+p.y+'px) rotate('+(sg*p.r)+'deg) scale('+p.s+')';
-          c.style.zIndex=p.z; c.style.opacity=p.o; c.classList.toggle('is-active',rel===0);
-        });
-      }
-      function go(d){active=(active+d+n)%n;layout();}
-      if(prev)prev.addEventListener('click',function(){go(-1);});
-      if(next)next.addEventListener('click',function(){go(1);});
-      cards.forEach(function(c,i){
-        c.addEventListener('click',function(){if(!mq.matches&&i!==active){active=i;layout();}});
-        c.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();if(!mq.matches){active=i;layout();}}});
+      "use strict";
+      var el=document.getElementById("petIgGallery"); if(!el) return;
+      var src=[].slice.call(el.querySelectorAll(".pet-ig-fallback .pig-item"));
+      if(src.length<2) return;
+      var IG="https://www.instagram.com/aformulapet/";
+      var IC_CAM='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" width="20" height="20"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r="1.1" fill="currentColor" stroke="none"></circle></svg>';
+      var IC_DOTS='<svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg>';
+      var IC_HEART='<svg viewBox="0 0 24 24" fill="currentColor" width="17" height="17"><path d="M12 20.3l-1.45-1.32C5.4 14.24 2 11.16 2 7.5 2 4.5 4.42 2 7.5 2c1.74 0 3.41.81 4.5 2.09C13.09 2.81 14.76 2 16.5 2 19.58 2 22 4.5 22 7.5c0 3.66-3.4 6.74-8.55 11.48L12 20.3z"></path></svg>';
+      var items=src.map(function(a){
+        var v=a.querySelector("video");
+        return {vsrc:v?v.getAttribute("src"):"",poster:v?(v.getAttribute("poster")||""):"",likes:a.getAttribute("data-likes")||"",href:a.getAttribute("href")||IG};
       });
-      if(mq.addEventListener)mq.addEventListener('change',layout); else if(mq.addListener)mq.addListener(layout);
-      window.addEventListener('resize',layout);
-      layout();
+      var N=items.length;
+      var stage=document.createElement("div"); stage.className="pig__stage";
+      var cards=items.map(function(it){
+        var card=document.createElement("a");
+        card.className="pig__card";
+        card.setAttribute("href",it.href); card.setAttribute("target","_blank"); card.setAttribute("rel","noopener");
+        card.setAttribute("aria-label","Reel do Instagram — A Fórmula Pet");
+        card.innerHTML='<span class="pig__media">'+
+          '<video src="'+it.vsrc+'" poster="'+it.poster+'" autoplay loop muted playsinline preload="metadata"></video>'+
+          '<span class="pig__top"><span style="display:inline-flex">'+IC_CAM+'</span><span style="display:inline-flex">'+IC_DOTS+'</span></span>'+
+          '<span class="pig__meta"><span class="pig__stats"><span>'+IC_HEART+it.likes+'</span></span></span>'+
+        '</span>';
+        stage.appendChild(card); return card;
+      });
+      el.appendChild(stage);
+      function mkNav(cls,label,glyph){var b=document.createElement("button");b.type="button";b.className="pig__nav "+cls;b.setAttribute("aria-label",label);b.innerHTML=glyph;el.appendChild(b);return b;}
+      var prev=mkNav("pig__nav--prev","Post anterior","‹");
+      var next=mkNav("pig__nav--next","Próximo post","›");
+      el.classList.add("pig-ready");
+      var W,H,cardW,itemSpan,total,bend,R;
+      function measure(){
+        W=el.clientWidth||1; H=W/2;
+        cardW=Math.max(150,Math.min(W*0.29,236));
+        el.style.setProperty("--pig-cw",cardW+"px");
+        itemSpan=cardW+Math.max(30,W*0.05);
+        total=itemSpan*N; bend=Math.max(56,W*0.085); R=(H*H+bend*bend)/(2*bend);
+      }
+      measure();
+      var scroll={cur:0,tgt:0,ease:0.08};
+      function snap(){scroll.tgt=Math.round(scroll.tgt/itemSpan)*itemSpan;}
+      var DEG=180/Math.PI;
+      function clamp(v,a,b){return v<a?a:(v>b?b:v);}
+      var down=false,sx=0,sy=0,sScroll=0,moved=0,horiz=false;
+      el.addEventListener("pointerdown",function(e){
+        if(e.target.closest&&e.target.closest(".pig__nav"))return;
+        down=true;horiz=false;moved=0;sx=e.clientX;sy=e.clientY;sScroll=scroll.tgt;
+      });
+      el.addEventListener("pointermove",function(e){
+        if(!down)return;var dx=e.clientX-sx,dy=e.clientY-sy;
+        if(!horiz&&Math.abs(dx)>6&&Math.abs(dx)>Math.abs(dy)){horiz=true;if(el.setPointerCapture)try{el.setPointerCapture(e.pointerId);}catch(_){}}
+        if(horiz){e.preventDefault();scroll.tgt=sScroll-dx;moved=Math.abs(dx);}
+      });
+      function release(){if(!down)return;down=false;snap();}
+      el.addEventListener("pointerup",release);
+      el.addEventListener("pointercancel",release);
+      stage.addEventListener("click",function(e){if(moved>8)e.preventDefault();},true);
+      prev.addEventListener("click",function(){scroll.tgt-=itemSpan;snap();});
+      next.addEventListener("click",function(){scroll.tgt+=itemSpan;snap();});
+      el.addEventListener("keydown",function(e){if(e.key==="ArrowLeft"){scroll.tgt-=itemSpan;snap();}else if(e.key==="ArrowRight"){scroll.tgt+=itemSpan;snap();}});
+      function frame(){
+        scroll.cur+=(scroll.tgt-scroll.cur)*scroll.ease;
+        if(Math.abs(scroll.tgt-scroll.cur)<0.08)scroll.cur=scroll.tgt;
+        for(var i=0;i<N;i++){
+          var x=i*itemSpan-scroll.cur; x=((x%total)+total)%total; if(x>total/2)x-=total;
+          var ax=Math.min(Math.abs(x),H);
+          var arc=R-Math.sqrt(Math.max(0,R*R-ax*ax));
+          var rot=clamp((x<0?-1:1)*Math.asin(Math.min(ax/R,1))*DEG*0.42,-11,11);
+          var steps=Math.abs(x)/itemSpan;
+          var sc=1-Math.min(steps,2)*0.09;
+          var op=steps<=1?(1-steps*0.10):Math.max(0,0.90-(steps-1)*1.30);
+          var c=cards[i];
+          c.style.transform="translate(-50%,-50%) translateX("+x.toFixed(1)+"px) translateY("+arc.toFixed(1)+"px) rotate("+rot.toFixed(2)+"deg) scale("+sc.toFixed(3)+")";
+          c.style.zIndex=String(1000-Math.round(Math.abs(x)));
+          c.style.opacity=op.toFixed(2);
+        }
+        requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+      var rt;
+      window.addEventListener("resize",function(){clearTimeout(rt);rt=setTimeout(function(){var idx=Math.round(scroll.tgt/itemSpan);measure();scroll.tgt=idx*itemSpan;scroll.cur=scroll.tgt;},150);});
     })();
     </script>
   </div></section><section data-dc-tpl="455" id="faq" data-screen-label="FAQ" style="background-color: rgb(255, 255, 255); background-image: linear-gradient(rgb(237, 241, 241) 1px, transparent 1px), linear-gradient(90deg, rgb(237, 241, 241) 1px, transparent 1px); background-size: 40px 40px; color: rgb(22, 40, 43); padding: clamp(56px, 8vw, 104px) clamp(20px, 5vw, 64px);">
