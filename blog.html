@@ -744,7 +744,10 @@ if(search){search.addEventListener("input",function(){q=norm(search.value);apply
 .fltwrap{position:relative;flex:1 1 auto;min-width:0}
 [data-filters]{flex-wrap:nowrap!important;overflow-x:auto;scroll-behavior:smooth;-ms-overflow-style:none;scrollbar-width:none;padding:0 2px}
 [data-filters]::-webkit-scrollbar{display:none;height:0}
-[data-filters] button[data-filter]{flex:0 0 auto}
+[data-filters]{align-items:stretch!important}
+[data-filters] button[data-filter]{flex:0 0 auto;width:92px!important;padding:18px 8px!important;gap:12px!important;justify-content:center!important}
+[data-filters] button[data-filter] svg{width:28px!important;height:28px!important}
+[data-filters] button[data-filter] [data-flbl]{font-size:11.5px!important;line-height:1.28!important}
 .fltwrap__fade{position:absolute;top:0;bottom:0;width:66px;pointer-events:none;z-index:2;opacity:0;transition:opacity .22s}
 .fltwrap__fade--r{right:0;background:linear-gradient(90deg,rgba(255,255,255,0),#fff 68%)}
 .fltwrap__fade--l{left:0;background:linear-gradient(270deg,rgba(255,255,255,0),#fff 68%)}
