@@ -850,6 +850,16 @@ ol,ul{margin:0;padding:0;list-style:none}
 .btn:active,.chip:active{transform:scale(.97)}
 </style>
 <script id="polish-anim">(function(){try{if("IntersectionObserver" in window&&!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("anim");}catch(_){}})();</script>
+<style id="nav-teal-fix">
+header.site-header{background:#008896;border-bottom-color:rgba(255,255,255,.16)}
+.site-header.is-scrolled{box-shadow:0 6px 24px rgba(0,40,48,.22);border-bottom-color:rgba(255,255,255,.12)}
+.site-header .main-nav a{color:#fff}
+.site-header .main-nav a::after{background:#fff}
+.site-header .nav-toggle span{background:#fff}
+.site-header .chip--gold{background:#fff;color:#063237}
+.site-header .chip--gold:hover{background:#eaf4f4;color:#063237}
+.site-header .nav-cta .chip--pet{color:#fff;border-color:rgba(255,255,255,.4)}
+</style>
 </head>
 <body>
 
@@ -858,7 +868,7 @@ ol,ul{margin:0;padding:0;list-style:none}
   <div class="navbar">
     <div class="container navbar__inner">
       <a href="index.html" class="brand" aria-label="A Fórmula — página inicial">
-        <img src="receita_assets/a17.webp" alt="A Fórmula" class="brand__logo" decoding="async">
+        <img src="receita_assets/a17-branco.webp" alt="A Fórmula" class="brand__logo" decoding="async">
       </a>
 
       <nav class="main-nav" id="mainNav" aria-label="Navegação principal">
@@ -870,8 +880,8 @@ ol,ul{margin:0;padding:0;list-style:none}
       </nav>
 
       <div class="nav-cta">
-        <a href="#" class="chip chip--pet"><img src="assets/logo-af-pet-branco.svg" alt="A Fórmula Pet" decoding="async"></a>
-        <a href="receita.html" class="chip chip--gold">Manipule sua receita <span class="chip__arrow" aria-hidden="true">→</span></a>
+        <a href="pet.html" class="chip chip--pet"><img src="assets/logo-af-pet-branco.svg" alt="A Fórmula Pet" decoding="async"></a>
+        <a href="https://franquia.aformulabr.com.br/seja-um-franqueado/" target="_blank" rel="noopener" class="chip chip--gold">Seja um franqueado</a>
       </div>
 
       <button class="nav-toggle" id="navToggle" aria-label="Abrir menu" aria-expanded="false">
