@@ -1044,7 +1044,7 @@ ol,ul{margin:0;padding:0;list-style:none}
 .rot__node .t{font-size:11.5px;font-weight:700;letter-spacing:.12em;line-height:1.32;text-transform:uppercase;color:var(--brand,#008896)}
 .rot__node .d{font-size:11.5px;line-height:1.46;color:#43565B;margin-top:6px;text-wrap:pretty}
 .rot__mobile{display:none}
-.rot__thumbs{display:flex;gap:30px;justify-content:center;align-items:flex-start;margin-top:14px;padding:8px 0}
+.rot__thumbs{display:flex;gap:22px;justify-content:flex-start;align-items:flex-start;margin-top:14px;padding:8px 24px;overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;-webkit-overflow-scrolling:touch;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 34px,#000 calc(100% - 34px),transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 34px,#000 calc(100% - 34px),transparent 100%)}.rot__thumbs::-webkit-scrollbar{display:none}.rot--fits .rot__thumbs{justify-content:center}
 .rot__thumb{background:none;border:none;padding:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;flex:none;font-family:inherit}
 .rot__ring{width:64px;height:64px;border-radius:50%;padding:3px;box-sizing:border-box;background:transparent;
   transition:transform .25s ease,box-shadow .25s ease}
@@ -1113,7 +1113,21 @@ ol,ul{margin:0;padding:0;list-style:none}
       venn: '<circle cx="9.5" cy="12" r="5"/><circle cx="14.5" cy="12" r="5"/>',
       people: '<circle cx="9" cy="8.5" r="3"/><circle cx="16.5" cy="9.5" r="2.3"/><path d="M3.8 19a5.2 5.2 0 0 1 10.4 0"/><path d="M15.4 19a4 4 0 0 1 4.8-3.6"/>',
       leaf: '<path d="M5 19C5 11 11 5 19 5c0 8-6 14-14 14z"/><path d="M8.5 15.5c2.2-4 5-6.2 8.2-7.4"/>',
-      bulb: '<path d="M9.3 17.5h5.4M10.3 20.5h3.4"/><path d="M12 3.2a5.8 5.8 0 0 1 3.8 10.2c-1 .9-1.5 1.8-1.6 2.8h-4.4c-.1-1-.6-1.9-1.6-2.8A5.8 5.8 0 0 1 12 3.2z"/>'
+      bulb: '<path d="M9.3 17.5h5.4M10.3 20.5h3.4"/><path d="M12 3.2a5.8 5.8 0 0 1 3.8 10.2c-1 .9-1.5 1.8-1.6 2.8h-4.4c-.1-1-.6-1.9-1.6-2.8A5.8 5.8 0 0 1 12 3.2z"/>',
+      drop: '<path d="M12 3.5c3.2 3.8 5.5 6.6 5.5 9.5a5.5 5.5 0 0 1-11 0c0-2.9 2.3-5.7 5.5-9.5z"/>',
+      chew: '<path d="M7.6 3.6C5.6 3.6 4.2 5.1 4.2 7.4c0 1.6.5 2.7.9 4.5.5 2.3.4 5.8 2 5.8 1.3 0 1.4-1.9 1.9-3.3.3-.9 1.7-.9 2 0 .5 1.4.6 3.3 1.9 3.3 1.6 0 1.5-3.5 2-5.8.4-1.8.9-2.9.9-4.5 0-2.3-1.4-3.8-3.4-3.8-1.5 0-2.2.7-4.4.7s-2.9-.7-4.4-.7z"/>',
+      lolli: '<circle cx="12" cy="9" r="5.2"/><path d="M12 14.2V21"/>',
+      mouth: '<path d="M4 12.3c1.6-1.9 3.4-2 4.7-1 .9.7 1.9 1 3.3 1s2.4-.3 3.3-1c1.3-1 3.1-.9 4.7 1-2 2.4-5 3.6-8 3.6s-6-1.2-8-3.6z"/><path d="M6.2 12.6c2.6.85 9 .85 11.6 0"/>',
+      choco: '<rect x="4.5" y="4.5" width="15" height="15" rx="1.6"/><path d="M4.5 12h15M12 4.5v15"/>',
+      nosugar: '<circle cx="12" cy="12" r="8.2"/><path d="M6.2 6.2l11.6 11.6"/>',
+      sachet: '<path d="M8.6 6.2h6.8v13.4H8.6z"/><path d="M8.6 6.2l1.1-1.2 1.3 1.2 1.3-1.2 1.3 1.2 1.5-1.2"/><path d="M8.6 9.4h6.8"/>',
+      powder: '<path d="M8.5 4h7l.8 4.5H7.7z"/><path d="M7.4 8.5h9.2l-.7 9.7a2 2 0 0 1-2 1.8H10a2 2 0 0 1-2-1.8z"/>',
+      bolt: '<path d="M13.5 3L6 13h5l-1.2 8L18 10.5h-5.2z"/>',
+      spray2: '<path d="M9.2 9.4h4.4V19a1.6 1.6 0 0 1-1.6 1.6h-1.2A1.6 1.6 0 0 1 9.2 19z"/><path d="M9.6 9.4V6.3h3.8V8"/><circle cx="16.8" cy="5.4" r="0.75" fill="#008896" stroke="none"/><circle cx="18.6" cy="6.8" r="0.75" fill="#008896" stroke="none"/><circle cx="16.9" cy="8.3" r="0.75" fill="#008896" stroke="none"/><circle cx="18.8" cy="9.6" r="0.75" fill="#008896" stroke="none"/>',
+      film: '<path d="M4 8.8c5.3-2.3 10.7-2.3 16 0-5.3 2.3-10.7 2.3-16 0z"/><path d="M6.6 12.6c3.6-1.3 7.2-1.3 10.8 0"/>',
+      bottle: '<path d="M10 3.2h4v2.4l1.1 2.2V19a2 2 0 0 1-2 2h-2.2a2 2 0 0 1-2-2V7.8L10 5.6z"/><path d="M9.8 11.5h4.4"/>',
+      shield: '<path d="M12 3.2l7 2.8v5.2c0 4.4-3 7.4-7 8.8-4-1.4-7-4.4-7-8.8V6z"/><path d="M9.3 12l1.9 1.9 3.5-3.7"/>',
+      check: '<circle cx="12" cy="12" r="8.5"/><path d="M8.2 12.2l2.6 2.6 5-5.4"/>'
     };
     return '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#008896" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' + (C[name] || "") + "</svg>";
   }
@@ -1157,17 +1171,153 @@ ol,ul{margin:0;padding:0;list-style:none}
         { i: "bulb", t: "INOVAÇÃO CONSTANTE", d: "Departamento operacional exclusivo de pesquisa e desenvolvimento sempre à frente." }
       ]
     }
+,
+    {
+      short: "Goma", eyebrow: "🟢 GOMA MEDICAMENTOSA", headline: "SABOR QUE FACILITA A ADESÃO",
+      lead: "Forma farmacêutica sólida, macia e mastigável, constituída essencialmente de gelatina ou colágeno — palatável e fácil de tomar.",
+      img: "index_assets/forma-goma.webp", imgH: "40%",
+      nodes: [
+        { i: "chew", t: "MASTIGÁVEL", d: "Forma sólida e macia, de fácil mastigação e ingestão." },
+        { i: "sparkle", t: "ALTAMENTE PALATÁVEL", d: "Altamente flavorizada e saborosa, tornando o tratamento agradável." },
+        { i: "leaf", t: "PODE SER SEM CORANTES", d: "Pode ser manipulada sem corantes ou aromatizantes." },
+        { i: "people", t: "MAIOR ADESÃO", d: "Aumenta a adesão, sobretudo em quem tem dificuldade de deglutição." }
+      ]
+    },
+    {
+      short: "Pirulito", eyebrow: "🍭 PIRULITO", headline: "EFEITO NA CAVIDADE ORAL",
+      lead: "Forma sólida indicada para pacientes com dificuldade em deglutir ou que necessitem do efeito terapêutico na própria cavidade oral.",
+      img: "index_assets/forma-pirulito.webp", imgH: "58%",
+      nodes: [
+        { i: "target", t: "PRATICIDADE", d: "Administração simples e cômoda, em qualquer momento do dia." },
+        { i: "lolli", t: "FORMATO DIFERENCIADO", d: "Apresentação lúdica e diferenciada de veiculação." },
+        { i: "clock", t: "DISSOLUÇÃO LENTA", d: "Liberação gradual para melhor absorção do ativo na cavidade oral." }
+      ]
+    },
+    {
+      short: "Pastilha", eyebrow: "⚪ PASTILHA MEDICAMENTOSA", headline: "ABSORÇÃO PELA MUCOSA",
+      lead: "Forma sólida e compacta que se dissolve lentamente na boca, liberando o fármaco pela mucosa oral e sublingual.",
+      img: "index_assets/forma-pastilha.webp", imgH: "42%",
+      nodes: [
+        { i: "clock", t: "DISSOLUÇÃO LENTA NA BOCA", d: "Compacta, dissolve-se aos poucos liberando o ativo de forma gradual." },
+        { i: "mouth", t: "ABSORÇÃO ORAL E SUBLINGUAL", d: "O fármaco é absorvido diretamente pela mucosa da boca." },
+        { i: "shield", t: "MENOS PRIMEIRA PASSAGEM HEPÁTICA", d: "Evita, em parte, a primeira passagem hepática do fármaco." },
+        { i: "sparkle", t: "FORMATO DIFERENCIADO", d: "Apresentação prática e diferenciada de veiculação." }
+      ]
+    },
+    {
+      short: "Chocolate", eyebrow: "🍫 CHOCOLATE", headline: "CIÊNCIA COM SABOR DE CACAU",
+      lead: "Forma sólida à base de cacau orgânico que incorpora diversos ativos com o mínimo de gordura possível.",
+      img: "index_assets/forma-chocolate.webp", imgH: "66%",
+      nodes: [
+        { i: "choco", t: "BASE DE CACAU ORGÂNICO", d: "Veículo saboroso à base de cacau orgânico para diversos ativos." },
+        { i: "nosugar", t: "SUBSTITUTOS DO AÇÚCAR", d: "Utiliza edulcorantes e poliois no lugar do açúcar." },
+        { i: "leaf", t: "ENRIQUECIDO", d: "Minerais, oligoelementos e fibras prebióticas com mínimo de gordura." },
+        { i: "people", t: "PARA BAIXA ADESÃO A CÁPSULAS", d: "Alternativa para pacientes que resistem às cápsulas." }
+      ]
+    },
+    {
+      short: "Gel Comestível", eyebrow: "💧 GEL COMESTÍVEL", headline: "PRÁTICO EM DOSE ÚNICA",
+      lead: "Veículo oral hidrocoloidal de grau alimentício, de uso seguro em dose única, que incorpora diversos ativos.",
+      img: "index_assets/forma-gel.webp", imgH: "70%",
+      nodes: [
+        { i: "sparkle", t: "TEXTURA AGRADÁVEL", d: "Suspensão homogênea geleificada, com textura e palatabilidade adequadas." },
+        { i: "sachet", t: "EMBALAGEM PRÁTICA", d: "Embalagem específica, prática e individualizada em dose única." },
+        { i: "people", t: "PARA TODAS AS IDADES", d: "Opção para crianças, idosos e pessoas com dificuldade de deglutir." }
+      ]
+    },
+    {
+      short: "Sublingual", eyebrow: "💠 SUBLINGUAL / ORODISPERSÍVEL", headline: "DESINTEGRA NA SALIVA",
+      lead: "Forma sólida semelhante ao comprimido que se desintegra facilmente na saliva, com biodisponibilidade que pode superar a das formas convencionais.",
+      img: "index_assets/forma-sublingual.webp", imgH: "34%",
+      nodes: [
+        { i: "drop", t: "FÁCIL ADMINISTRAÇÃO", d: "Sem necessidade de água e sem precisar mastigar." },
+        { i: "shield", t: "SEM ENGASGAMENTO", d: "Reduz o risco de engasgo em públicos sensíveis." },
+        { i: "mouth", t: "ABSORÇÃO PRÉ-GÁSTRICA", d: "Reduz o efeito de primeira passagem hepática." },
+        { i: "bolt", t: "DESINTEGRAÇÃO RÁPIDA", d: "Dissolve-se rapidamente na boca." },
+        { i: "waves", t: "AÇÃO LOCAL E SISTÊMICA", d: "Início de ação local com absorção sistêmica." }
+      ]
+    },
+    {
+      short: "Strip / Filme", eyebrow: "🎞️ STRIP ORAL — FILME", headline: "DISSOLVE EM SEGUNDOS",
+      lead: "Forma sólida fina e delicada, de dissolução rápida, que libera os ativos de forma mais veloz e melhora a adesão.",
+      img: "index_assets/forma-filme.webp", imgH: "40%",
+      nodes: [
+        { i: "bolt", t: "DISSOLUÇÃO EM 5–30S", d: "Dissolve na cavidade oral em segundos, sem água ou mastigação." },
+        { i: "hex", t: "BIODISPONIBILIDADE OTIMIZADA", d: "Possibilita a redução da dose terapêutica." },
+        { i: "shield", t: "NÃO INVASIVA", d: "Mucoadesão reduz efeitos adversos e a degradação ácida estomacal." },
+        { i: "film", t: "PORTÁTIL E FLEXÍVEL", d: "Fina, leve e discreta — inovadora para múltiplas classes." },
+        { i: "sparkle", t: "SABOR AGRADÁVEL", d: "Sabor agradável e refrescante, sem risco de engasgo." }
+      ]
+    },
+    {
+      short: "Sachê / Shake", eyebrow: "🥤 SACHÊ / SHAKE", headline: "DOSES ALTAS COM FACILIDADE",
+      lead: "Pó para solução extemporânea que se dissolve no líquido — ideal para vitaminas, minerais, aminoácidos e proteína.",
+      img: "index_assets/forma-sache.webp", imgH: "82%",
+      nodes: [
+        { i: "powder", t: "DOSES ELEVADAS", d: "Facilidade de uso, permitindo a utilização de altas doses de ativos." },
+        { i: "flask", t: "DISSOLUÇÃO HOMOGÊNEA", d: "Agente suspensor auxilia a dissolução e evita a precipitação." },
+        { i: "people", t: "VEÍCULO PARA ATLETAS", d: "Alternativa e repositor de nutrientes para atletas." },
+        { i: "sparkle", t: "VARIEDADE DE SABORES", d: "Diversos flavorizantes, com ou sem efervescência." }
+      ]
+    },
+    {
+      short: "Gotas Orais", eyebrow: "💧 GOTAS ORAIS", headline: "DOSE PRECISA, GOTA A GOTA",
+      lead: "Forma líquida para doses específicas, oleosas ou não, para melhor absorção do ativo.",
+      img: "index_assets/forma-gotas.webp", imgH: "74%",
+      nodes: [
+        { i: "target", t: "DOSE PRECISA E SEGURA", d: "Administração exata, gota a gota." },
+        { i: "drop", t: "PERFIL DIVERSIFICADO", d: "Gotas orais, sublinguais e sublinguais oleosas." },
+        { i: "people", t: "PARA DIFICULDADE DE DEGLUTIÇÃO", d: "Indicado para públicos pediátrico e geriátrico." }
+      ]
+    },
+    {
+      short: "Shot / Flaconete", eyebrow: "🧪 SHOT / FLACONETE", headline: "DOSE ÚNICA INDIVIDUALIZADA",
+      lead: "Forma líquida prática e individualizada, adaptável às necessidades específicas de cada paciente.",
+      img: "index_assets/forma-shot.webp", imgH: "66%",
+      nodes: [
+        { i: "target", t: "PRATICIDADE", d: "Apresentação individualizada e pronta para uso." },
+        { i: "drop", t: "COMPATÍVEL COM ATIVOS SOLÚVEIS", d: "Ideal para ativos solúveis em água." },
+        { i: "check", t: "FÁCIL ADMINISTRAÇÃO", d: "Administração rápida e sem complicação." }
+      ]
+    },
+    {
+      short: "Spray", eyebrow: "💨 SPRAY", headline: "ABSORÇÃO RÁPIDA EM JATO",
+      lead: "Forma líquida em embalagem que individualiza a dose, calibrada na forma de spray.",
+      img: "index_assets/forma-spray.webp", imgH: "76%",
+      nodes: [
+        { i: "spray2", t: "ADMINISTRAÇÃO SIMPLES", d: "Dose calibrada e prática a cada acionamento." },
+        { i: "bolt", t: "EFEITO RÁPIDO", d: "Rápida produção dos efeitos terapêuticos e maior nível de absorção." }
+      ]
+    },
+    {
+      short: "Xarope", eyebrow: "🍶 XAROPE / SUSPENSÃO", headline: "LÍQUIDO CONCENTRADO E ESTÁVEL",
+      lead: "Forma líquida concentrada, com viscosidade que facilita a adesão — aquosa, oleosa ou suspensora, com ou sem açúcar.",
+      img: "index_assets/forma-xarope.webp", imgH: "60%",
+      nodes: [
+        { i: "shield", t: "BOA CONSERVAÇÃO", d: "Estável e de boa conservação ao longo do tratamento." },
+        { i: "people", t: "PARA DIFICULDADE DE DEGLUTIÇÃO", d: "Indicado para pediátrico, autista, geriátrico e diabético." },
+        { i: "bottle", t: "DOSADOR ADEQUADO", d: "Embalagem com dosadores adequados à terapêutica." }
+      ]
+    }
   ];
+
+  // Ordem alfabética (pt-BR) das formas no rotator.
+  DATA.sort(function (a, b) { return a.short.localeCompare(b.short, "pt", { sensitivity: "base" }); });
 
   var W = 1180, H = 660, CX = 590, CY = 330;
   var DUR = 7000;
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var index = 2, elapsed = 0, paused = false, swapping = false, ringEl = null, last = performance.now();
+  var _def = DATA.map(function (d) { return d.short; }).indexOf("Cápsulas A Fórmula");
+  var index = _def < 0 ? 0 : _def, elapsed = 0, paused = false, swapping = false, ringEl = null, last = performance.now();
 
   function slots(n) {
-    return n === 5
-      ? [{ s: "L", y: 120 }, { s: "L", y: 330 }, { s: "L", y: 540 }, { s: "R", y: 225 }, { s: "R", y: 435 }]
-      : [{ s: "L", y: 110 }, { s: "L", y: 330 }, { s: "L", y: 550 }, { s: "R", y: 110 }, { s: "R", y: 330 }, { s: "R", y: 550 }];
+    // Distribuição simétrica: nunca mais de um "extra" de um lado (ex.: 3=2+1, 4=2+2, 5=3+2, 6=3+3).
+    var L = Math.ceil(n / 2), R = n - L;
+    var YS = { 1: [330], 2: [225, 435], 3: [110, 330, 550] };
+    var out = [];
+    (YS[L] || []).forEach(function (y) { out.push({ s: "L", y: y }); });
+    (YS[R] || []).forEach(function (y) { out.push({ s: "R", y: y }); });
+    return out;
   }
   function pct(v, total) { return (v / total * 100).toFixed(3) + "%"; }
 
@@ -1209,6 +1359,9 @@ ol,ul{margin:0;padding:0;list-style:none}
       ring.style.background = i === index ? "conic-gradient(#008896 0deg, rgba(0,136,150,0.14) 0)" : "transparent";
     });
     ringEl = thumbsEl.children[index] ? thumbsEl.children[index].querySelector(".rot__ring") : null;
+    var _at = thumbsEl.children[index];
+    if (_at) { var target = _at.offsetLeft - (thumbsEl.clientWidth - _at.offsetWidth) / 2;
+      thumbsEl.scrollTo({ left: Math.max(0, target), behavior: "smooth" }); }
   }
 
   function changeTo(i) {
