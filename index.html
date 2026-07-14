@@ -1392,7 +1392,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     b.type = "button";
     b.className = "rot__thumb";
     b.setAttribute("role", "tab");
-    b.innerHTML = '<span class="rot__ring"><span><img src="' + p.img + '" alt="" loading="lazy" decoding="async"></span></span><span class="rot__tlabel">' + p.short + "</span>";
+    b.innerHTML = '<span class="rot__ring"><span><img src="' + p.img + '" alt="" loading="eager" decoding="async"></span></span><span class="rot__tlabel">' + p.short + "</span>";
     b.addEventListener("click", function () { changeTo(i); });
     thumbsEl.appendChild(b);
   });
