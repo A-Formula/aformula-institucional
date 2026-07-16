@@ -20,11 +20,35 @@ async function loadFirestore() {
   const admin = (await import('firebase-admin')).default;
   if (!admin.apps.length) admin.initializeApp({ credential: admin.credential.cert(JSON.parse(saRaw)) });
   const db = admin.firestore();
-  const [postsSnap, catsSnap] = await Promise.all([db.collection('posts').get(), db.collection('categories').get()]);
+  const [postsSnap, catsSnap, bannerSnap] = await Promise.all([
+    db.collection('posts').get(), db.collection('categories').get(),
+    db.collection('banners').doc('home-hero').get(),
+  ]);
   let posts = postsSnap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => p.status !== 'draft');
   posts.sort((a,b)=> (b.publishedAt||'').localeCompare(a.publishedAt||''));
   const cats = catsSnap.docs.map(d => ({ slug: d.id, ...d.data() })).sort((a,b)=>(a.order||0)-(b.order||0));
-  return { posts, cats };
+  const banner = bannerSnap.exists ? bannerSnap.data() : null;
+  return { posts, cats, banner };
+}
+
+// index.html: banner do hero + galeria de blog (5 posts com capa)
+const DEFAULT_HEADLINE = 'A ciência da personalização';
+function buildIndexHtml(src, posts, banner) {
+  if (banner) {
+    if (banner.lead) src = src.replace(/(<p class="hero__lead" data-cms-lead>)[\s\S]*?(<\/p>)/, (_,a,b)=>a+E(banner.lead)+b);
+    if (banner.body) src = src.replace(/(<p class="hero__text" data-cms-body>)[\s\S]*?(<\/p>)/, (_,a,b)=>a+E(banner.body)+b);
+    if (banner.headline && banner.headline.trim() !== DEFAULT_HEADLINE)
+      src = src.replace(/(<h1 class="hero__title" data-cms-headline>)[\s\S]*?(<\/h1>)/, (_,a,b)=>a+E(banner.headline)+b);
+  }
+  // galeria de blog: 5 posts com capa mais recentes
+  const gal = posts.filter(p=>p.cover).slice(0,5);
+  let i = 0;
+  src = src.replace(/<a class="fcard" href="[^"]*"><img src="[^"]*" alt="[^"]*"([^>]*)><span class="fcard__t">[^<]*<\/span><\/a>/g, (m, imgTail) => {
+    const p = gal[i++]; if (!p) return m;
+    const title = p.title.length <= 42 ? p.title : p.title.slice(0,39).trimEnd() + '…';
+    return `<a class="fcard" href="${p.path}"><img src="${p.cover}" alt="${E(p.coverAlt||p.title)}"${imgTail}><span class="fcard__t">${E(title)}</span></a>`;
+  });
+  return src;
 }
 
 const ART_CSS = fs.readFileSync(path.join(__dirname, 'article.css.html'), 'utf8');
@@ -134,7 +158,7 @@ async function main() {
   const parts = JSON.parse(fs.readFileSync(path.join(__dirname,'template-parts.json'),'utf8'));
   const data = await loadFirestore();
   if (!data) return; // failsafe: mantém commitado
-  const { posts } = data;
+  const { posts, banner } = data;
   console.log(`[build] ${posts.length} posts do Firestore`);
 
   // 1) páginas de artigo
@@ -148,6 +172,9 @@ async function main() {
   // 2) blog.html
   const blogPath = path.join(ROOT,'blog.html');
   fs.writeFileSync(blogPath, buildBlogHtml(fs.readFileSync(blogPath,'utf8'), posts));
+  // 2b) index.html (banner + galeria)
+  const idxPath = path.join(ROOT,'index.html');
+  fs.writeFileSync(idxPath, buildIndexHtml(fs.readFileSync(idxPath,'utf8'), posts, banner));
   // 3) sitemap
   const urls = posts.map(p=>`<url><loc>${BASE}${p.path}</loc><lastmod>${(p.modifiedAt||p.publishedAt).slice(0,10)}</lastmod></url>`);
   ['/','/sobre-nos.html','/blog.html','/area-do-prescritor.html','/encontre-uma-loja.html','/contato.html','/pet.html','/receita.html'].reverse().forEach(pg=>urls.unshift(`<url><loc>${BASE}${pg}</loc></url>`));
