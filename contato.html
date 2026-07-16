@@ -1038,10 +1038,24 @@ ol,ul{margin:0;padding:0;list-style:none}
     if(!nome||!okEmail||!assunto||!mensagem){
       msg.className="contact__msg err";msg.textContent="Preencha nome, e-mail válido, assunto e mensagem.";return;
     }
-    var body="Nome: "+nome+"\nE-mail: "+email+"\nTelefone: "+(tel||"—")+"\nAssunto: "+assunto+"\n\n"+mensagem;
-    var href="mailto:sac@aformulabr.com.br?subject="+encodeURIComponent("[Contato site] "+assunto)+"&body="+encodeURIComponent(body);
-    msg.className="contact__msg ok";msg.textContent="Abrindo seu aplicativo de e-mail com a mensagem pronta…";
-    window.location.href=href;
+    var btn=f.querySelector('button[type="submit"]');
+    if(btn)btn.disabled=true;
+    msg.className="contact__msg ok";msg.textContent="Enviando…";
+    fetch("/api/contato",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({nome:nome,telefone:tel,email:email,assunto:assunto,mensagem:mensagem})})
+    .then(function(r){if(!r.ok)throw 0;return r.json();})
+    .then(function(){
+      msg.className="contact__msg ok";msg.textContent="Mensagem enviada! Retornaremos em até 1 dia útil.";
+      f.reset();if(btn)btn.disabled=false;
+    })
+    .catch(function(){
+      // fallback: backend indisponível → abre o e-mail pronto (comportamento anterior)
+      if(btn)btn.disabled=false;
+      var body="Nome: "+nome+"\nE-mail: "+email+"\nTelefone: "+(tel||"—")+"\nAssunto: "+assunto+"\n\n"+mensagem;
+      var href="mailto:sac@aformulabr.com.br?subject="+encodeURIComponent("[Contato site] "+assunto)+"&body="+encodeURIComponent(body);
+      msg.className="contact__msg ok";msg.textContent="Abrindo seu aplicativo de e-mail com a mensagem pronta…";
+      window.location.href=href;
+    });
   });
 })();</script>
 

@@ -465,6 +465,9 @@ document.querySelectorAll("[data-news-form]").forEach(function(f){
  f.addEventListener("submit",function(e){e.preventDefault();
   var btn=f.querySelector("button"),inp=f.querySelector("input");
   if(inp&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(inp.value||"")){inp.style.borderColor="#e0603f";inp.focus();return;}
+  var mail=inp?inp.value.trim():"";
+  fetch("/api/newsletter",{method:"POST",headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({email:mail,source:"area-do-prescritor"})}).catch(function(){});
   if(inp){inp.style.borderColor="";inp.value="";}
   if(btn){var o=btn.textContent;btn.textContent="Inscrito! ✓";setTimeout(function(){btn.textContent=o;},2600);}
  });});

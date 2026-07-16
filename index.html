@@ -1586,6 +1586,17 @@ ol,ul{margin:0;padding:0;list-style:none}
 
 
 
+<script id="news-backend">(function(){
+/* registrado ANTES do a28.js: captura o e-mail (o a28 limpa o input) e envia pro backend.
+   O feedback visual "Inscrito! ✓" continua sendo do a28. */
+var f=document.getElementById("newsForm");if(!f)return;
+f.addEventListener("submit",function(){
+  var i=f.querySelector("input"),v=(i&&i.value||"").trim();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v))return;
+  fetch("/api/newsletter",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({email:v,source:"home"})}).catch(function(){});
+});
+})();</script>
 <script src="index_assets/a28.js"></script>
 <script src="index_assets/a29.js"></script>
 <script src="index_assets/a30.js"></script>

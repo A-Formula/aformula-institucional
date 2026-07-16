@@ -11,3 +11,7 @@ _blueprint/
 *.zip
 
 .vercel
+
+# docs internos de sessão (não publicar no deploy)
+BLUEPRINT-BACKEND.md
+HANDOFF-*.md
