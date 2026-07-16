@@ -20,15 +20,45 @@ async function loadFirestore() {
   const admin = (await import('firebase-admin')).default;
   if (!admin.apps.length) admin.initializeApp({ credential: admin.credential.cert(JSON.parse(saRaw)) });
   const db = admin.firestore();
-  const [postsSnap, catsSnap, bannerSnap] = await Promise.all([
+  const [postsSnap, catsSnap, bannerSnap, settingsSnap] = await Promise.all([
     db.collection('posts').get(), db.collection('categories').get(),
     db.collection('banners').doc('home-hero').get(),
+    db.collection('settings').doc('global').get(),
   ]);
   let posts = postsSnap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => p.status !== 'draft');
   posts.sort((a,b)=> (b.publishedAt||'').localeCompare(a.publishedAt||''));
   const cats = catsSnap.docs.map(d => ({ slug: d.id, ...d.data() })).sort((a,b)=>(a.order||0)-(b.order||0));
   const banner = bannerSnap.exists ? bannerSnap.data() : null;
-  return { posts, cats, banner };
+  const settings = settingsSnap.exists ? settingsSnap.data() : {};
+  return { posts, cats, banner, settings };
+}
+
+// ---- settings/global → páginas (F3.1) ----
+// Substitui os valores-default commitados no HTML pelos do Firestore. Idempotente por
+// construção: o deploy sempre parte dos arquivos do git. Valor inválido → ignorado (site nunca quebra).
+const isHttp = v => typeof v === 'string' && /^https?:\/\/\S+$/.test(v);
+const isMail = v => typeof v === 'string' && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v);
+const SOCIAL_DEFAULTS = {
+  instagram: '"https://www.instagram.com/aformulafarmacia/"',
+  facebook:  '"https://www.facebook.com/aformulafarmacia"',
+  youtube:   '"https://www.youtube.com/@aformulafarmacia"',
+  linkedin:  '"https://www.linkedin.com/company/aformulafarmacia/"',
+};
+const FRANCHISE_DEFAULT = 'https://franquia.aformulabr.com.br/seja-um-franqueado/';
+export function applySettings(src, s) {
+  if (!s) return src;
+  const y = String(s.years ?? '').trim();
+  if (/^\d{2,3}$/.test(y) && y !== '37') {
+    src = src.replace(/\b(HÁ|Há|há)\s+37\b/g, (_,a)=>`${a} ${y}`);
+    src = src.replace(/\b37\s+(anos|ANOS)\b/g, (_,a)=>`${y} ${a}`);
+    src = src.replace(/(data-dc-tpl="37"[^>]*>)37(<\/span>)/, (_,a,b)=>a+y+b); // stat "anos de história" (sobre-nós)
+  }
+  if (isMail(s.sacEmail)) src = src.replaceAll('sac@aformulabr.com.br', s.sacEmail);
+  if (isMail(s.petEmail)) src = src.replaceAll('pet@aformulabr.com.br', s.petEmail);
+  if (isHttp(s.franchiseUrl)) src = src.replaceAll(FRANCHISE_DEFAULT, s.franchiseUrl);
+  for (const [k, def] of Object.entries(SOCIAL_DEFAULTS))
+    if (isHttp(s[k])) src = src.replaceAll(def, `"${s[k]}"`);
+  return src;
 }
 
 // index.html: banner do hero + galeria de blog (5 posts com capa)
@@ -158,8 +188,15 @@ async function main() {
   const parts = JSON.parse(fs.readFileSync(path.join(__dirname,'template-parts.json'),'utf8'));
   const data = await loadFirestore();
   if (!data) return; // failsafe: mantém commitado
-  const { posts, banner } = data;
+  const { posts, banner, settings } = data;
   console.log(`[build] ${posts.length} posts do Firestore`);
+
+  // 0) settings/global → template dos artigos + páginas que o build não reescreve
+  for (const k of Object.keys(parts)) parts[k] = applySettings(parts[k], settings);
+  for (const pg of ['sobre-nos.html','contato.html','pet.html','receita.html','area-do-prescritor.html','encontre-uma-loja.html']) {
+    const f = path.join(ROOT, pg);
+    fs.writeFileSync(f, applySettings(fs.readFileSync(f,'utf8'), settings));
+  }
 
   // 1) páginas de artigo
   for (const p of posts) {
@@ -171,10 +208,10 @@ async function main() {
   }
   // 2) blog.html
   const blogPath = path.join(ROOT,'blog.html');
-  fs.writeFileSync(blogPath, buildBlogHtml(fs.readFileSync(blogPath,'utf8'), posts));
+  fs.writeFileSync(blogPath, applySettings(buildBlogHtml(fs.readFileSync(blogPath,'utf8'), posts), settings));
   // 2b) index.html (banner + galeria)
   const idxPath = path.join(ROOT,'index.html');
-  fs.writeFileSync(idxPath, buildIndexHtml(fs.readFileSync(idxPath,'utf8'), posts, banner));
+  fs.writeFileSync(idxPath, applySettings(buildIndexHtml(fs.readFileSync(idxPath,'utf8'), posts, banner), settings));
   // 3) sitemap
   const urls = posts.map(p=>`<url><loc>${BASE}${p.path}</loc><lastmod>${(p.modifiedAt||p.publishedAt).slice(0,10)}</lastmod></url>`);
   ['/','/sobre-nos.html','/blog.html','/area-do-prescritor.html','/encontre-uma-loja.html','/contato.html','/pet.html','/receita.html'].reverse().forEach(pg=>urls.unshift(`<url><loc>${BASE}${pg}</loc></url>`));

@@ -8,6 +8,25 @@ const admin = require("firebase-admin");
 
 const NOTIFY_EMAIL = process.env.NOTIFY_EMAIL || "viniciusgayer@aformulabrasil.com.br";
 
+// Destinatário: settings/global.notifyEmail (editável no painel) > env NOTIFY_EMAIL > default.
+// Cache de 5 min por instância pra não custar uma leitura de Firestore por submissão.
+let notifyCache = { v: null, t: 0 };
+async function notifyTo() {
+  if (notifyCache.v && Date.now() - notifyCache.t < 5 * 60 * 1000) return notifyCache.v;
+  try {
+    const db = getDb();
+    if (db) {
+      const d = await db.collection("settings").doc("global").get();
+      const v = d.exists ? d.data().notifyEmail : null;
+      if (isEmail(v)) {
+        notifyCache = { v, t: Date.now() };
+        return v;
+      }
+    }
+  } catch (_) { /* fallback abaixo */ }
+  return NOTIFY_EMAIL;
+}
+
 function getDb() {
   const sa = process.env.FIREBASE_SERVICE_ACCOUNT;
   if (!sa) return null;
@@ -25,7 +44,7 @@ async function notify(subject, text) {
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       from: process.env.NOTIFY_FROM || "Site A Fórmula <onboarding@resend.dev>",
-      to: [NOTIFY_EMAIL],
+      to: [await notifyTo()],
       subject,
       text,
     }),

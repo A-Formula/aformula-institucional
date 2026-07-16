@@ -330,12 +330,13 @@ async function vBanner(){
 async function vSettings(){
   const v=$('#view'); v.innerHTML='<div class="topbar"><div><h1 class="page">Configurações</h1><p class="hint">Dados globais usados no site inteiro.</p></div></div><div class="card" style="max-width:720px" id="sx">Carregando…</div>';
   const d=await db.collection('settings').doc('global').get(); const s=d.data()||{};
-  const f=(k,l)=>`<div><label>${l}</label><input class="fld" id="s-${k}" value="${esc(s[k]||'')}"></div>`;
-  $('#sx').innerHTML=`<div class="row">${f('years','Anos de história')}${f('notifyEmail','E-mail p/ notificações')}</div>
-    <div class="row">${f('sacEmail','E-mail SAC')}${f('petEmail','E-mail Pet')}</div>
-    ${f('franchiseUrl','URL Seja franqueado')}
-    <div class="row">${f('instagram','Instagram')}${f('facebook','Facebook')}</div>
-    <div class="row">${f('youtube','YouTube')}${f('linkedin','LinkedIn')}</div>
+  const f=(k,l,ph)=>`<div><label>${l}</label><input class="fld" id="s-${k}" value="${esc(s[k]||'')}"${ph?` placeholder="${ph}"`:''}></div>`;
+  $('#sx').innerHTML=`<div class="row">${f('years','Anos de história','ex.: 38 (só o número)')}${f('notifyEmail','E-mail p/ notificações','nome@dominio.com.br')}</div>
+    <div class="row">${f('sacEmail','E-mail SAC','sac@aformulabr.com.br')}${f('petEmail','E-mail Pet','pet@aformulabr.com.br')}</div>
+    ${f('franchiseUrl','URL Seja franqueado','https://…')}
+    <div class="row">${f('instagram','Instagram (URL completa)','https://www.instagram.com/…')}${f('facebook','Facebook (URL completa)','https://www.facebook.com/…')}</div>
+    <div class="row">${f('youtube','YouTube (URL completa)','https://www.youtube.com/@…')}${f('linkedin','LinkedIn (URL completa)','https://www.linkedin.com/company/…')}</div>
+    <p class="hint" style="margin-top:10px">Campo vazio ou em formato inválido é ignorado na publicação — o site mantém o valor atual.</p>
     <p class="msg" id="s-msg"></p><div style="margin-top:14px"><button class="btn" id="s-save">Salvar</button></div>`;
   $('#s-save').addEventListener('click',async()=>{
     const keys=['years','notifyEmail','sacEmail','petEmail','franchiseUrl','instagram','facebook','youtube','linkedin'];
