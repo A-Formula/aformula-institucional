@@ -2,7 +2,7 @@
 // CNPJ obrigatório · grava no Firestore (status pending) · linha na planilha Google Sheets
 // (fila de aprovação) · notificação p/ NOTIFY_EMAIL. Login só é liberado após aprovação.
 // Env extra: GOOGLE_SHEET_ID (planilha compartilhada com o e-mail da service account)
-const { getDb, notify, guard, isEmail, FieldValue } = require("./_lib/backend");
+const { getDb, notify, guard, isEmail, isBlockedEmail, verifyCaptcha, FieldValue } = require("./_lib/backend");
 const { JWT } = require("google-auth-library");
 
 function validCNPJ(v) {
@@ -50,12 +50,29 @@ module.exports = async (req, res) => {
   const telefone = String(body.telefone || "").trim().slice(0, 40);
   const email = String(body.email || "").trim().toLowerCase().slice(0, 200);
 
-  if (!nome || !isEmail(email) || !validCNPJ(cnpj)) {
+  if (!nome || !isEmail(email) || !validCNPJ(cnpj) || !conselho || !conselhoNumero || uf.length !== 2) {
     return res.status(400).json({ ok: false, error: "validation" });
+  }
+
+  const ip = (req.headers["x-forwarded-for"] || "").split(",")[0].trim() || "?";
+  if (!(await verifyCaptcha(body.captcha, ip))) {
+    return res.status(400).json({ ok: false, error: "captcha" });
   }
 
   const db = getDb();
   if (!db) return res.status(503).json({ ok: false, error: "backend-offline" });
+
+  // E-mail corporativo de concorrente → recusa e registra a tentativa (visível só no Firestore).
+  if (isBlockedEmail(email)) {
+    await db.collection("prescriber_blocked_attempts").add({
+      nome, email, cnpj, ip, createdAt: FieldValue.serverTimestamp(),
+    }).catch(() => {});
+    return res.status(403).json({ ok: false, error: "blocked-domain" });
+  }
+
+  // Evita duplicata: já existe cadastro pendente/aprovado com este e-mail?
+  const dup = await db.collection("prescribers").where("email", "==", email).limit(1).get();
+  if (!dup.empty) return res.status(409).json({ ok: false, error: "duplicate" });
 
   const doc = {
     nome, cnpj, conselho, conselhoNumero, uf, especialidade, telefone, email,

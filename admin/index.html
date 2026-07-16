@@ -109,6 +109,7 @@
     <button class="nav-item" data-view="prescritores">🩺 Prescritores <span class="badge hidden" id="badge-presc">0</span></button>
     <button class="nav-item" data-view="newsletter">✉️ Newsletter</button>
     <button class="nav-item" data-view="posts">📝 Blog</button>
+    <button class="nav-item" data-view="preContent">🔬 Conteúdo prescritor</button>
     <button class="nav-item" data-view="banner">🖼️ Banner da home</button>
     <button class="nav-item" data-view="settings">⚙️ Configurações</button>
     <div class="foot">
@@ -176,7 +177,18 @@ document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',()=
   document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
   b.classList.add('active'); router(b.dataset.view);
 }));
-function router(v){ ({inbox:vInbox,prescritores:vPresc,newsletter:vNews,posts:vPosts,banner:vBanner,settings:vSettings}[v]||vInbox)(); }
+function router(v){ ({inbox:vInbox,prescritores:vPresc,newsletter:vNews,posts:vPosts,preContent:vPreContent,banner:vBanner,settings:vSettings}[v]||vInbox)(); }
+
+/* Upload de mídia (Vercel Blob via /api/upload, gated por admin) */
+async function uploadFile(file){
+  if(file.size>4*1024*1024) throw new Error('Arquivo acima de 4 MB — reduza antes de enviar.');
+  const token=await auth.currentUser.getIdToken();
+  const r=await fetch('/api/upload?filename='+encodeURIComponent(file.name)+'&type='+encodeURIComponent(file.type||'application/octet-stream'),
+    {method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/octet-stream'},body:file});
+  const j=await r.json().catch(()=>({}));
+  if(!j.ok) throw new Error(j.error==='type'?'Formato não permitido (use imagem ou PDF).':'Falha no upload — tente de novo.');
+  return j.url;
+}
 
 async function loadCounts(){
   try{
@@ -222,8 +234,95 @@ async function vPresc(){
     <td><button class="btn btn--ghost btn--sm" data-ap="${d.id}">Aprovar</button> <button class="btn btn--danger btn--sm" data-rj="${d.id}">Recusar</button></td></tr>`;
   });
   h+='</tbody></table>'; $('#rows').innerHTML=h;
-  v.querySelectorAll('[data-ap]').forEach(b=>b.addEventListener('click',async()=>{await db.collection('prescribers').doc(b.dataset.ap).update({status:'approved'});loadCounts();vPresc();}));
-  v.querySelectorAll('[data-rj]').forEach(b=>b.addEventListener('click',async()=>{await db.collection('prescribers').doc(b.dataset.rj).update({status:'rejected'});loadCounts();vPresc();}));
+  async function decide(id, action, btn){
+    btn.disabled=true; btn.textContent='…';
+    try{
+      const token=await auth.currentUser.getIdToken();
+      const r=await fetch('/api/prescritor-decide',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({id,action})});
+      const j=await r.json();
+      if(!j.ok) throw new Error(j.error||'falha');
+      if(action==='approve'){
+        const bg=document.createElement('div'); bg.className='modal-bg';
+        bg.innerHTML=`<div class="modal"><h2>Prescritor aprovado ✓</h2>
+          <p>${j.emailSent?'O prescritor recebeu um e-mail com o link para criar a senha.':'<strong>O e-mail automático não pôde ser enviado</strong> (domínio ainda não verificado no Resend). Envie o link abaixo por WhatsApp ou e-mail:'}</p>
+          <label>Link para o prescritor definir a senha (válido por tempo limitado)</label>
+          <input class="fld" id="rl" readonly value="${esc(j.resetLink)}">
+          <div class="row" style="margin-top:14px"><button class="btn" id="rl-copy" style="flex:0">Copiar link</button><button class="btn btn--ghost" id="rl-close" style="flex:0">Fechar</button></div>
+        </div>`;
+        document.body.appendChild(bg);
+        bg.querySelector('#rl-copy').addEventListener('click',()=>{bg.querySelector('#rl').select();document.execCommand('copy');bg.querySelector('#rl-copy').textContent='Copiado ✓';});
+        bg.querySelector('#rl-close').addEventListener('click',()=>{bg.remove();loadCounts();vPresc();});
+      } else { loadCounts(); vPresc(); }
+    }catch(e){ alert('Não foi possível concluir: '+e.message); btn.disabled=false; }
+  }
+  v.querySelectorAll('[data-ap]').forEach(b=>b.addEventListener('click',()=>decide(b.dataset.ap,'approve',b)));
+  v.querySelectorAll('[data-rj]').forEach(b=>b.addEventListener('click',()=>{ if(confirm('Recusar este cadastro? O acesso (se existir) será desativado.')) decide(b.dataset.rj,'reject',b); }));
+}
+
+/* ---------- CONTEÚDO DO PRESCRITOR (área logada — vale na hora, sem Publicar) ---------- */
+const PC_TYPES={artigo:'Artigo científico',pdf:'PDF',formula:'Fórmula sugerida'};
+async function vPreContent(){
+  const v=$('#view'); v.innerHTML='<div class="topbar"><div><h1 class="page">Conteúdo do prescritor</h1><p class="hint">Artigos, PDFs e fórmulas da área logada. Vale na hora — não precisa de “Publicar”.</p></div><button class="btn" id="new">+ Novo conteúdo</button></div><div id="rows">Carregando…</div>';
+  const snap = await db.collection('prescriber_content').get();
+  const items = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.publishedAt||'').localeCompare(a.publishedAt||''));
+  if(!items.length){ $('#rows').innerHTML='<div class="empty">Nenhum conteúdo ainda. Clique em “+ Novo conteúdo”.</div>'; }
+  else{
+    let h='<table><thead><tr><th>Data</th><th>Título</th><th>Tipo</th><th></th><th></th></tr></thead><tbody>';
+    items.forEach(p=>{h+=`<tr><td>${(p.publishedAt||'').slice(0,10)}</td><td class="postrow-title">${esc(p.title)}</td><td>${PC_TYPES[p.type]||esc(p.type)}</td>
+      <td><button class="btn btn--ghost btn--sm" data-edit="${p.id}">Editar</button></td>
+      <td><button class="btn btn--danger btn--sm" data-del="${p.id}">Excluir</button></td></tr>`;});
+    h+='</tbody></table>'; $('#rows').innerHTML=h;
+    v.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>editPreContent(items.find(p=>p.id===b.dataset.edit))));
+    v.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',async()=>{
+      const p=items.find(x=>x.id===b.dataset.del);
+      if(confirm(`Excluir “${p.title}”? Some da área do prescritor imediatamente.`)){ await db.collection('prescriber_content').doc(p.id).delete(); vPreContent(); }
+    }));
+  }
+  $('#new').addEventListener('click',()=>editPreContent(null));
+}
+function editPreContent(p){
+  const isNew=!p; p=p||{type:'artigo'};
+  const typeOpts=Object.entries(PC_TYPES).map(([k,l])=>`<option value="${k}" ${k===p.type?'selected':''}>${l}</option>`).join('');
+  const bg=document.createElement('div'); bg.className='modal-bg';
+  bg.innerHTML=`<div class="modal"><h2>${isNew?'Novo conteúdo':'Editar conteúdo'}</h2>
+    <label>Título</label><input class="fld" id="c-title" value="${esc(p.title||'')}">
+    <div class="row"><div><label>Tipo</label><select class="fld" id="c-type">${typeOpts}</select></div>
+    <div><label>Data (AAAA-MM-DD)</label><input class="fld" id="c-date" value="${(p.publishedAt||new Date().toISOString()).slice(0,10)}"></div></div>
+    <div id="c-pdf-row" class="hidden"><label>Arquivo PDF</label>
+      <div class="row"><input class="fld" id="c-file-url" readonly placeholder="Nenhum arquivo enviado" value="${esc(p.fileUrl||'')}">
+      <button class="btn btn--ghost" id="c-upl" style="flex:0">⬆ Enviar PDF</button></div>
+      <input type="file" id="c-file" accept="application/pdf" class="hidden">
+      <label style="margin-top:14px">Resumo (aparece no card)</label><textarea class="fld" id="c-exc" style="min-height:70px">${esc(p.excerpt||'')}</textarea></div>
+    <div id="c-body-row"><label>Conteúdo (HTML — use &lt;h3&gt;, &lt;p&gt;, &lt;ul&gt;&lt;li&gt;, &lt;strong&gt;)</label>
+      <textarea class="fld code" id="c-body" style="min-height:220px">${esc(p.body||'<p></p>')}</textarea></div>
+    <p class="msg" id="c-msg"></p>
+    <div class="row" style="margin-top:14px"><button class="btn" id="c-save" style="flex:0">Salvar</button><button class="btn btn--ghost" id="c-cancel" style="flex:0">Cancelar</button></div>
+  </div>`;
+  document.body.appendChild(bg);
+  const q=s=>bg.querySelector(s);
+  function syncType(){ const t=q('#c-type').value; q('#c-pdf-row').classList.toggle('hidden',t!=='pdf'); q('#c-body-row').classList.toggle('hidden',t==='pdf'); }
+  syncType(); q('#c-type').addEventListener('change',syncType);
+  q('#c-cancel').addEventListener('click',()=>bg.remove());
+  bg.addEventListener('click',e=>{if(e.target===bg)bg.remove();});
+  q('#c-upl').addEventListener('click',()=>q('#c-file').click());
+  q('#c-file').addEventListener('change',async()=>{
+    const f=q('#c-file').files[0]; if(!f) return; const m=q('#c-msg');
+    m.className='msg'; m.textContent='Enviando PDF…';
+    try{ q('#c-file-url').value=await uploadFile(f); m.className='msg ok'; m.textContent='PDF enviado ✓'; }
+    catch(e){ m.className='msg err'; m.textContent=e.message; }
+  });
+  q('#c-save').addEventListener('click',async()=>{
+    const m=q('#c-msg'); const title=q('#c-title').value.trim(); const type=q('#c-type').value;
+    if(!title){m.className='msg err';m.textContent='Título é obrigatório.';return;}
+    if(type==='pdf'&&!q('#c-file-url').value){m.className='msg err';m.textContent='Envie o arquivo PDF.';return;}
+    const doc={ title, type, publishedAt:q('#c-date').value+'T10:00:00',
+      excerpt:q('#c-exc')?q('#c-exc').value.trim():'',
+      body:type==='pdf'?'':q('#c-body').value, fileUrl:type==='pdf'?q('#c-file-url').value:'' };
+    m.className='msg'; m.textContent='Salvando…';
+    if(p.id) await db.collection('prescriber_content').doc(p.id).set(doc,{merge:true});
+    else await db.collection('prescriber_content').add(doc);
+    bg.remove(); vPreContent();
+  });
 }
 
 /* ---------- NEWSLETTER ---------- */
@@ -279,7 +378,10 @@ function editPost(p){
     <div><label>Tempo de leitura (min)</label><input class="fld" id="e-read" type="number" value="${p.readTime||4}"></div>
     <div><label>Data (AAAA-MM-DD)</label><input class="fld" id="e-date" value="${(p.publishedAt||new Date().toISOString()).slice(0,10)}"></div></div>
     <label>Resumo (aparece nos cards e no Google)</label><textarea class="fld" id="e-exc">${esc(p.excerpt||'')}</textarea>
-    <label>Imagem de capa (URL)</label><input class="fld" id="e-cover" value="${esc(p.cover||'')}" placeholder="/blog_assets/wp/arquivo.webp">
+    <label>Imagem de capa</label>
+    <div class="row"><input class="fld" id="e-cover" value="${esc(p.cover||'')}" placeholder="Envie um arquivo ao lado ou cole uma URL">
+    <button class="btn btn--ghost" id="e-upl" style="flex:0" type="button">⬆ Enviar imagem</button></div>
+    <input type="file" id="e-cover-file" accept="image/*" class="hidden">
     <label>Conteúdo (HTML — use &lt;h2&gt;, &lt;p&gt;, &lt;ul&gt;&lt;li&gt;, &lt;strong&gt;)</label>
     <textarea class="fld code" id="e-body">${esc(p.contentHTML||'<p></p>')}</textarea>
     <p class="msg" id="e-msg"></p>
@@ -288,6 +390,13 @@ function editPost(p){
   document.body.appendChild(bg);
   bg.querySelector('#e-cancel').addEventListener('click',()=>bg.remove());
   bg.addEventListener('click',e=>{if(e.target===bg)bg.remove();});
+  bg.querySelector('#e-upl').addEventListener('click',()=>bg.querySelector('#e-cover-file').click());
+  bg.querySelector('#e-cover-file').addEventListener('change',async()=>{
+    const f=bg.querySelector('#e-cover-file').files[0]; if(!f) return; const m=bg.querySelector('#e-msg');
+    m.className='msg'; m.textContent='Enviando imagem…';
+    try{ bg.querySelector('#e-cover').value=await uploadFile(f); m.className='msg ok'; m.textContent='Imagem enviada ✓ (salve a matéria pra aplicar)'; }
+    catch(err){ m.className='msg err'; m.textContent=err.message; }
+  });
   bg.querySelector('#e-save').addEventListener('click',async()=>{
     const title=bg.querySelector('#e-title').value.trim(); const m=bg.querySelector('#e-msg');
     if(!title){m.className='msg err';m.textContent='Título é obrigatório.';return;}
@@ -336,10 +445,11 @@ async function vSettings(){
     ${f('franchiseUrl','URL Seja franqueado','https://…')}
     <div class="row">${f('instagram','Instagram (URL completa)','https://www.instagram.com/…')}${f('facebook','Facebook (URL completa)','https://www.facebook.com/…')}</div>
     <div class="row">${f('youtube','YouTube (URL completa)','https://www.youtube.com/@…')}${f('linkedin','LinkedIn (URL completa)','https://www.linkedin.com/company/…')}</div>
+    ${f('recaptchaSiteKey','reCAPTCHA site key (cadastro de prescritor)','6L…')}
     <p class="hint" style="margin-top:10px">Campo vazio ou em formato inválido é ignorado na publicação — o site mantém o valor atual.</p>
     <p class="msg" id="s-msg"></p><div style="margin-top:14px"><button class="btn" id="s-save">Salvar</button></div>`;
   $('#s-save').addEventListener('click',async()=>{
-    const keys=['years','notifyEmail','sacEmail','petEmail','franchiseUrl','instagram','facebook','youtube','linkedin'];
+    const keys=['years','notifyEmail','sacEmail','petEmail','franchiseUrl','instagram','facebook','youtube','linkedin','recaptchaSiteKey'];
     const upd={}; keys.forEach(k=>{let val=$('#s-'+k).value; if(k==='years')val=parseInt(val)||val; upd[k]=val;});
     const m=$('#s-msg');m.className='msg';m.textContent='Salvando…';
     await db.collection('settings').doc('global').set(upd,{merge:true});

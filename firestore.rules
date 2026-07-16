@@ -19,6 +19,21 @@ service cloud.firestore {
     match /contact_messages/{doc} { allow read, update: if isAdmin(); allow create: if false; }
     match /prescribers/{doc}      { allow read, update: if isAdmin(); allow create: if false; }
     match /newsletter/{doc}       { allow read: if isAdmin(); allow create: if false; }
+    match /prescriber_blocked_attempts/{doc} { allow read: if isAdmin(); allow write: if false; }
+
+    // Área do prescritor (F4): aprovado = existe prescriber_access/{email} (criado na aprovação).
+    function isApprovedPrescriber() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/prescriber_access/$(request.auth.token.email));
+    }
+    match /prescriber_content/{doc} {
+      allow read: if isApprovedPrescriber() || isAdmin();
+      allow write: if isAdmin();
+    }
+    match /prescriber_access/{email} {
+      allow read: if isAdmin() || (request.auth != null && request.auth.token.email == email);
+      allow write: if false; // só via API de aprovação (admin SDK)
+    }
 
     // Allowlist de admins: cada um lê o próprio doc (p/ confirmar acesso); nunca escreve.
     match /admins/{email}       { allow read: if request.auth != null && request.auth.token.email == email; allow write: if false; }

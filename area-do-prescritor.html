@@ -475,14 +475,6 @@ var pt=document.querySelector("[data-pw-toggle]"),pw=document.querySelector("[da
 if(pt&&pw){pt.addEventListener("click",function(){
  var show=pw.type==="password";pw.type=show?"text":"password";
  pt.setAttribute("aria-label",show?"Ocultar senha":"Mostrar senha");});}
-var lg=document.querySelector("[data-login-form]");
-if(lg){lg.addEventListener("submit",function(e){e.preventDefault();
- var m=document.getElementById("polish-login-msg");
- if(!m){m=document.createElement("p");m.id="polish-login-msg";
-  m.style.cssText="margin:4px 0 0;font-size:13.5px;font-weight:700;color:#0a3f45;background:#e4f2f3;padding:11px 15px;border-radius:10px;line-height:1.45";
-  lg.appendChild(m);}
- m.textContent="O acesso online está em implantação — fale com nosso time em sac@aformulabr.com.br.";
-});}
 })();</script>
 <script id="polish-motion-js">(function(){
 if(!document.documentElement.classList.contains("anim"))return;
@@ -505,5 +497,217 @@ var sp=document.createElement("div");sp.style.height=h.offsetHeight+"px";
 h.parentNode.insertBefore(sp,h.nextSibling);
 addEventListener("resize",function(){sp.style.height=h.offsetHeight+"px"},{passive:true});
 addEventListener("scroll",function(){h.classList.toggle("hdr-sh",scrollY>8)},{passive:true});
+})();</script>
+<!-- ===== ÁREA DO PRESCRITOR (F4): cadastro + login + conteúdo exclusivo ===== -->
+<style id="presc-app-css">
+.pa-fld{width:100%;background:#f5f8f8;border:1.5px solid #e2e8e9;border-radius:999px;padding:13px 20px;font-family:Avenir,sans-serif;font-size:15px;color:#063237;outline:none;transition:border-color .25s}
+.pa-fld:focus{border-color:#008896}
+select.pa-fld{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9' fill='none'%3E%3Cpath d='M1 1l6 6 6-6' stroke='%23008896' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 20px center;padding-right:46px;cursor:pointer}
+.pa-label{font-family:Avenir,sans-serif;font-weight:500;font-size:13.5px;letter-spacing:.02em;color:#16282b;padding-left:6px;display:block;margin-bottom:8px}
+.pa-row{display:flex;gap:12px}.pa-row>div{flex:1;min-width:0}
+@media(max-width:560px){.pa-row{flex-direction:column;gap:18px}}
+.pa-msg{margin:0;font-family:Avenir,sans-serif;font-size:13.5px;font-weight:700;line-height:1.45;padding:11px 15px;border-radius:12px;display:none}
+.pa-msg.on{display:block}.pa-msg.err{background:#fbe9e4;color:#a02b1a}.pa-msg.ok{background:#e4f2f3;color:#0a3f45}
+.pa-btn{width:100%;height:52px;border:0;border-radius:999px;background:#008896;color:#fff;font-family:Avenir,sans-serif;font-weight:900;font-size:15px;letter-spacing:.02em;cursor:pointer;transition:background .25s,transform .2s}
+.pa-btn:hover{background:#00727e}.pa-btn:disabled{opacity:.55;cursor:default}
+.pa-link{font-family:Avenir,sans-serif;font-weight:900;color:#008896;text-decoration:underline;text-underline-offset:4px;cursor:pointer;background:none;border:0;font-size:14px}
+.pa-consent{font-family:Avenir,sans-serif;font-size:12.5px;color:#51686c;line-height:1.5;margin:0}
+.pa-consent a{color:#008896}
+/* área logada */
+.pa-hub{max-width:1180px;margin:0 auto;position:relative;z-index:2}
+.pa-hub-top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;margin-bottom:34px}
+.pa-hub h1{font-family:Avenir,sans-serif;font-weight:900;font-size:clamp(30px,4vw,48px);letter-spacing:-.02em;color:#063237;text-transform:uppercase;margin:0}
+.pa-hub h1 span{color:#008896}
+.pa-out{background:none;border:1.5px solid #cdd9da;border-radius:999px;padding:10px 22px;font-family:Avenir,sans-serif;font-weight:900;font-size:13px;color:#51686c;cursor:pointer;transition:border-color .2s,color .2s}
+.pa-out:hover{border-color:#a02b1a;color:#a02b1a}
+.pa-sec{font-family:Avenir,sans-serif;font-weight:900;font-size:13px;letter-spacing:.26em;text-transform:uppercase;color:#008896;margin:38px 0 16px;display:flex;align-items:center;gap:14px}
+.pa-sec::after{content:"";flex:1;height:1px;background:rgba(0,136,150,.25)}
+.pa-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
+.pa-card{background:#fff;border:1px solid #e2e8e9;border-radius:18px;padding:24px 26px;box-shadow:0 18px 44px -30px rgba(0,40,48,.35);display:flex;flex-direction:column;gap:10px}
+.pa-card h3{font-family:Avenir,sans-serif;font-weight:900;font-size:17px;color:#063237;margin:0;line-height:1.3}
+.pa-card .pa-date{font-family:Avenir,sans-serif;font-size:12px;color:#7e9296}
+.pa-card .pa-body{font-family:Avenir,sans-serif;font-size:14.5px;line-height:1.6;color:#3d5257;overflow:hidden;max-height:120px;position:relative}
+.pa-card.pa-open .pa-body{max-height:none}
+.pa-card .pa-more{align-self:flex-start;margin-top:2px}
+.pa-pdf{display:inline-flex;align-items:center;gap:8px;background:#e8f7f7;border:1px solid rgba(0,136,150,.25);color:#00525d;font-family:Avenir,sans-serif;font-weight:900;font-size:13.5px;padding:10px 18px;border-radius:999px;text-decoration:none;transition:background .2s}
+.pa-pdf:hover{background:#d5efef}
+.pa-empty{font-family:Avenir,sans-serif;font-size:14.5px;color:#7e9296;background:#fff;border:1px dashed #cdd9da;border-radius:14px;padding:26px;text-align:center}
+.pa-support{margin-top:44px;background:linear-gradient(125deg,#063237,#0a6b75);border-radius:20px;padding:clamp(24px,3.4vw,40px);color:#fff;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:18px}
+.pa-support p{font-family:Avenir,sans-serif;margin:0;font-size:15.5px;line-height:1.5;color:rgba(255,255,255,.92)}
+.pa-support strong{font-size:19px;display:block;margin-bottom:4px;font-weight:900}
+.pa-support a{display:inline-block;background:#fff;color:#063237;font-family:Avenir,sans-serif;font-weight:900;font-size:14px;padding:13px 26px;border-radius:999px;text-decoration:none}
+</style>
+<script src="/admin/vendor/firebase-app-compat.js"></script>
+<script src="/admin/vendor/firebase-auth-compat.js"></script>
+<script src="/admin/vendor/firebase-firestore-compat.js"></script>
+<script id="presc-app">(function(){
+firebase.initializeApp({apiKey:"AIzaSyAeag91E__CL4f-4pRnKgezvwEasEUnUOY",authDomain:"aformula-institucional.firebaseapp.com",projectId:"aformula-institucional",appId:"1:139838701463:web:9938229ebeed4c545c8ed2"});
+var auth=firebase.auth(), db=firebase.firestore();
+var esc=function(s){return (s==null?"":String(s)).replace(/[&<>"]/g,function(c){return({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c];});};
+var mainEl=document.querySelector('main[data-dc-tpl="23"]');
+var card=document.querySelector('[data-dc-tpl="45"]');
+var loginHTML=card?card.innerHTML:"";
+var mainHTML=mainEl?mainEl.innerHTML:"";
+var CONSELHOS=["CRM","CRO","CRF","CRN","CRMV","CREFITO","Outro"];
+var ESPECIALIDADES=["Dermatologia","Endocrinologia","Ginecologia e Obstetrícia","Clínica Médica","Nutrologia","Nutrição","Ortopedia","Pediatria","Psiquiatria","Urologia","Odontologia","Medicina Veterinária","Fisioterapia","Farmácia Clínica","Outra"];
+var UFS=["AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO"];
+var siteKey=null, captchaId=null;
+db.collection("settings").doc("global").get().then(function(d){ siteKey=(d.data()||{}).recaptchaSiteKey||null; }).catch(function(){});
+
+function msg(el,type,text){ el.className="pa-msg on "+type; el.textContent=text; }
+function authErr(code){
+  if(code==="auth/invalid-credential"||code==="auth/wrong-password"||code==="auth/user-not-found")return "E-mail ou senha incorretos.";
+  if(code==="auth/too-many-requests")return "Muitas tentativas. Aguarde alguns minutos.";
+  if(code==="auth/user-disabled")return "Este acesso foi desativado. Fale com sac@aformulabr.com.br.";
+  return "Não foi possível entrar. Tente novamente.";
+}
+
+/* ---------- LOGIN ---------- */
+function wireLogin(){
+  var f=card.querySelector("[data-login-form]"); if(!f||f.__paWired) return; f.__paWired=true;
+  var fb=f.querySelector("[data-login-feedback]");
+  if(fb){fb.classList.add("pa-msg");fb.style.display="";}
+  var pt=card.querySelector("[data-pw-toggle]"),pw=card.querySelector("[data-pw]");
+  if(pt&&pw){pt.addEventListener("click",function(){pw.type=pw.type==="password"?"text":"password";});}
+  f.addEventListener("submit",function(e){
+    e.preventDefault();
+    var em=(card.querySelector("#presc-email")||{}).value||"", ps=(card.querySelector("#presc-pass")||{}).value||"";
+    if(!em||!ps){msg(fb,"err","Preencha e-mail e senha.");return;}
+    msg(fb,"ok","Entrando…");
+    auth.signInWithEmailAndPassword(em.trim(),ps).catch(function(err){msg(fb,"err",authErr(err.code));});
+  });
+  var forgot=card.querySelector('[data-dc-tpl="64"]');
+  if(forgot){forgot.addEventListener("click",function(e){
+    e.preventDefault();
+    var em=((card.querySelector("#presc-email")||{}).value||"").trim();
+    if(!em){msg(fb,"err","Digite seu e-mail no campo acima e clique de novo.");return;}
+    auth.sendPasswordResetEmail(em).then(function(){msg(fb,"ok","Enviamos um link de redefinição para "+em+".");})
+      .catch(function(){msg(fb,"err","Não foi possível enviar. Confira o e-mail digitado.");});
+  });}
+  var signup=card.querySelector('[data-dc-tpl="69"]');
+  if(signup){signup.addEventListener("click",function(e){e.preventDefault();renderCadastro();});}
+}
+
+/* ---------- CADASTRO ---------- */
+function opts(arr,ph){return '<option value="" disabled selected>'+ph+'</option>'+arr.map(function(o){return '<option value="'+o+'">'+o+'</option>';}).join("");}
+function renderCadastro(){
+  card.innerHTML=
+  '<h2 style="font-family:Avenir,sans-serif;font-weight:900;font-size:clamp(23px,2.3vw,28px);line-height:1.12;color:#063237;margin:0">Criar cadastro de prescritor</h2>'+
+  '<p style="margin:10px 0 0;font-family:Avenir,sans-serif;font-size:14.5px;line-height:1.55;color:#51686c">Preencha seus dados profissionais. Nossa equipe valida o cadastro e você recebe o acesso por e-mail.</p>'+
+  '<form id="pa-signup" style="margin-top:26px;display:flex;flex-direction:column;gap:18px" novalidate>'+
+    '<div><label class="pa-label" for="pa-nome">Nome completo *</label><input class="pa-fld" id="pa-nome" type="text" autocomplete="name" placeholder="Seu nome"></div>'+
+    '<div class="pa-row">'+
+      '<div><label class="pa-label" for="pa-email">E-mail *</label><input class="pa-fld" id="pa-email" type="email" autocomplete="email" placeholder="nome@clinica.com.br"></div>'+
+      '<div><label class="pa-label" for="pa-tel">Telefone / WhatsApp *</label><input class="pa-fld" id="pa-tel" type="tel" autocomplete="tel" placeholder="(11) 99999-9999"></div>'+
+    '</div>'+
+    '<div class="pa-row">'+
+      '<div><label class="pa-label" for="pa-conselho">Conselho *</label><select class="pa-fld" id="pa-conselho">'+opts(CONSELHOS,"Selecione")+'</select></div>'+
+      '<div><label class="pa-label" for="pa-cnum">Nº do registro *</label><input class="pa-fld" id="pa-cnum" type="text" placeholder="000000"></div>'+
+      '<div style="flex:0 0 108px"><label class="pa-label" for="pa-uf">UF *</label><select class="pa-fld" id="pa-uf">'+opts(UFS,"UF")+'</select></div>'+
+    '</div>'+
+    '<div><label class="pa-label" for="pa-esp">Especialidade *</label><select class="pa-fld" id="pa-esp">'+opts(ESPECIALIDADES,"Selecione")+'</select></div>'+
+    '<div><label class="pa-label" for="pa-cnpj">CNPJ (clínica/consultório) *</label><input class="pa-fld" id="pa-cnpj" type="text" inputmode="numeric" placeholder="00.000.000/0000-00"></div>'+
+    '<input type="text" name="website" id="pa-web" tabindex="-1" autocomplete="off" style="position:absolute;left:-5000px" aria-hidden="true">'+
+    '<div id="pa-captcha"></div>'+
+    '<p class="pa-consent">Ao enviar, você concorda com o tratamento dos seus dados para fins de validação profissional, conforme a <a href="/lgpd" target="_blank" rel="noopener">LGPD</a>.</p>'+
+    '<p class="pa-msg" id="pa-msg"></p>'+
+    '<button class="pa-btn" type="submit">Enviar cadastro</button>'+
+  '</form>'+
+  '<p style="margin:20px 0 0;text-align:center;font-family:Avenir,sans-serif;font-size:14px;color:#51686c">Já tem acesso? <button class="pa-link" id="pa-back">Entrar</button></p>';
+  card.querySelector("#pa-back").addEventListener("click",function(){card.innerHTML=loginHTML;wireLogin();});
+  mountCaptcha();
+  card.querySelector("#pa-signup").addEventListener("submit",submitCadastro);
+}
+function mountCaptcha(){
+  if(!siteKey) return;
+  var box=card.querySelector("#pa-captcha"); if(!box) return;
+  function render(){ captchaId=grecaptcha.render(box,{sitekey:siteKey}); }
+  if(window.grecaptcha&&grecaptcha.render){render();return;}
+  window.__paCaptchaReady=render;
+  if(!document.getElementById("pa-recaptcha-js")){
+    var s=document.createElement("script"); s.id="pa-recaptcha-js";
+    s.src="https://www.google.com/recaptcha/api.js?onload=__paCaptchaReady&render=explicit";
+    s.async=true; s.defer=true; document.head.appendChild(s);
+  }
+}
+function submitCadastro(e){
+  e.preventDefault();
+  var g=function(id){return (card.querySelector(id)||{}).value||"";};
+  var m=card.querySelector("#pa-msg"), btn=card.querySelector(".pa-btn");
+  var data={
+    nome:g("#pa-nome").trim(), email:g("#pa-email").trim(), telefone:g("#pa-tel").trim(),
+    conselho:g("#pa-conselho"), conselhoNumero:g("#pa-cnum").trim(), uf:g("#pa-uf"),
+    especialidade:g("#pa-esp"), cnpj:g("#pa-cnpj").replace(/\D/g,""), website:g("#pa-web"),
+    captcha:(siteKey&&window.grecaptcha)?grecaptcha.getResponse(captchaId):""
+  };
+  if(!data.nome||!data.email||!data.telefone||!data.conselho||!data.conselhoNumero||!data.uf||!data.especialidade){msg(m,"err","Preencha todos os campos obrigatórios.");return;}
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(data.email)){msg(m,"err","Confira o e-mail digitado.");return;}
+  if(data.cnpj.length!==14){msg(m,"err","Confira o CNPJ (14 dígitos).");return;}
+  if(siteKey&&!data.captcha){msg(m,"err","Confirme que você não é um robô.");return;}
+  btn.disabled=true; msg(m,"ok","Enviando…");
+  fetch("/api/prescritor-cadastro",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)})
+  .then(function(r){return r.json().then(function(j){return{s:r.status,j:j};});})
+  .then(function(x){
+    if(x.j.ok){
+      card.innerHTML='<div style="text-align:center;padding:26px 6px">'+
+      '<div style="width:64px;height:64px;border-radius:50%;background:#e8f7f7;border:1px solid rgba(0,136,150,.3);display:flex;align-items:center;justify-content:center;margin:0 auto 20px"><svg viewBox="0 0 24 24" fill="none" stroke="#008896" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" width="28" height="28"><path d="M20 6L9 17l-5-5"/></svg></div>'+
+      '<h2 style="font-family:Avenir,sans-serif;font-weight:900;font-size:24px;color:#063237;margin:0">Cadastro enviado!</h2>'+
+      '<p style="font-family:Avenir,sans-serif;font-size:15px;line-height:1.6;color:#51686c;margin:12px 0 0">Nossa equipe vai validar seus dados profissionais. Assim que o cadastro for aprovado, você recebe um e-mail com o link para criar sua senha de acesso.</p></div>';
+      return;
+    }
+    btn.disabled=false;
+    if(x.j.error==="blocked-domain") msg(m,"err","Não foi possível concluir o cadastro com este e-mail. Utilize um e-mail profissional individual.");
+    else if(x.j.error==="duplicate") msg(m,"err","Já existe um cadastro com este e-mail. Se ele já foi aprovado, use “Entrar”; em dúvida, fale com sac@aformulabr.com.br.");
+    else if(x.j.error==="captcha") msg(m,"err","Confirme o captcha e tente de novo.");
+    else if(x.j.error==="rate") msg(m,"err","Muitas tentativas. Aguarde alguns minutos.");
+    else msg(m,"err","Confira os campos e tente novamente.");
+    if(siteKey&&window.grecaptcha)grecaptcha.reset(captchaId);
+  })
+  .catch(function(){btn.disabled=false;msg(m,"err","Falha de conexão. Tente novamente.");});
+}
+
+/* ---------- ÁREA LOGADA ---------- */
+function renderHub(user,access){
+  var first=(access.nome||user.email).split(" ")[0];
+  mainEl.innerHTML='<div class="pa-hub">'+
+    '<div class="pa-hub-top"><h1>Olá, <span>'+esc(first)+'</span></h1><button class="pa-out" id="pa-sair">Sair</button></div>'+
+    '<div id="pa-content"><p class="pa-empty">Carregando conteúdo…</p></div>'+
+    '<div class="pa-support"><div><strong>Suporte técnico especializado</strong><p>Dúvidas de prescrição magistral? Nossa equipe técnica responde.</p></div><a href="mailto:sac@aformulabr.com.br">Falar com a equipe →</a></div>'+
+  '</div>';
+  mainEl.querySelector("#pa-sair").addEventListener("click",function(){auth.signOut().then(function(){location.reload();});});
+  db.collection("prescriber_content").get().then(function(snap){
+    var items=snap.docs.map(function(d){return d.data();}).sort(function(a,b){return (b.publishedAt||"").localeCompare(a.publishedAt||"");});
+    var art=items.filter(function(i){return i.type==="artigo"||i.type==="pdf";});
+    var form=items.filter(function(i){return i.type==="formula";});
+    function cardHTML(i){
+      var date=i.publishedAt?('<span class="pa-date">'+esc(String(i.publishedAt).slice(0,10).split("-").reverse().join("/"))+'</span>'):"";
+      if(i.type==="pdf") return '<div class="pa-card"><h3>'+esc(i.title)+'</h3>'+date+(i.excerpt?'<div class="pa-body">'+esc(i.excerpt)+'</div>':"")+'<a class="pa-pdf" href="'+esc(i.fileUrl||"#")+'" target="_blank" rel="noopener">📄 Abrir PDF</a></div>';
+      return '<div class="pa-card"><h3>'+esc(i.title)+'</h3>'+date+'<div class="pa-body">'+(i.body||"")+'</div><button class="pa-link pa-more">Ler mais</button></div>';
+    }
+    var h="";
+    h+='<p class="pa-sec">Conteúdo científico</p>';
+    h+=art.length?('<div class="pa-grid">'+art.map(cardHTML).join("")+'</div>'):'<p class="pa-empty">Novos conteúdos científicos em breve.</p>';
+    h+='<p class="pa-sec">Fórmulas sugeridas</p>';
+    h+=form.length?('<div class="pa-grid">'+form.map(cardHTML).join("")+'</div>'):'<p class="pa-empty">Novas fórmulas sugeridas em breve.</p>';
+    var box=mainEl.querySelector("#pa-content"); box.innerHTML=h;
+    box.querySelectorAll(".pa-more").forEach(function(b){b.addEventListener("click",function(){
+      var c=b.closest(".pa-card"); c.classList.toggle("pa-open"); b.textContent=c.classList.contains("pa-open")?"Recolher":"Ler mais";
+    });});
+  }).catch(function(){ mainEl.querySelector("#pa-content").innerHTML='<p class="pa-empty">Não foi possível carregar o conteúdo agora. Recarregue a página.</p>'; });
+}
+
+/* ---------- BOOT ---------- */
+auth.onAuthStateChanged(function(user){
+  if(!user){ if(mainEl&&mainEl.innerHTML.indexOf("pa-hub")>-1){mainEl.innerHTML=mainHTML;card=document.querySelector('[data-dc-tpl="45"]');} wireLogin(); return; }
+  db.collection("prescriber_access").doc(user.email).get().then(function(d){
+    if(d.exists){ renderHub(user,d.data()||{}); }
+    else{
+      auth.signOut();
+      var f=card&&card.querySelector("[data-login-feedback]");
+      if(f){f.classList.add("pa-msg");msg(f,"err","Seu cadastro ainda não foi aprovado. Você receberá um e-mail quando for liberado.");}
+    }
+  }).catch(function(){ auth.signOut(); });
+});
+wireLogin();
 })();</script>
 </body></html>

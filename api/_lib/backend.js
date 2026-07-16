@@ -82,4 +82,64 @@ function guard(req, res) {
 
 const isEmail = (v) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v || "");
 
-module.exports = { getDb, notify, guard, isEmail, FieldValue: admin.firestore.FieldValue };
+// Domínios de concorrentes (farmácias de manipulação) — cadastro de prescritor recusa
+// e-mails corporativos destes grupos. Pesquisa 2026-07-16 (maiores redes/players do país).
+// NUNCA incluir aformulabr.com.br / aformulabrasil.com.br (são nossos).
+const BLOCKED_EMAIL_DOMAINS = [
+  "pharmapele.com.br",                                             // Pharmapele (130+ lojas)
+  "farmaciaroval.com.br", "roval.com.br", "rovalpet.com.br", "rovalfranchising.com.br", // Roval (NE, 100+ un.)
+  "farmaciaartesanal.com.br",                                      // Farmácia Artesanal (GO/MG/PA/TO)
+  "manifarma.com.br", "manipharma.com.br",                         // Grupo Manifarma (SP)
+  "buenosayres.com.br",                                            // Laboratório Buenos Ayres (SP)
+  "farmaformula.com.br",                                           // Farmafórmula (160+ lojas)
+  "phitofarma.com.br",                                             // Phitofarma
+  "essentia.com.br", "essentiapharma.com.br", "essentia.far.br",   // Essentia Pharma
+  "oficialfarma.com.br",                                           // Oficialfarma
+  "purissima.com.br",                                              // Puríssima
+  "tecnopharma.com.br",                                            // Tecnopharma
+  "biofase.com.br",                                                // Biofase
+  "biostevi.com.br",                                               // Biostévi
+  "manipulae.com.br",                                              // Manipulaê (marketplace)
+  "ciadaformula.com.br",                                           // Cia da Fórmula (RN/CE/SE — nome parecido, é concorrente)
+  "rdsaude.com.br", "raiadrogasil.com.br", "drogaraia.com.br",     // RD Saúde (manipulação própria)
+];
+function isBlockedEmail(email) {
+  const dom = String(email || "").toLowerCase().split("@")[1] || "";
+  return BLOCKED_EMAIL_DOMAINS.some((b) => dom === b || dom.endsWith("." + b));
+}
+
+// reCAPTCHA v2: só exige quando RECAPTCHA_SECRET estiver setada (ativável sem mudar código).
+async function verifyCaptcha(token, ip) {
+  const secret = process.env.RECAPTCHA_SECRET;
+  if (!secret) return true; // captcha ainda não configurado → não bloqueia
+  if (!token) return false;
+  try {
+    const r = await fetch("https://www.google.com/recaptcha/api/siteverify", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: `secret=${encodeURIComponent(secret)}&response=${encodeURIComponent(token)}&remoteip=${encodeURIComponent(ip || "")}`,
+    });
+    const j = await r.json();
+    return !!j.success;
+  } catch (_) { return false; }
+}
+
+// Verifica ID token do Firebase e allowlist admins/{email}. Retorna e-mail do admin ou null.
+async function verifyAdmin(req) {
+  const authz = req.headers.authorization || "";
+  const token = authz.startsWith("Bearer ") ? authz.slice(7) : null;
+  if (!token) return null;
+  try {
+    const db = getDb();
+    if (!db) return null;
+    const decoded = await admin.auth().verifyIdToken(token);
+    const email = (decoded.email || "").toLowerCase();
+    const snap = await db.collection("admins").doc(email).get();
+    return snap.exists ? email : null;
+  } catch (_) { return null; }
+}
+
+module.exports = {
+  getDb, notify, guard, isEmail, isBlockedEmail, verifyCaptcha, verifyAdmin,
+  BLOCKED_EMAIL_DOMAINS, FieldValue: admin.firestore.FieldValue, admin,
+};
