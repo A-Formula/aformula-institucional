@@ -1,11 +1,28 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // F1: todo acesso do site passa pelas Vercel Functions (firebase-admin, que ignora rules).
-    // Cliente browser não lê nem escreve nada por enquanto — abre-se coleção a coleção
-    // quando o cms-loader (F3) entrar: conteúdo vira read público, submissões seguem fechadas.
-    match /{document=**} {
-      allow read, write: if false;
+
+    // admin = existe doc admins/{email} do usuário autenticado
+    function isAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/admins/$(request.auth.token.email));
     }
+
+    // Coleções de conteúdo (CMS): leitura pública p/ o build ler; escrita só admin.
+    match /posts/{doc}          { allow read: if true; allow write: if isAdmin(); }
+    match /categories/{doc}     { allow read: if true; allow write: if isAdmin(); }
+    match /banners/{doc}        { allow read: if true; allow write: if isAdmin(); }
+    match /settings/{doc}       { allow read: if true; allow write: if isAdmin(); }
+    match /stores/{doc}         { allow read: if true; allow write: if isAdmin(); }
+
+    // Submissões: criação via API (admin SDK ignora rules); leitura/edição só admin no painel.
+    match /contact_messages/{doc} { allow read, update: if isAdmin(); allow create: if false; }
+    match /prescribers/{doc}      { allow read, update: if isAdmin(); allow create: if false; }
+    match /newsletter/{doc}       { allow read: if isAdmin(); allow create: if false; }
+
+    // Allowlist de admins: cada um lê o próprio doc (p/ confirmar acesso); nunca escreve.
+    match /admins/{email}       { allow read: if request.auth != null && request.auth.token.email == email; allow write: if false; }
+
+    match /{document=**}        { allow read, write: if false; }
   }
 }

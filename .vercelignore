@@ -1,0 +1,11 @@
+node_modules
+.git
+*.zip
+telas
+v2
+v3
+_blueprint
+BLUEPRINT-BACKEND.md
+HANDOFF-*.md
+_handoff-*.md
+Telas - Visao Geral (standalone).html

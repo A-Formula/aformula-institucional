@@ -1,0 +1,64 @@
+<script id="af-posts-index" type="application/json">__INDEX_JSON__</script>
+<script id="polish-filter">(function(){
+function norm(t){return (t||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();}
+var POSTS=[];try{POSTS=JSON.parse(document.getElementById("af-posts-index").textContent);}catch(_){ }
+var chips=[].slice.call(document.querySelectorAll("button[data-filter]"));
+var grid=document.querySelector("article.rcard")?document.querySelector("article.rcard").parentNode:null;
+var search=document.querySelector('input[placeholder^="Buscar"]');
+if(!chips.length||!grid||!POSTS.length)return;
+var TMPL=grid.querySelector("article.rcard").cloneNode(true);
+var cat="todos",q="",page=1,PER=8;
+var more=document.createElement("div");
+more.style.cssText="grid-column:1/-1;text-align:center;padding:8px 0 4px";
+var moreBtn=document.createElement("button");
+moreBtn.textContent="Carregar mais artigos";
+moreBtn.style.cssText="font-family:Avenir,sans-serif;font-weight:900;font-size:13px;letter-spacing:.04em;color:#008896;background:#fff;border:1.5px solid #008896;border-radius:999px;padding:13px 30px;cursor:pointer";
+moreBtn.addEventListener("click",function(){page++;render();});
+more.appendChild(moreBtn);
+function fill(card,p){
+ var img=card.querySelector("img");img.src=p.i;img.alt=p.t;
+ var sp=card.querySelectorAll("span");
+ card.setAttribute("data-cat",p.c);
+ card.querySelector("span").textContent=p.cl;
+ card.querySelector("h3").textContent=p.t;
+ card.querySelector("p").textContent=p.x;
+ var metas=card.querySelectorAll("div span");
+ var texts=[];card.querySelectorAll("div > span").forEach(function(s){if(!s.querySelector("svg")&&s.textContent.trim())texts.push(s);});
+ // spans de data/leitura são os 2 últimos com texto antes do link
+ var dspans=[].slice.call(card.querySelectorAll("span")).filter(function(s){return /de leitura|de \w+, \d{4}/.test(s.textContent);});
+ if(dspans.length>=2){dspans[0].textContent=p.d;dspans[1].textContent=p.r;}
+ var a=card.querySelector("a");a.href=p.h;
+ return card;}
+function list(){
+ return POSTS.filter(function(p){
+  var okc=(cat==="todos"||p.c===cat);
+  var okq=!q||norm(p.t).indexOf(q)>-1||norm(p.cl).indexOf(q)>-1||norm(p.x).indexOf(q)>-1;
+  return okc&&okq;});}
+function render(){
+ var L=list(),shown=L.slice(0,page*PER);
+ grid.innerHTML="";
+ if(!shown.length){var msg=document.createElement("p");
+  msg.style.cssText="grid-column:1/-1;padding:34px 10px;text-align:center;color:#5c7075;font-size:15px;font-family:Avenir,sans-serif";
+  msg.textContent="Nenhum artigo encontrado"+(q?" para \""+q+"\"":"")+". Limpe a busca ou escolha outra categoria.";
+  grid.appendChild(msg);return;}
+ shown.forEach(function(p){grid.appendChild(fill(TMPL.cloneNode(true),p));});
+ if(L.length>shown.length){grid.appendChild(more);}
+}
+chips.forEach(function(b){b.addEventListener("click",function(){
+ chips.forEach(function(x){x.classList.remove("flt-on")});
+ b.classList.add("flt-on");
+ cat=b.getAttribute("data-filter")||"todos";page=1;render();});});
+chips[0].classList.add("flt-on");
+if(search){search.addEventListener("input",function(){q=norm(search.value);page=1;render();});}
+var vt=document.querySelector('a[href="#todos-artigos"]');
+if(vt){vt.addEventListener("click",function(e){e.preventDefault();page=Math.ceil(list().length/PER);render();
+ grid.scrollIntoView({behavior:"smooth",block:"start"});});}
+try{var qs=new URLSearchParams(location.search).get("cat");
+ if(qs){var b=chips.filter(function(c){return c.getAttribute("data-filter")===qs})[0];if(b)b.click();}}catch(_){ }
+var row=document.querySelector("[data-trend-row]");
+var prev=document.querySelector('button[aria-label="Anterior"]'),next=document.querySelector('button[aria-label="Próximo"]');
+function step(){var c=row&&row.firstElementChild;return c?c.getBoundingClientRect().width+22:300;}
+if(row&&prev&&next){prev.addEventListener("click",function(){row.scrollBy({left:-step(),behavior:"smooth"});});
+ next.addEventListener("click",function(){row.scrollBy({left:step(),behavior:"smooth"});});}
+render();
+})();</script>
