@@ -937,7 +937,11 @@ ol,ul{margin:0;padding:0;list-style:none}
 <script id="polish-anim">(function(){try{if("IntersectionObserver" in window&&!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("anim");}catch(_){}})();</script>
 
 <style id="artigo-css">
-.art-hero{background:linear-gradient(135deg,var(--teal-900),var(--teal-700));padding:calc(72px + clamp(48px,8vw,86px)) 0 clamp(36px,6vw,60px);color:#fff}
+.art-hero{position:relative;background:linear-gradient(135deg,var(--teal-900),var(--teal-700));padding:calc(72px + clamp(48px,8vw,86px)) 0 clamp(36px,6vw,60px);color:#fff}
+.art-hero--img{background:var(--teal-900);min-height:clamp(360px,52vh,540px);display:flex;align-items:flex-end;overflow:hidden}
+.art-hero--img .art-hero__bg{position:absolute;inset:0;background-size:cover;background-position:center;z-index:0}
+.art-hero--img .art-hero__scrim{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(4,25,28,.28) 0%,rgba(4,25,28,.30) 42%,rgba(4,25,28,.86) 100%)}
+.art-hero--img .container{position:relative;z-index:2;width:100%}
 .art-crumb{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.66);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .art-crumb a{color:rgba(255,255,255,.85);text-decoration:none}.art-crumb a:hover{color:#fff}
 .art-title{font-weight:400;font-size:clamp(32px,5.4vw,56px);line-height:1.08;letter-spacing:-.03em;margin:18px 0 0;max-width:900px;text-wrap:balance}
@@ -1012,7 +1016,6 @@ ol,ul{margin:0;padding:0;list-style:none}
       </div>
     </div>
   </section>
-  
   <article class="art-wrap"><div class="art-body">
 <p><span style="font-weight: 400;">Cuidar da saúde é parte essencial de uma vida com mais leveza, autonomia e bem-estar. No caso das mulheres, esse cuidado passa por um olhar integral: da prevenção ao autocuidado, do ginecologista à escolha dos alimentos no prato.</span></p>
 <p><span style="font-weight: 400;">As consultas médicas não devem acontecer apenas diante de um problema. Na verdade, o acompanhamento ginecológico regular é o que permite identificar alterações ainda nos estágios iniciais, orientar decisões importantes e garantir tranquilidade em cada fase da vida.</span></p>
