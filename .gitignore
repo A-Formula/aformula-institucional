@@ -15,3 +15,6 @@ _blueprint/
 # docs internos de sessão (não publicar no deploy)
 BLUEPRINT-BACKEND.md
 HANDOFF-*.md
+
+# documento de acessos (confidencial)
+ACESSOS.md
