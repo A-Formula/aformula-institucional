@@ -50,7 +50,10 @@ module.exports = async (req, res) => {
   const telefone = String(body.telefone || "").trim().slice(0, 40);
   const email = String(body.email || "").trim().toLowerCase().slice(0, 200);
 
-  if (!nome || !isEmail(email) || !validCNPJ(cnpj) || !conselho || !conselhoNumero || uf.length !== 2) {
+  const telefoneDigits = telefone.replace(/\D/g, "");
+  // CNPJ virou OPCIONAL (decisão do operador 2026-07-16): valida só se enviado.
+  if (!nome || !isEmail(email) || !conselho || !conselhoNumero || uf.length !== 2 ||
+      telefoneDigits.length < 10 || (cnpj && !validCNPJ(cnpj))) {
     return res.status(400).json({ ok: false, error: "validation" });
   }
 
@@ -70,12 +73,15 @@ module.exports = async (req, res) => {
     return res.status(403).json({ ok: false, error: "blocked-domain" });
   }
 
-  // Evita duplicata: já existe cadastro pendente/aprovado com este e-mail?
-  const dup = await db.collection("prescribers").where("email", "==", email).limit(1).get();
-  if (!dup.empty) return res.status(409).json({ ok: false, error: "duplicate" });
+  // Evita duplicata por E-MAIL ou TELEFONE (dígitos normalizados).
+  const [dupEmail, dupTel] = await Promise.all([
+    db.collection("prescribers").where("email", "==", email).limit(1).get(),
+    db.collection("prescribers").where("telefoneDigits", "==", telefoneDigits).limit(1).get(),
+  ]);
+  if (!dupEmail.empty || !dupTel.empty) return res.status(409).json({ ok: false, error: "duplicate" });
 
   const doc = {
-    nome, cnpj, conselho, conselhoNumero, uf, especialidade, telefone, email,
+    nome, cnpj: cnpj || "", conselho, conselhoNumero, uf, especialidade, telefone, telefoneDigits, email,
     status: "pending", createdAt: FieldValue.serverTimestamp(),
   };
   const ref = await db.collection("prescribers").add(doc);
@@ -86,7 +92,7 @@ module.exports = async (req, res) => {
 
   await notify(
     `[Prescritor] Novo cadastro: ${nome}`,
-    `Nome: ${nome}\nCNPJ: ${cnpj}\nConselho: ${conselho} ${conselhoNumero}/${uf}\n` +
+    `Nome: ${nome}\nCNPJ: ${cnpj || "—"}\nConselho: ${conselho} ${conselhoNumero}/${uf}\n` +
     `Especialidade: ${especialidade || "—"}\nTelefone: ${telefone || "—"}\nE-mail: ${email}\n\n` +
     `Status: pendente de aprovação (planilha atualizada).`
   ).catch(() => {});

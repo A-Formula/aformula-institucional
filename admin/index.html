@@ -228,7 +228,7 @@ async function vPresc(){
   let h='<table><thead><tr><th>Quando</th><th>Nome</th><th>CNPJ</th><th>Conselho</th><th>Contato</th><th>Status</th><th></th></tr></thead><tbody>';
   snap.forEach(d=>{ const m=d.data();
     h+=`<tr><td>${fmtTs(m.createdAt)}</td><td><strong>${esc(m.nome)}</strong><br><span class="hint">${esc(m.especialidade||'')}</span></td>
-    <td>${esc(m.cnpj)}</td><td>${esc((m.conselho||'')+' '+(m.conselhoNumero||'')+(m.uf?'/'+m.uf:''))}</td>
+    <td>${esc(m.cnpj||'—')}</td><td>${esc((m.conselho||'')+' '+(m.conselhoNumero||'')+(m.uf?'/'+m.uf:''))}</td>
     <td>${esc(m.email)}<br><span class="hint">${esc(m.telefone||'')}</span></td>
     <td><span class="tag ${m.status}">${esc(m.status)}</span></td>
     <td><button class="btn btn--ghost btn--sm" data-ap="${d.id}">Aprovar</button> <button class="btn btn--danger btn--sm" data-rj="${d.id}">Recusar</button></td></tr>`;

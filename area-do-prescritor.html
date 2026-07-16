@@ -606,7 +606,6 @@ function renderCadastro(){
       '<div style="flex:0 0 108px"><label class="pa-label" for="pa-uf">UF *</label><select class="pa-fld" id="pa-uf">'+opts(UFS,"UF")+'</select></div>'+
     '</div>'+
     '<div><label class="pa-label" for="pa-esp">Especialidade *</label><select class="pa-fld" id="pa-esp">'+opts(ESPECIALIDADES,"Selecione")+'</select></div>'+
-    '<div><label class="pa-label" for="pa-cnpj">CNPJ (clínica/consultório) *</label><input class="pa-fld" id="pa-cnpj" type="text" inputmode="numeric" placeholder="00.000.000/0000-00"></div>'+
     '<input type="text" name="website" id="pa-web" tabindex="-1" autocomplete="off" style="position:absolute;left:-5000px" aria-hidden="true">'+
     '<div id="pa-captcha"></div>'+
     '<p class="pa-consent">Ao enviar, você concorda com o tratamento dos seus dados para fins de validação profissional, conforme a <a href="/lgpd" target="_blank" rel="noopener">LGPD</a>.</p>'+
@@ -637,12 +636,12 @@ function submitCadastro(e){
   var data={
     nome:g("#pa-nome").trim(), email:g("#pa-email").trim(), telefone:g("#pa-tel").trim(),
     conselho:g("#pa-conselho"), conselhoNumero:g("#pa-cnum").trim(), uf:g("#pa-uf"),
-    especialidade:g("#pa-esp"), cnpj:g("#pa-cnpj").replace(/\D/g,""), website:g("#pa-web"),
+    especialidade:g("#pa-esp"), website:g("#pa-web"),
     captcha:(siteKey&&window.grecaptcha)?grecaptcha.getResponse(captchaId):""
   };
   if(!data.nome||!data.email||!data.telefone||!data.conselho||!data.conselhoNumero||!data.uf||!data.especialidade){msg(m,"err","Preencha todos os campos obrigatórios.");return;}
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(data.email)){msg(m,"err","Confira o e-mail digitado.");return;}
-  if(data.cnpj.length!==14){msg(m,"err","Confira o CNPJ (14 dígitos).");return;}
+  if(data.telefone.replace(/\D/g,"").length<10){msg(m,"err","Confira o telefone (DDD + número).");return;}
   if(siteKey&&!data.captcha){msg(m,"err","Confirme que você não é um robô.");return;}
   btn.disabled=true; msg(m,"ok","Enviando…");
   fetch("/api/prescritor-cadastro",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)})
@@ -657,7 +656,7 @@ function submitCadastro(e){
     }
     btn.disabled=false;
     if(x.j.error==="blocked-domain") msg(m,"err","Não foi possível concluir o cadastro com este e-mail. Utilize um e-mail profissional individual.");
-    else if(x.j.error==="duplicate") msg(m,"err","Já existe um cadastro com este e-mail. Se ele já foi aprovado, use “Entrar”; em dúvida, fale com sac@aformulabr.com.br.");
+    else if(x.j.error==="duplicate") msg(m,"err","Já existe um cadastro com este e-mail ou telefone. Se ele já foi aprovado, use “Entrar”; em dúvida, fale com sac@aformulabr.com.br.");
     else if(x.j.error==="captcha") msg(m,"err","Confirme o captcha e tente de novo.");
     else if(x.j.error==="rate") msg(m,"err","Muitas tentativas. Aguarde alguns minutos.");
     else msg(m,"err","Confira os campos e tente novamente.");
