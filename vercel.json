@@ -2,6 +2,19 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "node scripts/build-site.mjs",
   "outputDirectory": ".",
+  "cleanUrls": true,
+  "redirects": [
+    { "source": "/manipule-sua-receita", "destination": "/receita", "permanent": true },
+    { "source": "/fale-conosco", "destination": "/contato", "permanent": true },
+    { "source": "/trabalhe-conosco", "destination": "/contato", "permanent": true },
+    { "source": "/login", "destination": "/area-do-prescritor", "permanent": true }
+  ],
+  "rewrites": [
+    { "source": "/rj", "destination": "https://a-formula-br.vercel.app/rj" },
+    { "source": "/rj/:path*", "destination": "https://a-formula-br.vercel.app/rj/:path*" },
+    { "source": "/bh", "destination": "https://a-formula-br.vercel.app/bh" },
+    { "source": "/bh/:path*", "destination": "https://a-formula-br.vercel.app/bh/:path*" }
+  ],
   "headers": [
     {
       "source": "/(.*)",
