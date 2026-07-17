@@ -119,25 +119,25 @@ function buildIndexHtml(src, posts, banner) {
 const ART_CSS = fs.readFileSync(path.join(__dirname, 'article.css.html'), 'utf8');
 
 function renderArticle(p, related, parts) {
-  const ogImg = p.cover ? `<meta property="og:image" content="${BASE}${p.cover}">` : '';
+  const ogImg = p.cover ? `<meta property="og:image" content="${BASE}${E(p.cover)}">` : '';
   const titleBlock = `<title>${E(p.title)} — Blog A Fórmula</title>
 <meta name="description" content="${E(p.excerpt)}">
-<link rel="canonical" href="${BASE}${p.path}">
+<link rel="canonical" href="${BASE}${E(p.path)}">
 <meta property="og:site_name" content="A Fórmula">
 <meta property="og:type" content="article">
 <meta property="og:locale" content="pt_BR">
 <meta property="og:title" content="${E(p.title)}">
 <meta property="og:description" content="${E(p.excerpt)}">
-<meta property="og:url" content="${BASE}${p.path}">
+<meta property="og:url" content="${BASE}${E(p.path)}">
 ${ogImg}
 <meta name="twitter:card" content="summary_large_image">
 <meta property="article:published_time" content="${p.publishedAt}">
 <meta property="article:modified_time" content="${p.modifiedAt||p.publishedAt}">`;
   const ld = JSON.stringify({'@context':'https://schema.org','@type':'Article',headline:p.title,description:p.excerpt,datePublished:p.publishedAt,dateModified:p.modifiedAt||p.publishedAt,author:{'@type':'Organization',name:'A Fórmula'},publisher:{'@type':'Organization',name:'A Fórmula'},mainEntityOfPage:BASE+p.path,...(p.cover?{image:BASE+p.cover}:{})});
   const heroOpen = p.cover
-    ? `<section class="art-hero art-hero--img" role="img" aria-label="${E(p.coverAlt||p.title)}"><div class="art-hero__bg" style="background-image:url(${p.cover})"></div><div class="art-hero__scrim"></div>`
+    ? `<section class="art-hero art-hero--img" role="img" aria-label="${E(p.coverAlt||p.title)}"><div class="art-hero__bg" style="background-image:url(${E(p.cover)})"></div><div class="art-hero__scrim"></div>`
     : '<section class="art-hero">';
-  const relCards = related.map(r=>`<a class="rel-card" href="${r.path}"><span class="rel-cat">${E(r.categoryLabel)}</span><span class="rel-title">${E(r.title)}</span><span class="rel-meta">${dataPt(r.publishedAt)} · ${r.readTime} min de leitura</span></a>`).join('\n');
+  const relCards = related.map(r=>`<a class="rel-card" href="${E(r.path)}"><span class="rel-cat">${E(r.categoryLabel)}</span><span class="rel-title">${E(r.title)}</span><span class="rel-meta">${dataPt(r.publishedAt)} · ${r.readTime} min de leitura</span></a>`).join('\n');
   const relHtml = related.length ? `<section class="art-rel"><div class="container"><h2>Continue lendo</h2><div class="art-rel-grid">${relCards}</div></div></section>` : '';
   const head = parts.head.replace('{{TITLE_BLOCK}}', titleBlock);
   const crumb = `<nav class="art-crumb" aria-label="breadcrumb"><a href="/index.html">Início</a> <span>/</span> <a href="/blog.html">Blog</a> <span>/</span> <span>${E(p.categoryLabel)}</span></nav>`;
@@ -154,7 +154,7 @@ ${parts.header}
       ${crumb}
       <h1 class="art-title">${E(p.title)}</h1>
       <div class="art-meta">
-        <a class="chip" href="/blog.html?cat=${p.categorySlug}">${E(p.categoryLabel)}</a>
+        <a class="chip" href="/blog.html?cat=${E(p.categorySlug)}">${E(p.categoryLabel)}</a>
         <span>${dataPt(p.publishedAt)}</span><span>·</span><span>${p.readTime} min de leitura</span>
       </div>
     </div>
@@ -187,26 +187,26 @@ function buildBlogHtml(src, posts) {
   // destaque
   src = setTplText(src,40,E(featured.title),'h2');
   src = setTplText(src,41,E(featured.excerpt.slice(0,140)),'p');
-  src = setTplAttr(src,42,'href',featured.path,'a');
-  src = setTplAttr(src,47,'src',imgOf(featured),'img');
+  src = setTplAttr(src,42,'href',E(featured.path),'a');
+  src = setTplAttr(src,47,'src',E(imgOf(featured)),'img');
   src = setTplAttr(src,47,'alt',E(featured.coverAlt||featured.title),'img');
   // recentes
   const CARD=[{art:135,img:137,cat:139,h3:140,p:141,date:143,read:145,a:146},{art:150,img:152,cat:154,h3:155,p:156,date:158,read:160,a:161},{art:165,img:167,cat:169,h3:170,p:171,date:173,read:175,a:176},{art:180,img:182,cat:184,h3:185,p:186,date:188,read:190,a:191}];
   recent4.forEach((p,i)=>{const t=CARD[i];
-    src=setTplAttr(src,t.art,'data-cat',p.categorySlug,'article');
-    src=setTplAttr(src,t.img,'src',imgOf(p),'img');
+    src=setTplAttr(src,t.art,'data-cat',E(p.categorySlug),'article');
+    src=setTplAttr(src,t.img,'src',E(imgOf(p)),'img');
     src=setTplAttr(src,t.img,'alt',E(p.coverAlt||p.title),'img');
     src=setTplText(src,t.cat,E(p.categoryLabel),'span');
     src=setTplText(src,t.h3,E(p.title),'h3');
     src=setTplText(src,t.p,E(p.excerpt.slice(0,120)),'p');
     src=setTplText(src,t.date,dataPt(p.publishedAt),'span');
     src=setTplText(src,t.read,`${p.readTime} min de leitura`,'span');
-    src=setTplAttr(src,t.a,'href',p.path,'a');});
+    src=setTplAttr(src,t.a,'href',E(p.path),'a');});
   // em alta
   const TR=[{a:213,img:214,cat:217,h3:218},{a:223,img:224,cat:227,h3:228},{a:233,img:234,cat:237,h3:238},{a:243,img:244,cat:247,h3:248}];
   trend.forEach((p,i)=>{const t=TR[i];
-    src=setTplAttr(src,t.a,'href',p.path,'a');
-    src=setTplAttr(src,t.img,'src',imgOf(p),'img');
+    src=setTplAttr(src,t.a,'href',E(p.path),'a');
+    src=setTplAttr(src,t.img,'src',E(imgOf(p)),'img');
     src=setTplAttr(src,t.img,'alt',E(p.coverAlt||p.title),'img');
     src=setTplText(src,t.cat,E(p.categoryLabel),'span');
     src=setTplText(src,t.h3,E(p.title),'h3');});

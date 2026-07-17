@@ -228,6 +228,8 @@ export function extractPage(html, cfg) {
 }
 
 // ---------- APLICAÇÃO (build) ----------
+// Escapa valor vindo do painel (Firestore) antes de reinjetar no HTML — mata XSS armazenado.
+const E = s => (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function applyEdits(block, edits) {
   edits.sort((a, b) => b.start - a.start);
   for (const e of edits) block = block.slice(0, e.start) + e.rep + block.slice(e.end);
@@ -240,12 +242,12 @@ function processSection(block, sec, colDef, anchor) {
   if (sec.texts) for (const t of enumTexts(block, itemRanges, anchor)) {
     const stored = sec.texts[t.id];
     if (stored && typeof stored.val === 'string' && stored.val !== t.val)
-      edits.push({ start: t.start, end: t.end, rep: stored.val });
+      edits.push({ start: t.start, end: t.end, rep: E(stored.val) });
   }
   if (sec.imgs) for (const im of enumImgs(block, itemRanges)) {
     const stored = sec.imgs[String(im.idx)];
     if (stored && stored.val && stored.val !== im.src)
-      edits.push({ start: im.start, end: im.start + im.tagStr.length, rep: im.tagStr.replace(/src="[^"]*"/, `src="${stored.val}"`) });
+      edits.push({ start: im.start, end: im.start + im.tagStr.length, rep: im.tagStr.replace(/src="[^"]*"/, `src="${E(stored.val)}"`) });
   }
   if (colDef && Array.isArray(sec.items) && itemRanges.length) {
     const editsFor = (it, ib) => {
@@ -253,18 +255,18 @@ function processSection(block, sec, colDef, anchor) {
       if (it.texts) for (const t of enumItemTexts(ib, colDef.itemTextTags)) {
         const stored = it.texts[t.key];
         if (stored && typeof stored.val === 'string' && stored.val !== t.val)
-          iEdits.push({ start: t.innerStart, end: t.end, rep: stored.val });
+          iEdits.push({ start: t.innerStart, end: t.end, rep: E(stored.val) });
       }
       if (it.imgs) for (const im of enumImgs(ib, [])) {
         const stored = it.imgs[String(im.idx)];
         if (stored && stored.val && stored.val !== im.src)
-          iEdits.push({ start: im.start, end: im.start + im.tagStr.length, rep: im.tagStr.replace(/src="[^"]*"/, `src="${stored.val}"`) });
+          iEdits.push({ start: im.start, end: im.start + im.tagStr.length, rep: im.tagStr.replace(/src="[^"]*"/, `src="${E(stored.val)}"`) });
       }
       if (it.tail && it.tail.val) {
         const m = ib.match(/(<img[^>]*>\s*)([^<]+)(<\/span>\s*)$/);
         if (m && m[2] !== it.tail.val) {
           const start = m.index + m[1].length;
-          iEdits.push({ start, end: start + m[2].length, rep: it.tail.val });
+          iEdits.push({ start, end: start + m[2].length, rep: E(it.tail.val) });
         }
       }
       return iEdits;
