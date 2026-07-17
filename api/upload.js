@@ -6,7 +6,8 @@
 const { put } = require("@vercel/blob");
 const { verifyAdmin } = require("./_lib/backend");
 
-const ALLOWED = /^(image\/(webp|jpeg|png|gif|avif|svg\+xml)|application\/pdf)$/;
+// SVG removido do allowlist: SVG hospedado no domínio do Blob pode carregar <script> (XSS armazenado).
+const ALLOWED = /^(image\/(webp|jpeg|png|gif|avif)|application\/pdf)$/;
 
 module.exports = async (req, res) => {
   if (req.method !== "POST") return res.status(405).json({ ok: false, error: "method" });

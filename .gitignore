@@ -21,3 +21,12 @@ ACESSOS.md
 
 # plano de corte de dominio (doc interno)
 CORTE-DOMINIO.md
+
+# guia interno de operação (não publicar)
+COMO-PUBLICAR-BLOG.md
+
+# segredos — nunca commitar (env puxado do Vercel, etc.)
+.env
+.env.*
+*.pem
+*-service-account*.json

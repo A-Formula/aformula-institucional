@@ -9,7 +9,7 @@ service cloud.firestore {
     }
 
     // Coleções de conteúdo (CMS): leitura pública p/ o build ler; escrita só admin.
-    match /posts/{doc}          { allow read: if true; allow write: if isAdmin(); }
+    match /posts/{doc}          { allow read: if resource.data.status != 'draft' || isAdmin(); allow write: if isAdmin(); }
     match /categories/{doc}     { allow read: if true; allow write: if isAdmin(); }
     match /banners/{doc}        { allow read: if true; allow write: if isAdmin(); }
     match /settings/{doc}       { allow read: if true; allow write: if isAdmin(); }
