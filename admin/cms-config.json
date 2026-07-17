@@ -1,0 +1,72 @@
+{
+  "generatedFrom": "scripts/cms-pages.mjs (PAGES)",
+  "pages": [
+    {
+      "key": "pet",
+      "label": "Página Pet",
+      "url": "/pet.html",
+      "doc": "pet",
+      "anchor": "data-dc-tpl",
+      "collections": {
+        "beneficios": {
+          "selector": ".pet-card[data-fade]",
+          "fixedOrder": false,
+          "label": "Cards de benefício"
+        },
+        "formas": {
+          "selector": "[data-formas-track] > div",
+          "fixedOrder": false,
+          "label": "Formas (círculos)"
+        },
+        "sabores": {
+          "selector": ".pet-chip",
+          "fixedOrder": false,
+          "label": "Chips de sabor"
+        },
+        "paraquem": {
+          "selector": ".pet-card.quem-card",
+          "fixedOrder": false,
+          "label": "Cards de público"
+        },
+        "faq": {
+          "selector": "[data-faq-item]",
+          "fixedOrder": false,
+          "label": "Perguntas"
+        }
+      }
+    },
+    {
+      "key": "sobre",
+      "label": "Sobre nós",
+      "url": "/sobre-nos.html",
+      "doc": "sobre",
+      "anchor": "data-dc-tpl",
+      "collections": {
+        "timeline": {
+          "selector": "[data-milestone]",
+          "fixedOrder": false,
+          "label": "Marcos da timeline"
+        },
+        "diferenciais": {
+          "selector": ".dc-card",
+          "fixedOrder": true,
+          "label": "Cards de diferenciais"
+        }
+      }
+    },
+    {
+      "key": "home",
+      "label": "Home",
+      "url": "/index.html",
+      "doc": "home",
+      "anchor": "data-cms-id",
+      "collections": {
+        "empresas": {
+          "selector": ".empresas__grid .pillar",
+          "fixedOrder": false,
+          "label": "Pilares"
+        }
+      }
+    }
+  ]
+}

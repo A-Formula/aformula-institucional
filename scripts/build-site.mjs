@@ -4,7 +4,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { applyPetCms } from './cms-pet.mjs';
+import { PAGES, applyPageCms } from './cms-pages.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -21,11 +21,13 @@ async function loadFirestore() {
   const admin = (await import('firebase-admin')).default;
   if (!admin.apps.length) admin.initializeApp({ credential: admin.credential.cert(JSON.parse(saRaw)) });
   const db = admin.firestore();
-  const [postsSnap, catsSnap, bannerSnap, settingsSnap, petSnap] = await Promise.all([
+  const [postsSnap, catsSnap, bannerSnap, settingsSnap, petSnap, sobreSnap, homeSnap] = await Promise.all([
     db.collection('posts').get(), db.collection('categories').get(),
     db.collection('banners').doc('home-hero').get(),
     db.collection('settings').doc('global').get(),
     db.collection('pages').doc('pet').get(),
+    db.collection('pages').doc('sobre').get(),
+    db.collection('pages').doc('home').get(),
   ]);
   let posts = postsSnap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => p.status !== 'draft');
   posts.sort((a,b)=> (b.publishedAt||'').localeCompare(a.publishedAt||''));
@@ -33,7 +35,9 @@ async function loadFirestore() {
   const banner = bannerSnap.exists ? bannerSnap.data() : null;
   const settings = settingsSnap.exists ? settingsSnap.data() : {};
   const petCms = petSnap.exists ? petSnap.data() : null;
-  return { posts, cats, banner, settings, petCms };
+  const sobreCms = sobreSnap.exists ? sobreSnap.data() : null;
+  const homeCms = homeSnap.exists ? homeSnap.data() : null;
+  return { posts, cats, banner, settings, petCms, sobreCms, homeCms };
 }
 
 // ---- rodapé editável (settings/global.footer) — só dentro de <footer>…</footer> ----
@@ -219,20 +223,24 @@ async function main() {
   const parts = JSON.parse(fs.readFileSync(path.join(__dirname,'template-parts.json'),'utf8'));
   const data = await loadFirestore();
   if (!data) return; // failsafe: mantém commitado
-  const { posts, banner, settings, petCms } = data;
+  const { posts, banner, settings, petCms, sobreCms, homeCms } = data;
   console.log(`[build] ${posts.length} posts do Firestore`);
 
   // 0) settings/global + rodapé → template dos artigos + páginas que o build não reescreve
   const applyAll = (src) => applySettings(applyFooter(src, settings.footer), settings);
   for (const k of Object.keys(parts)) parts[k] = applyAll(parts[k]);
-  for (const pg of ['sobre-nos.html','contato.html','receita.html','area-do-prescritor.html','encontre-uma-loja.html','lgpd.html']) {
+  for (const pg of ['contato.html','receita.html','area-do-prescritor.html','encontre-uma-loja.html','lgpd.html']) {
     const f = path.join(ROOT, pg);
     fs.writeFileSync(f, applyAll(fs.readFileSync(f,'utf8')));
   }
   // 0b) pet.html: CMS da página (pages/pet) + settings/rodapé
   const petPath = path.join(ROOT, 'pet.html');
-  fs.writeFileSync(petPath, applyAll(applyPetCms(fs.readFileSync(petPath,'utf8'), petCms)));
-  if (petCms) console.log('[build] pet.html regenerado do CMS (pages/pet)');
+  fs.writeFileSync(petPath, applyAll(applyPageCms(fs.readFileSync(petPath,'utf8'), PAGES.pet, petCms)));
+  if (petCms) console.log('[build] pet regenerado do CMS');
+  // 0c) sobre-nos.html: CMS da página (pages/sobre) + settings/rodapé
+  const sobrePath = path.join(ROOT, 'sobre-nos.html');
+  fs.writeFileSync(sobrePath, applyAll(applyPageCms(fs.readFileSync(sobrePath,'utf8'), PAGES.sobre, sobreCms)));
+  if (sobreCms) console.log('[build] sobre regenerado do CMS');
 
   // 1) páginas de artigo
   for (const p of posts) {
@@ -245,9 +253,12 @@ async function main() {
   // 2) blog.html
   const blogPath = path.join(ROOT,'blog.html');
   fs.writeFileSync(blogPath, applyAll(buildBlogHtml(fs.readFileSync(blogPath,'utf8'), posts)));
-  // 2b) index.html (banner + galeria)
+  // 2b) index.html: banner + galeria (buildIndexHtml) → CMS da home (pages/home) → settings/rodapé.
+  //     Ordem importa: o CMS roda DEPOIS do buildIndexHtml (que só troca hero-text/galeria por
+  //     regex e não colide com as âncoras data-cms-id) e ANTES do applyAll.
   const idxPath = path.join(ROOT,'index.html');
-  fs.writeFileSync(idxPath, applyAll(buildIndexHtml(fs.readFileSync(idxPath,'utf8'), posts, banner)));
+  fs.writeFileSync(idxPath, applyAll(applyPageCms(buildIndexHtml(fs.readFileSync(idxPath,'utf8'), posts, banner), PAGES.home, homeCms)));
+  if (homeCms) console.log('[build] home regenerado do CMS');
   // 3) sitemap
   const urls = posts.map(p=>`<url><loc>${BASE}${p.path}</loc><lastmod>${(p.modifiedAt||p.publishedAt).slice(0,10)}</lastmod></url>`);
   ['/','/sobre-nos.html','/blog.html','/area-do-prescritor.html','/encontre-uma-loja.html','/contato.html','/pet.html','/receita.html'].reverse().forEach(pg=>urls.unshift(`<url><loc>${BASE}${pg}</loc></url>`));
