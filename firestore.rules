@@ -13,6 +13,7 @@ service cloud.firestore {
     match /categories/{doc}     { allow read: if true; allow write: if isAdmin(); }
     match /banners/{doc}        { allow read: if true; allow write: if isAdmin(); }
     match /settings/{doc}       { allow read: if true; allow write: if isAdmin(); }
+    match /pages/{doc}          { allow read: if true; allow write: if isAdmin(); }
     match /stores/{doc}         { allow read: if true; allow write: if isAdmin(); }
 
     // Submissões: criação via API (admin SDK ignora rules); leitura/edição só admin no painel.

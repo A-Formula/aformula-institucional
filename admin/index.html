@@ -110,6 +110,8 @@
     <button class="nav-item" data-view="newsletter">✉️ Newsletter</button>
     <button class="nav-item" data-view="posts">📝 Blog</button>
     <button class="nav-item" data-view="preContent">🔬 Conteúdo prescritor</button>
+    <button class="nav-item" data-view="pet">🐾 Página Pet</button>
+    <button class="nav-item" data-view="footer">🔗 Rodapé</button>
     <button class="nav-item" data-view="banner">🖼️ Banner da home</button>
     <button class="nav-item" data-view="settings">⚙️ Configurações</button>
     <div class="foot">
@@ -177,7 +179,7 @@ document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',()=
   document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
   b.classList.add('active'); router(b.dataset.view);
 }));
-function router(v){ ({inbox:vInbox,prescritores:vPresc,newsletter:vNews,posts:vPosts,preContent:vPreContent,banner:vBanner,settings:vSettings}[v]||vInbox)(); }
+function router(v){ ({inbox:vInbox,prescritores:vPresc,newsletter:vNews,posts:vPosts,preContent:vPreContent,pet:vPet,footer:vFooter,banner:vBanner,settings:vSettings}[v]||vInbox)(); }
 
 /* Upload de mídia (Vercel Blob via /api/upload, gated por admin) */
 async function uploadFile(file){
@@ -457,6 +459,124 @@ function editPost(p){
     m.className='msg';m.textContent='Salvando…';
     await db.collection('posts').doc(slug).set(doc,{merge:true});
     bg.remove(); vPosts();
+  });
+}
+
+/* ---------- PÁGINA PET (CMS pages/pet) ---------- */
+let PET=null;
+async function vPet(){
+  const v=$('#view');
+  v.innerHTML='<div class="topbar"><div><h1 class="page">Página Pet</h1><p class="hint">Textos, imagens, cards e ordem das seções. Depois clique em “Publicar no site”.</p></div><button class="btn" id="pet-save">Salvar</button></div><div id="pet-body">Carregando…</div>';
+  const d=await db.collection('pages').doc('pet').get();
+  if(!d.exists){ $('#pet-body').innerHTML='<div class="empty">Conteúdo da página ainda não foi semeado. Avise o suporte técnico.</div>'; return; }
+  PET=d.data();
+  renderPet();
+  $('#pet-save').addEventListener('click',async()=>{
+    const b=$('#pet-save'); b.disabled=true; b.textContent='Salvando…';
+    try{ await db.collection('pages').doc('pet').set(PET); b.textContent='Salvo ✓'; }
+    catch(e){ alert('Falha ao salvar: '+e.message); b.textContent='Salvar'; }
+    finally{ b.disabled=false; setTimeout(()=>b.textContent='Salvar',2200); }
+  });
+}
+function petField(pathStr,label,val){
+  const long=(val||'').length>70;
+  const inp=long?`<textarea class="fld" style="min-height:64px" data-pp="${pathStr}">${esc(val)}</textarea>`
+              :`<input class="fld" data-pp="${pathStr}" value="${esc(val)}">`;
+  return `<div style="margin-top:10px"><label>${esc(label)}</label>${inp}</div>`;
+}
+function petImg(pathStr,label,val){
+  return `<div style="margin-top:10px"><label>${esc(label)}</label>
+  <div class="row" style="align-items:center">
+    <img src="${esc(val)}" alt="" style="height:42px;max-width:74px;object-fit:cover;border-radius:8px;border:1px solid var(--line);flex:0 0 auto" onerror="this.style.opacity=.2">
+    <input class="fld" data-pp="${pathStr}" value="${esc(val)}">
+    <button class="btn btn--ghost btn--sm pet-upl" data-target="${pathStr}" style="flex:0 0 auto" type="button">⬆ Enviar</button>
+  </div></div>`;
+}
+function renderPet(){
+  const secList=PET.sections.map((s,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)">
+    <input type="checkbox" data-secv="${i}" ${s.v!==false?'checked':''} title="mostrar/ocultar">
+    <span style="flex:1;font-weight:600">${esc(s.label)}</span>
+    <button class="btn btn--ghost btn--sm" data-secup="${i}" ${i===0?'disabled':''}>↑</button>
+    <button class="btn btn--ghost btn--sm" data-secdn="${i}" ${i===PET.sections.length-1?'disabled':''}>↓</button>
+  </div>`).join('');
+  let h=`<div class="card" style="max-width:860px;margin-bottom:18px"><strong>Ordem e visibilidade das seções</strong><p class="hint" style="margin:4px 0 10px">Desmarque pra esconder a seção; use ↑↓ pra reordenar.</p>${secList}</div>`;
+  for(const [si,s] of PET.sections.entries()){
+    let inner='';
+    for(const [id,t] of Object.entries(s.texts||{})) inner+=petField(`sections.${si}.texts.${id}.val`,t.label,t.val);
+    for(const [idx,im] of Object.entries(s.imgs||{})) inner+=petImg(`sections.${si}.imgs.${idx}.val`,im.label,im.val);
+    if(Array.isArray(s.items)&&s.items.length){
+      inner+=`<p style="margin:18px 0 4px;font-weight:700;color:var(--teal-d)">${esc(s.itemsLabel||'Itens')} <span class="hint">(desmarque pra esconder; ↑↓ reordena)</span></p>`;
+      s.items.forEach((it,ii)=>{
+        let f='';
+        for(const [k,t] of Object.entries(it.texts||{})) f+=petField(`sections.${si}.items.${ii}.texts.${k}.val`,t.label,t.val);
+        if(it.tail) f+=petField(`sections.${si}.items.${ii}.tail.val`,'Texto',it.tail.val);
+        for(const [idx,im] of Object.entries(it.imgs||{})) f+=petImg(`sections.${si}.items.${ii}.imgs.${idx}.val`,'Imagem',im.val);
+        inner+=`<details style="border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-top:8px;background:#fbfdfd">
+          <summary style="cursor:pointer;display:flex;align-items:center;gap:10px">
+            <input type="checkbox" data-itv="${si}:${ii}" ${it.v!==false?'checked':''} onclick="event.stopPropagation()">
+            <span style="flex:1;font-weight:600">${esc((it.name||'Item').replace(/<[^>]*>/g,'').slice(0,60))}</span>
+            <button class="btn btn--ghost btn--sm" data-itup="${si}:${ii}" ${ii===0?'disabled':''} onclick="event.stopPropagation()">↑</button>
+            <button class="btn btn--ghost btn--sm" data-itdn="${si}:${ii}" ${ii===s.items.length-1?'disabled':''} onclick="event.stopPropagation()">↓</button>
+          </summary>${f}</details>`;
+      });
+    }
+    h+=`<details class="card" style="max-width:860px;margin-bottom:12px"><summary style="cursor:pointer;font-weight:800;color:var(--teal-d)">${esc(s.label)}</summary>${inner||'<p class="hint" style="margin-top:8px">Esta seção não tem campos editáveis individualmente — só ordem/visibilidade.</p>'}</details>`;
+  }
+  const body=$('#pet-body'); body.innerHTML=h;
+  const setPath=(obj,pathStr,val)=>{const ks=pathStr.split('.');let o=obj;for(let i=0;i<ks.length-1;i++)o=o[ks[i]];o[ks[ks.length-1]]=val;};
+  body.querySelectorAll('[data-pp]').forEach(el=>el.addEventListener('input',()=>setPath(PET,el.dataset.pp,el.value)));
+  body.querySelectorAll('.pet-upl').forEach(b=>b.addEventListener('click',()=>{
+    const fi=document.createElement('input'); fi.type='file'; fi.accept='image/*';
+    fi.addEventListener('change',async()=>{
+      const f=fi.files[0]; if(!f)return; b.textContent='…';
+      try{ const url=await uploadFile(f); setPath(PET,b.dataset.target,url);
+        const inp=body.querySelector(`[data-pp="${b.dataset.target}"]`); if(inp){inp.value=url; inp.previousElementSibling && (inp.previousElementSibling.src=url);}
+        const row=b.closest('.row'); const img=row&&row.querySelector('img'); if(img)img.src=url;
+        b.textContent='Enviado ✓'; setTimeout(()=>b.textContent='⬆ Enviar',2000);
+      }catch(e){ alert(e.message); b.textContent='⬆ Enviar'; }
+    });
+    fi.click();
+  }));
+  body.querySelectorAll('[data-secv]').forEach(c=>c.addEventListener('change',()=>{PET.sections[+c.dataset.secv].v=c.checked;}));
+  const swap=(arr,i,j)=>{const t=arr[i];arr[i]=arr[j];arr[j]=t;};
+  body.querySelectorAll('[data-secup]').forEach(b=>b.addEventListener('click',()=>{const i=+b.dataset.secup;swap(PET.sections,i,i-1);renderPet();}));
+  body.querySelectorAll('[data-secdn]').forEach(b=>b.addEventListener('click',()=>{const i=+b.dataset.secdn;swap(PET.sections,i,i+1);renderPet();}));
+  body.querySelectorAll('[data-itv]').forEach(c=>c.addEventListener('change',()=>{const [si,ii]=c.dataset.itv.split(':');PET.sections[+si].items[+ii].v=c.checked;}));
+  body.querySelectorAll('[data-itup]').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();const [si,ii]=b.dataset.itup.split(':');swap(PET.sections[+si].items,+ii,+ii-1);renderPet();}));
+  body.querySelectorAll('[data-itdn]').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();const [si,ii]=b.dataset.itdn.split(':');swap(PET.sections[+si].items,+ii,+ii+1);renderPet();}));
+}
+
+/* ---------- RODAPÉ (site inteiro) ---------- */
+const FOOTER_DEFS={
+  texts:{brand:['Texto da marca','Há 37 anos transformando manipulação em ciência, cuidado e inovação.'],
+         copyright:['Linha de copyright','© A Fórmula 2026'],
+         legal1:['Razão social / CNPJ','A FÓRMULA SERVIÇOS E FRANCHISE LTDA — CNPJ: 10.760.350/0001-00'],
+         legal2:['Endereço','Rua Tabapuã, 627 — Itaim Bibi, São Paulo - SP']},
+  links:{sobrenos:'Sobre nós',blog:'Blog',prescritor:'Área do prescritor',lgpd:'LGPD',loja:'Encontre uma loja'}
+};
+async function vFooter(){
+  const v=$('#view');
+  v.innerHTML='<div class="topbar"><div><h1 class="page">Rodapé</h1><p class="hint">Vale para todas as páginas do site. Depois clique em “Publicar no site”.</p></div></div><div class="card" style="max-width:760px" id="fx">Carregando…</div>';
+  const d=await db.collection('settings').doc('global').get(); const f=(d.data()||{}).footer||{};
+  let h='';
+  for(const [k,[label,def]] of Object.entries(FOOTER_DEFS.texts))
+    h+=`<div style="margin-top:12px"><label>${label}</label><input class="fld" id="ft-${k}" value="${esc(f[k]||def)}"></div>`;
+  h+='<p style="margin:20px 0 4px;font-weight:700;color:var(--teal-d)">Links do rodapé <span class="hint">(nome exibido + endereço)</span></p>';
+  for(const [k,def] of Object.entries(FOOTER_DEFS.links)){
+    const cfg=(f.links||{})[k]||{};
+    h+=`<div class="row" style="margin-top:8px"><input class="fld" id="fl-${k}-label" value="${esc(cfg.label||def)}" placeholder="${esc(def)}">
+        <input class="fld" id="fl-${k}-href" value="${esc(cfg.href||'')}" placeholder="deixe vazio pra manter o link padrão"></div>`;
+  }
+  h+='<p class="hint" style="margin-top:10px">Campo igual ao padrão ou vazio = mantém como está. Links aceitam página do site (ex.: /contato) ou URL completa.</p>';
+  h+='<p class="msg" id="ft-msg"></p><div style="margin-top:14px"><button class="btn" id="ft-save">Salvar</button></div>';
+  $('#fx').innerHTML=h;
+  $('#ft-save').addEventListener('click',async()=>{
+    const footer={links:{}};
+    for(const k of Object.keys(FOOTER_DEFS.texts)) footer[k]=$('#ft-'+k).value.trim();
+    for(const k of Object.keys(FOOTER_DEFS.links)) footer.links[k]={label:$('#fl-'+k+'-label').value.trim(),href:$('#fl-'+k+'-href').value.trim()};
+    const m=$('#ft-msg'); m.className='msg'; m.textContent='Salvando…';
+    await db.collection('settings').doc('global').set({footer},{merge:true});
+    m.className='msg ok'; m.textContent='Salvo. Clique em “Publicar no site” para aplicar.';
   });
 }
 

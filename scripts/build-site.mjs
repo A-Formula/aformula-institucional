@@ -4,6 +4,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { applyPetCms } from './cms-pet.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -20,17 +21,47 @@ async function loadFirestore() {
   const admin = (await import('firebase-admin')).default;
   if (!admin.apps.length) admin.initializeApp({ credential: admin.credential.cert(JSON.parse(saRaw)) });
   const db = admin.firestore();
-  const [postsSnap, catsSnap, bannerSnap, settingsSnap] = await Promise.all([
+  const [postsSnap, catsSnap, bannerSnap, settingsSnap, petSnap] = await Promise.all([
     db.collection('posts').get(), db.collection('categories').get(),
     db.collection('banners').doc('home-hero').get(),
     db.collection('settings').doc('global').get(),
+    db.collection('pages').doc('pet').get(),
   ]);
   let posts = postsSnap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => p.status !== 'draft');
   posts.sort((a,b)=> (b.publishedAt||'').localeCompare(a.publishedAt||''));
   const cats = catsSnap.docs.map(d => ({ slug: d.id, ...d.data() })).sort((a,b)=>(a.order||0)-(b.order||0));
   const banner = bannerSnap.exists ? bannerSnap.data() : null;
   const settings = settingsSnap.exists ? settingsSnap.data() : {};
-  return { posts, cats, banner, settings };
+  const petCms = petSnap.exists ? petSnap.data() : null;
+  return { posts, cats, banner, settings, petCms };
+}
+
+// ---- rodapé editável (settings/global.footer) — só dentro de <footer>…</footer> ----
+const FOOTER_LINKS = { sobrenos: 'Sobre nós', blog: 'Blog', prescritor: 'Área do prescritor', lgpd: 'LGPD', loja: 'Encontre uma loja' };
+const FOOTER_TEXTS = {
+  brand: 'Há 37 anos transformando manipulação em ciência, cuidado e inovação.',
+  copyright: '© A Fórmula 2026',
+  legal1: 'A FÓRMULA SERVIÇOS E FRANCHISE LTDA — CNPJ: 10.760.350/0001-00',
+  legal2: 'Rua Tabapuã, 627 — Itaim Bibi, São Paulo - SP',
+};
+const reEsc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const okHref = v => typeof v === 'string' && /^(https?:\/\/|\/|mailto:)\S+$/.test(v);
+export function applyFooter(src, f) {
+  if (!f) return src;
+  return src.replace(/<footer[\s\S]*?<\/footer>/g, (block) => {
+    for (const [k, defLabel] of Object.entries(FOOTER_LINKS)) {
+      const cfg = f.links && f.links[k];
+      if (!cfg || (!cfg.label && !cfg.href)) continue;
+      const re = new RegExp(`(<a\\b[^>]*href=")([^"]*)("[^>]*>\\s*)${reEsc(defLabel)}(\\s*</a>)`, 'g');
+      block = block.replace(re, (m, a, href, b, c) =>
+        a + (okHref(cfg.href) ? cfg.href : href) + b + (cfg.label && cfg.label.trim() ? E(cfg.label.trim()) : defLabel) + c);
+    }
+    for (const [k, def] of Object.entries(FOOTER_TEXTS)) {
+      const v = f[k];
+      if (typeof v === 'string' && v.trim() && v.trim() !== def) block = block.replaceAll(def, E(v.trim()));
+    }
+    return block;
+  });
 }
 
 // ---- settings/global → páginas (F3.1) ----
@@ -188,15 +219,20 @@ async function main() {
   const parts = JSON.parse(fs.readFileSync(path.join(__dirname,'template-parts.json'),'utf8'));
   const data = await loadFirestore();
   if (!data) return; // failsafe: mantém commitado
-  const { posts, banner, settings } = data;
+  const { posts, banner, settings, petCms } = data;
   console.log(`[build] ${posts.length} posts do Firestore`);
 
-  // 0) settings/global → template dos artigos + páginas que o build não reescreve
-  for (const k of Object.keys(parts)) parts[k] = applySettings(parts[k], settings);
-  for (const pg of ['sobre-nos.html','contato.html','pet.html','receita.html','area-do-prescritor.html','encontre-uma-loja.html']) {
+  // 0) settings/global + rodapé → template dos artigos + páginas que o build não reescreve
+  const applyAll = (src) => applySettings(applyFooter(src, settings.footer), settings);
+  for (const k of Object.keys(parts)) parts[k] = applyAll(parts[k]);
+  for (const pg of ['sobre-nos.html','contato.html','receita.html','area-do-prescritor.html','encontre-uma-loja.html','lgpd.html']) {
     const f = path.join(ROOT, pg);
-    fs.writeFileSync(f, applySettings(fs.readFileSync(f,'utf8'), settings));
+    fs.writeFileSync(f, applyAll(fs.readFileSync(f,'utf8')));
   }
+  // 0b) pet.html: CMS da página (pages/pet) + settings/rodapé
+  const petPath = path.join(ROOT, 'pet.html');
+  fs.writeFileSync(petPath, applyAll(applyPetCms(fs.readFileSync(petPath,'utf8'), petCms)));
+  if (petCms) console.log('[build] pet.html regenerado do CMS (pages/pet)');
 
   // 1) páginas de artigo
   for (const p of posts) {
@@ -208,10 +244,10 @@ async function main() {
   }
   // 2) blog.html
   const blogPath = path.join(ROOT,'blog.html');
-  fs.writeFileSync(blogPath, applySettings(buildBlogHtml(fs.readFileSync(blogPath,'utf8'), posts), settings));
+  fs.writeFileSync(blogPath, applyAll(buildBlogHtml(fs.readFileSync(blogPath,'utf8'), posts)));
   // 2b) index.html (banner + galeria)
   const idxPath = path.join(ROOT,'index.html');
-  fs.writeFileSync(idxPath, applySettings(buildIndexHtml(fs.readFileSync(idxPath,'utf8'), posts, banner), settings));
+  fs.writeFileSync(idxPath, applyAll(buildIndexHtml(fs.readFileSync(idxPath,'utf8'), posts, banner)));
   // 3) sitemap
   const urls = posts.map(p=>`<url><loc>${BASE}${p.path}</loc><lastmod>${(p.modifiedAt||p.publishedAt).slice(0,10)}</lastmod></url>`);
   ['/','/sobre-nos.html','/blog.html','/area-do-prescritor.html','/encontre-uma-loja.html','/contato.html','/pet.html','/receita.html'].reverse().forEach(pg=>urls.unshift(`<url><loc>${BASE}${pg}</loc></url>`));
