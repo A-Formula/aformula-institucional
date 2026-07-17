@@ -47,6 +47,7 @@ module.exports = async (req, res) => {
   const conselhoNumero = String(body.conselhoNumero || "").trim().slice(0, 20);
   const uf = String(body.uf || "").trim().toUpperCase().slice(0, 2);
   const especialidade = String(body.especialidade || "").trim().slice(0, 120);
+  const cidade = String(body.cidade || "").trim().slice(0, 120);
   const telefone = String(body.telefone || "").trim().slice(0, 40);
   const email = String(body.email || "").trim().toLowerCase().slice(0, 200);
 
@@ -81,19 +82,19 @@ module.exports = async (req, res) => {
   if (!dupEmail.empty || !dupTel.empty) return res.status(409).json({ ok: false, error: "duplicate" });
 
   const doc = {
-    nome, cnpj: cnpj || "", conselho, conselhoNumero, uf, especialidade, telefone, telefoneDigits, email,
+    nome, cnpj: cnpj || "", conselho, conselhoNumero, uf, especialidade, cidade, telefone, telefoneDigits, email,
     status: "pending", createdAt: FieldValue.serverTimestamp(),
   };
   const ref = await db.collection("prescribers").add(doc);
 
   const stamp = new Date().toISOString().slice(0, 16).replace("T", " ");
   await appendToSheet([stamp, nome, cnpj, `${conselho} ${conselhoNumero}/${uf}`.trim(),
-    especialidade, telefone, email, "pending", ref.id]).catch(() => {});
+    especialidade, telefone, email, "pending", ref.id, cidade]).catch(() => {});
 
   await notify(
     `[Prescritor] Novo cadastro: ${nome}`,
     `Nome: ${nome}\nCNPJ: ${cnpj || "—"}\nConselho: ${conselho} ${conselhoNumero}/${uf}\n` +
-    `Especialidade: ${especialidade || "—"}\nTelefone: ${telefone || "—"}\nE-mail: ${email}\n\n` +
+    `Especialidade: ${especialidade || "—"}\nCidade: ${cidade || "—"}/${uf}\nTelefone: ${telefone || "—"}\nE-mail: ${email}\n\n` +
     `Status: pendente de aprovação (planilha atualizada).`
   ).catch(() => {});
 

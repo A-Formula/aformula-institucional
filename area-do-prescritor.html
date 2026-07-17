@@ -605,7 +605,10 @@ function renderCadastro(){
       '<div><label class="pa-label" for="pa-cnum">Nº do registro *</label><input class="pa-fld" id="pa-cnum" type="text" placeholder="000000"></div>'+
       '<div style="flex:0 0 108px"><label class="pa-label" for="pa-uf">UF *</label><select class="pa-fld" id="pa-uf">'+opts(UFS,"UF")+'</select></div>'+
     '</div>'+
-    '<div><label class="pa-label" for="pa-esp">Especialidade *</label><select class="pa-fld" id="pa-esp">'+opts(ESPECIALIDADES,"Selecione")+'</select></div>'+
+    '<div class="pa-row">'+
+      '<div><label class="pa-label" for="pa-esp">Especialidade *</label><select class="pa-fld" id="pa-esp">'+opts(ESPECIALIDADES,"Selecione")+'</select></div>'+
+      '<div><label class="pa-label" for="pa-cidade">Cidade *</label><input class="pa-fld" id="pa-cidade" type="text" autocomplete="address-level2" placeholder="Sua cidade"></div>'+
+    '</div>'+
     '<input type="text" name="website" id="pa-web" tabindex="-1" autocomplete="off" style="position:absolute;left:-5000px" aria-hidden="true">'+
     '<div id="pa-captcha"></div>'+
     '<p class="pa-consent">Ao enviar, você concorda com o tratamento dos seus dados para fins de validação profissional, conforme a <a href="/lgpd" target="_blank" rel="noopener">LGPD</a>.</p>'+
@@ -636,10 +639,10 @@ function submitCadastro(e){
   var data={
     nome:g("#pa-nome").trim(), email:g("#pa-email").trim(), telefone:g("#pa-tel").trim(),
     conselho:g("#pa-conselho"), conselhoNumero:g("#pa-cnum").trim(), uf:g("#pa-uf"),
-    especialidade:g("#pa-esp"), website:g("#pa-web"),
+    especialidade:g("#pa-esp"), cidade:g("#pa-cidade").trim(), website:g("#pa-web"),
     captcha:(siteKey&&window.grecaptcha)?grecaptcha.getResponse(captchaId):""
   };
-  if(!data.nome||!data.email||!data.telefone||!data.conselho||!data.conselhoNumero||!data.uf||!data.especialidade){msg(m,"err","Preencha todos os campos obrigatórios.");return;}
+  if(!data.nome||!data.email||!data.telefone||!data.conselho||!data.conselhoNumero||!data.uf||!data.especialidade||!data.cidade){msg(m,"err","Preencha todos os campos obrigatórios.");return;}
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(data.email)){msg(m,"err","Confira o e-mail digitado.");return;}
   if(data.telefone.replace(/\D/g,"").length<10){msg(m,"err","Confira o telefone (DDD + número).");return;}
   if(siteKey&&!data.captcha){msg(m,"err","Confirme que você não é um robô.");return;}

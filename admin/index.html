@@ -221,19 +221,58 @@ async function vInbox(){
 }
 
 /* ---------- PRESCRITORES ---------- */
+const ST_LABEL={pending:'pendente',approved:'aprovado',rejected:'recusado'};
 async function vPresc(){
-  const v=$('#view'); v.innerHTML='<div class="topbar"><div><h1 class="page">Cadastros de prescritores</h1><p class="hint">Aprove ou recuse o acesso à área exclusiva.</p></div></div><div id="rows">Carregando…</div>';
-  const snap = await db.collection('prescribers').orderBy('createdAt','desc').limit(200).get();
-  if(snap.empty){ $('#rows').innerHTML='<div class="empty">Nenhum cadastro ainda.</div>'; return; }
-  let h='<table><thead><tr><th>Quando</th><th>Nome</th><th>CNPJ</th><th>Conselho</th><th>Contato</th><th>Status</th><th></th></tr></thead><tbody>';
-  snap.forEach(d=>{ const m=d.data();
-    h+=`<tr><td>${fmtTs(m.createdAt)}</td><td><strong>${esc(m.nome)}</strong><br><span class="hint">${esc(m.especialidade||'')}</span></td>
-    <td>${esc(m.cnpj||'—')}</td><td>${esc((m.conselho||'')+' '+(m.conselhoNumero||'')+(m.uf?'/'+m.uf:''))}</td>
-    <td>${esc(m.email)}<br><span class="hint">${esc(m.telefone||'')}</span></td>
-    <td><span class="tag ${m.status}">${esc(m.status)}</span></td>
-    <td><button class="btn btn--ghost btn--sm" data-ap="${d.id}">Aprovar</button> <button class="btn btn--danger btn--sm" data-rj="${d.id}">Recusar</button></td></tr>`;
+  const v=$('#view');
+  v.innerHTML=`<div class="topbar"><div><h1 class="page">Cadastros de prescritores</h1><p class="hint" id="p-count"></p></div><button class="btn" id="p-csv">⬇ Exportar CSV</button></div>
+  <div class="toolbar">
+    <select class="fld" id="f-status" style="max-width:170px"><option value="">Status: todos</option><option value="pending">Pendentes</option><option value="approved">Aprovados</option><option value="rejected">Recusados</option></select>
+    <select class="fld" id="f-esp" style="max-width:230px"><option value="">Especialidade: todas</option></select>
+    <select class="fld" id="f-uf" style="max-width:120px"><option value="">UF: todas</option></select>
+    <select class="fld" id="f-cidade" style="max-width:200px"><option value="">Cidade: todas</option></select>
+    <input class="fld search" id="f-q" placeholder="Buscar nome, e-mail, telefone…">
+    <button class="btn btn--ghost btn--sm" id="f-clear">Limpar</button>
+  </div><div id="rows">Carregando…</div>`;
+  const snap = await db.collection('prescribers').orderBy('createdAt','desc').limit(1000).get();
+  const all = snap.docs.map(d=>({id:d.id,...d.data()}));
+  const fill=(sel,vals)=>{const s=$(sel);[...new Set(vals.filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt')).forEach(x=>{const o=document.createElement('option');o.value=x;o.textContent=x;s.appendChild(o);});};
+  fill('#f-esp',all.map(m=>m.especialidade)); fill('#f-uf',all.map(m=>m.uf)); fill('#f-cidade',all.map(m=>m.cidade));
+  let current=all;
+  function apply(){
+    const st=$('#f-status').value, ep=$('#f-esp').value, uf=$('#f-uf').value, ci=$('#f-cidade').value;
+    const q=$('#f-q').value.trim().toLowerCase();
+    current=all.filter(m=>(!st||m.status===st)&&(!ep||m.especialidade===ep)&&(!uf||m.uf===uf)&&(!ci||m.cidade===ci)
+      &&(!q||[m.nome,m.email,m.telefone,m.cidade,m.conselhoNumero].some(x=>String(x||'').toLowerCase().includes(q))));
+    const n={pending:0,approved:0,rejected:0}; all.forEach(m=>{if(n[m.status]!=null)n[m.status]++;});
+    $('#p-count').textContent=`${current.length} de ${all.length} cadastro(s) · ${n.pending} pendente(s), ${n.approved} aprovado(s), ${n.rejected} recusado(s).`;
+    render(current);
+  }
+  function render(list){
+    if(!list.length){ $('#rows').innerHTML='<div class="empty">Nenhum cadastro com esses filtros.</div>'; return; }
+    let h='<table><thead><tr><th>Quando</th><th>Nome</th><th>Conselho</th><th>Cidade/UF</th><th>Contato</th><th>Status</th><th></th></tr></thead><tbody>';
+    list.forEach(m=>{
+      h+=`<tr><td>${fmtTs(m.createdAt)}</td><td><strong>${esc(m.nome)}</strong><br><span class="hint">${esc(m.especialidade||'')}</span></td>
+      <td>${esc((m.conselho||'')+' '+(m.conselhoNumero||'')+(m.uf?'/'+m.uf:''))}</td>
+      <td>${esc(m.cidade||'—')}${m.uf?'/'+esc(m.uf):''}</td>
+      <td>${esc(m.email)}<br><span class="hint">${esc(m.telefone||'')}</span></td>
+      <td><span class="tag ${m.status}">${ST_LABEL[m.status]||esc(m.status)}</span></td>
+      <td>${m.status==='approved'
+        ?`<button class="btn btn--danger btn--sm" data-rj="${m.id}">Revogar</button>`
+        :`<button class="btn btn--ghost btn--sm" data-ap="${m.id}">Aprovar</button> <button class="btn btn--danger btn--sm" data-rj="${m.id}">Recusar</button>`}</td></tr>`;
+    });
+    h+='</tbody></table>'; $('#rows').innerHTML=h;
+    wire();
+  }
+  ['#f-status','#f-esp','#f-uf','#f-cidade'].forEach(s=>$(s).addEventListener('change',apply));
+  $('#f-q').addEventListener('input',apply);
+  $('#f-clear').addEventListener('click',()=>{['#f-status','#f-esp','#f-uf','#f-cidade','#f-q'].forEach(s=>$(s).value='');apply();});
+  $('#p-csv').addEventListener('click',()=>{
+    const rows=[['data','nome','email','telefone','conselho','registro','uf','cidade','especialidade','cnpj','status']];
+    current.forEach(m=>rows.push([fmtTs(m.createdAt),m.nome,m.email,m.telefone||'',m.conselho||'',m.conselhoNumero||'',m.uf||'',m.cidade||'',m.especialidade||'',m.cnpj||'',ST_LABEL[m.status]||m.status]));
+    const csv='﻿'+rows.map(r=>r.map(c=>`"${String(c??'').replace(/"/g,'""')}"`).join(';')).join('\r\n');
+    const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); a.download='prescritores-aformula.csv'; a.click();
   });
-  h+='</tbody></table>'; $('#rows').innerHTML=h;
+  function wire(){
   async function decide(id, action, btn){
     btn.disabled=true; btn.textContent='…';
     try{
@@ -256,7 +295,9 @@ async function vPresc(){
     }catch(e){ alert('Não foi possível concluir: '+e.message); btn.disabled=false; }
   }
   v.querySelectorAll('[data-ap]').forEach(b=>b.addEventListener('click',()=>decide(b.dataset.ap,'approve',b)));
-  v.querySelectorAll('[data-rj]').forEach(b=>b.addEventListener('click',()=>{ if(confirm('Recusar este cadastro? O acesso (se existir) será desativado.')) decide(b.dataset.rj,'reject',b); }));
+  v.querySelectorAll('[data-rj]').forEach(b=>b.addEventListener('click',()=>{ if(confirm('Recusar/revogar este cadastro? O acesso (se existir) será desativado.')) decide(b.dataset.rj,'reject',b); }));
+  }
+  apply();
 }
 
 /* ---------- CONTEÚDO DO PRESCRITOR (área logada — vale na hora, sem Publicar) ---------- */
