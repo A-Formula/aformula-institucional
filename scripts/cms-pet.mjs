@@ -123,7 +123,7 @@ function enumImgs(block, excludeRanges) {
   return out;
 }
 
-const short = s => { const t = s.replace(/\s+/g, ' ').trim(); return t.length > 48 ? t.slice(0, 45) + '…' : t; };
+const short = s => { const t = s.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim(); return t.length > 48 ? t.slice(0, 45) + '…' : t; };
 
 // ---------- EXTRAÇÃO (seed) ----------
 export function extractPet(html) {
