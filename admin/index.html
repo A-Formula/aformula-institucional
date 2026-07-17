@@ -97,6 +97,7 @@
       <div style="margin-top:20px"><button class="btn" style="width:100%" type="submit">Entrar</button></div>
       <p id="lg-msg" class="msg"></p>
       <p style="margin-top:4px"><a href="#" id="lg-forgot" style="font-size:12.5px">Esqueci minha senha</a></p>
+      <p id="lg-diag" style="margin-top:16px;font-size:11px;color:var(--mut);line-height:1.5"></p>
     </form>
   </div>
 </section>
@@ -154,6 +155,21 @@ const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g, c=>({'&':'&amp;','<':
 const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 function fmtTs(ts){ if(!ts) return '—'; const d=ts.toDate?ts.toDate():new Date(ts); return `${String(d.getDate()).padStart(2,'0')}/${MESES[d.getMonth()]} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
 
+/* ---------- DIAGNÓSTICO (versão no ar + motivo do último logout) ---------- */
+const CMSX_VER='2026-07-17-c';
+let cmsxWasIn=false, cmsxHandled=false;   // cmsxHandled = o logout foi causado por nós (Sair ou negação)
+const CMSX_REASONS={ 'clicou-sair':'você clicou em Sair', 'nao-admin':'conta sem acesso (fora da allowlist)', 'firebase-encerrou':'a sessão do Firebase encerrou sozinha (token/segurança)' };
+function cmsxNote(reason){ try{ localStorage.setItem('cmsx_logout', JSON.stringify({reason, at:new Date().toISOString(), email:(auth.currentUser&&auth.currentUser.email)||''})); }catch(_){} }
+function cmsxDiag(){
+  const el=$('#lg-diag'); if(!el) return;
+  let s='Painel v'+CMSX_VER;
+  try{ const j=JSON.parse(localStorage.getItem('cmsx_logout')||'null');
+    if(j){ const w=new Date(j.at), hh=String(w.getHours()).padStart(2,'0')+':'+String(w.getMinutes()).padStart(2,'0');
+      s+=' · último logout '+hh+': '+(CMSX_REASONS[j.reason]||j.reason)+(j.email?(' ('+j.email+')'):''); } }catch(_){}
+  el.textContent=s;
+}
+cmsxDiag();
+
 /* ---------- AUTH ---------- */
 $('#loginForm').addEventListener('submit', async e=>{
   e.preventDefault(); const m=$('#lg-msg'); m.className='msg'; m.textContent='Entrando…';
@@ -166,13 +182,18 @@ $('#lg-forgot').addEventListener('click', async e=>{
   try{ await auth.sendPasswordResetEmail(em); m.className='msg ok'; m.textContent='Enviamos um link de redefinição para seu e-mail.'; }
   catch(err){ m.className='msg err'; m.textContent=err.message; }
 });
-$('#logout').addEventListener('click', ()=>auth.signOut());
+$('#logout').addEventListener('click', ()=>{ cmsxHandled=true; cmsxNote('clicou-sair'); auth.signOut(); });
 
 // Gate no cliente é só UX — o gate REAL é o servidor (verifyAdmin) + as regras do Firestore.
 // Por isso NUNCA deslogamos por erro transitório (rede, refresh de token, signOut de outra aba):
 // só deslogamos se a leitura teve SUCESSO e o doc de admin não existe (negação definitiva).
 auth.onAuthStateChanged(async user=>{
-  if(!user){ $('#login').classList.remove('hidden'); $('#app').classList.add('hidden'); return; }
+  if(!user){
+    if(cmsxWasIn && !cmsxHandled) cmsxNote('firebase-encerrou'); // não fomos nós → o Firebase encerrou a sessão
+    cmsxWasIn=false; cmsxHandled=false;
+    $('#login').classList.remove('hidden'); $('#app').classList.add('hidden'); cmsxDiag(); return;
+  }
+  cmsxWasIn=true;
   $('#lg-msg').textContent='';
   $('#login').classList.add('hidden'); $('#app').classList.remove('hidden');
   $('#who').textContent = user.email;
@@ -180,6 +201,7 @@ auth.onAuthStateChanged(async user=>{
   try{
     const s = await db.collection('admins').doc(user.email).get();
     if(!s.exists){
+      cmsxNote('nao-admin'); cmsxHandled=true;
       $('#app').classList.add('hidden'); $('#login').classList.remove('hidden');
       const m=$('#lg-msg'); m.className='msg err'; m.textContent='Este usuário não tem acesso ao painel.';
       await auth.signOut();
