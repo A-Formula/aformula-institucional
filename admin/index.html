@@ -165,11 +165,27 @@ $('#lg-forgot').addEventListener('click', async e=>{
 });
 $('#logout').addEventListener('click', ()=>auth.signOut());
 
+// Verifica a allowlist com retry — falha de REDE nunca desloga (só "não existe" desloga).
+async function checkAllowlist(user){
+  let lastErr=null;
+  for(let i=0;i<3;i++){
+    try{ const s=await db.collection('admins').doc(user.email).get(); return s.exists?'ok':'denied'; }
+    catch(e){ lastErr=e; await new Promise(r=>setTimeout(r,900*(i+1))); }
+  }
+  return 'error:'+((lastErr&&lastErr.code)||'rede');
+}
 auth.onAuthStateChanged(async user=>{
   if(!user){ $('#login').classList.remove('hidden'); $('#app').classList.add('hidden'); return; }
-  // confirma allowlist
-  const ok = await db.collection('admins').doc(user.email).get().then(s=>s.exists).catch(()=>false);
-  if(!ok){ $('#lg-msg').className='msg err'; $('#lg-msg').textContent='Este usuário não tem acesso ao painel.'; await auth.signOut(); return; }
+  const m=$('#lg-msg'); m.className='msg'; m.textContent='Confirmando acesso…';
+  const r=await checkAllowlist(user);
+  if(r==='denied'){ m.className='msg err'; m.textContent='Este usuário não tem acesso ao painel.'; await auth.signOut(); return; }
+  if(r!=='ok'){ // erro de conexão: mantém logado e oferece tentar de novo
+    m.className='msg err';
+    m.innerHTML='Conexão instável ao confirmar o acesso ('+esc(r.slice(6))+'). <a href="#" id="lg-retry">Tentar de novo</a>';
+    $('#lg-retry').addEventListener('click',e=>{e.preventDefault();location.reload();});
+    return;
+  }
+  m.textContent='';
   $('#login').classList.add('hidden'); $('#app').classList.remove('hidden');
   $('#who').textContent = user.email;
   loadCounts(); router('inbox');
