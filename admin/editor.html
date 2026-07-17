@@ -411,10 +411,24 @@ function itemTextEl(node,key){
 
 function applySectionOrder(){
   if(!state.model.length) return;
-  const els=state.model.map(m=>m.secEl);
-  const parent=els[0].parentNode;
-  if(!els.every(e=>e.parentNode===parent)) return; // parents diferentes — não arrisca
-  state.doc.sections.forEach(sec=>{ const el=secElByTpl(sec.tpl); if(el&&el.parentNode===parent) parent.insertBefore(el, state.secAnchor); });
+  const parent=state.model[0].secEl.parentNode;
+  if(!state.model.every(m=>m.secEl.parentNode===parent)) return; // parents diferentes — não arrisca
+  // seções na ORDEM DO DOC, presentes no DOM sob o mesmo parent
+  const desired=state.doc.sections.map(s=>secElByTpl(s.tpl)).filter(el=>el && el.parentNode===parent);
+  if(desired.length<2) return;
+  // já está nessa ordem no DOM? então NÃO mexe — evita agrupar seções e destruir a "mobília"
+  // (conteúdo fixo entre seções, ex.: rotator/galeria da home). Só reordena quando realmente mudou.
+  let already=true;
+  for(let i=0;i<desired.length-1;i++){
+    if(!(desired[i].compareDocumentPosition(desired[i+1]) & Node.DOCUMENT_POSITION_FOLLOWING)){ already=false; break; }
+  }
+  if(already) return;
+  // reordena PRESERVANDO a mobília: marca a posição de cada "slot" atual com um comentário e
+  // recoloca as seções (ordem do doc) nesses slots; nós que não são seção ficam onde estão.
+  const slots=desired.slice().sort((a,b)=> (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) ? -1 : 1);
+  const marks=slots.map(n=>{ const c=idoc().createComment('cmsx-slot'); parent.insertBefore(c, n); return c; });
+  desired.forEach((el,i)=>parent.insertBefore(el, marks[i]));
+  marks.forEach(c=>c.remove());
 }
 
 function applyItemOrder(m){
