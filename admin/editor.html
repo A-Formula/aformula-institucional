@@ -17,7 +17,7 @@
   html,body{height:100%}
   body{margin:0;font-family:var(--sans);color:var(--ink);background:var(--bg);font-size:14.5px;line-height:1.5}
   button{font-family:inherit;cursor:pointer}
-  input,select{font-family:inherit;font-size:14px}
+  input,select,textarea{font-family:inherit;font-size:14px}
   a{color:var(--teal)}
   .hidden{display:none!important}
   .btn{background:var(--teal);color:#fff;border:none;border-radius:10px;padding:10px 18px;font-weight:700;font-size:14px}
@@ -52,7 +52,44 @@
   .dirty.clean{color:#9fd6c2}.dirty.clean .dot{background:var(--ok)}
   .top-link{color:#bcd4d6;font-size:12.5px;text-decoration:none}
   .top-link:hover{color:#fff;text-decoration:underline}
-  .canvas-wrap{flex:1;overflow:auto;background:#dfe8e8;display:flex;justify-content:center;padding:0}
+
+  /* workspace = painel esquerdo (editor) + canvas direito (preview) */
+  .workspace{flex:1;display:flex;min-height:0}
+  .lpane{width:344px;flex:0 0 344px;background:var(--white);border-right:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden}
+  .lp-head{padding:11px 14px;font-weight:800;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--mut);border-bottom:1px solid var(--line);background:#f7fafa}
+  .seclist{overflow:auto;flex:0 0 auto;max-height:40%;border-bottom:1px solid var(--line)}
+  .sec-row{display:flex;align-items:center;gap:5px;padding:8px 10px 8px 13px;border-bottom:1px solid #f0f4f4}
+  .sec-row .nm{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13.5px;cursor:pointer}
+  .sec-row:hover{background:#f4f9f9}
+  .sec-row.active{background:#e7f4f5;box-shadow:inset 3px 0 0 var(--teal)}
+  .sec-row.hid .nm{opacity:.5;text-decoration:line-through}
+  .sec-row.footer-row{border-top:1px solid var(--line);background:#f7fafa}
+  .mini{background:#eef3f3;border:1px solid var(--line);border-radius:6px;width:26px;height:26px;font-size:13px;color:var(--teal-d);flex:0 0 auto;line-height:1}
+  .mini:hover:not(:disabled){background:var(--teal);color:#fff;border-color:var(--teal)}
+  .mini:disabled{opacity:.3;cursor:default}
+  .insp{flex:1;overflow:auto;padding:14px}
+  .insp .empty{color:var(--mut);font-size:13px;padding:24px 6px;text-align:center}
+  .insp-title{font-weight:800;font-size:15px;color:var(--teal-d);margin:0 0 14px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  .fgroup{margin-bottom:15px}
+  .fgroup[data-field]:target{outline:2px solid var(--teal)}
+  .flabel{font-weight:700;font-size:11px;color:var(--teal-d);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+  .insp-rich{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13.5px;min-height:38px;max-height:200px;overflow:auto;background:#fbfdfd;outline:none;line-height:1.45}
+  .insp-rich:focus{border-color:var(--teal);background:#fff}
+  .insp-img img{width:100%;max-height:120px;object-fit:contain;background:#f2f7f7;border:1px solid var(--line);border-radius:8px;margin-bottom:6px;display:block}
+  .insp-up{width:100%;background:var(--teal);color:#fff;border:none;border-radius:8px;padding:9px;font-weight:700;margin-bottom:6px}
+  .insp-up:hover{background:var(--teal-700)}
+  .insp-url{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:7px;font-size:12.5px;margin-bottom:6px;outline:none}
+  .insp-url:focus{border-color:var(--teal)}
+  .insp-msg{font-size:11.5px;color:var(--mut);min-height:14px}
+  .item-block{border:1px solid var(--line);border-radius:10px;margin-bottom:9px;overflow:hidden}
+  .item-head{display:flex;align-items:center;gap:5px;padding:7px 9px;background:#f4f9f9}
+  .item-head .tw{color:var(--mut);flex:0 0 auto}
+  .item-head .nm{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12.5px;font-weight:600;cursor:pointer}
+  .item-body{padding:11px;border-top:1px solid var(--line)}
+  .tag-warn{background:#fdf2e2;color:#8a5410;border:1px solid #f0d6a8;border-radius:8px;padding:8px 10px;font-size:12px;margin-bottom:12px}
+
+  /* canvas / preview */
+  .cpane{flex:1;position:relative;overflow:auto;background:#dfe8e8;display:flex;justify-content:center}
   .frame-shell{width:100%;background:#fff;transition:width .25s ease;box-shadow:0 0 0 1px var(--line)}
   .frame-shell.mobile{width:390px;margin:18px 0;box-shadow:0 10px 40px rgba(6,50,55,.18);border-radius:24px;overflow:hidden;height:calc(100% - 36px)}
   iframe{width:100%;height:100%;border:0;display:block}
@@ -97,9 +134,19 @@
     <a class="top-link" href="/admin/index.html">Painel</a>
     <a class="top-link" href="#" id="logout">Sair</a>
   </div>
-  <div class="canvas-wrap" style="position:relative">
-    <div class="frame-shell" id="shell"><iframe id="frame" title="Página"></iframe></div>
-    <div class="loading" id="loading">Carregando página…</div>
+  <div class="workspace">
+    <!-- PAINEL ESQUERDO: camadas (seções) + inspetor -->
+    <aside class="lpane">
+      <div class="lp-head">Seções da página</div>
+      <div class="seclist" id="seclist"></div>
+      <div class="lp-head">Inspetor</div>
+      <div class="insp" id="insp"><div class="empty">Clique numa seção da lista ou num elemento do preview para editar.</div></div>
+    </aside>
+    <!-- CANVAS DIREITO: preview vivo -->
+    <div class="cpane">
+      <div class="frame-shell" id="shell"><iframe id="frame" title="Página"></iframe></div>
+      <div class="loading" id="loading">Carregando página…</div>
+    </div>
   </div>
 </div>
 
@@ -119,6 +166,7 @@ auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{}); // sess
 const db = firebase.firestore();
 const $ = s => document.querySelector(s);
 const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const cssEsc = s => (window.CSS && CSS.escape) ? CSS.escape(s) : String(s).replace(/[^a-zA-Z0-9_-]/g,'\\$&');
 
 /* ---------- TOAST ---------- */
 let toastT;
@@ -129,7 +177,7 @@ function toast(msg, kind){
   toastT=setTimeout(()=>t.style.display='none', kind==='err'?5200:3200);
 }
 
-/* ---------- AUTH (idêntico ao painel) ---------- */
+/* ---------- AUTH ---------- */
 $('#loginForm').addEventListener('submit', async e=>{
   e.preventDefault(); const m=$('#lg-msg'); m.className='msg'; m.textContent='Entrando…';
   try{ await auth.signInWithEmailAndPassword($('#lg-email').value.trim(), $('#lg-pass').value); }
@@ -176,6 +224,7 @@ let PAGE = null;                  // config da página atual { key,label,url,doc
 const state = {
   doc: null,                      // pages/{doc} — mutado ao vivo
   footer: {},                     // settings/global.footer — mutado ao vivo
+  footerFields: [],               // [{key,label,el,set}] resolvidos no DOM
   dirty: false, footerDirty: false,
   model: [],                      // [{sec, secEl, col, itemNodes, mismatch}]
   secAnchor: null                 // nó de referência após a última seção (âncora de reordenação)
@@ -200,6 +249,7 @@ const FOOTER_TEXTS = {
   legal1:'A FÓRMULA SERVIÇOS E FRANCHISE LTDA — CNPJ: 10.760.350/0001-00',
   legal2:'Rua Tabapuã, 627 — Itaim Bibi, São Paulo - SP'
 };
+const FOOTER_TEXT_LABELS = { brand:'Frase da marca', copyright:'Copyright', legal1:'Razão social / CNPJ', legal2:'Endereço' };
 const FOOTER_LINKS = { sobrenos:'Sobre nós', blog:'Blog', prescritor:'Área do prescritor', lgpd:'LGPD', loja:'Encontre uma loja' };
 
 /* ======================================================================
@@ -211,18 +261,20 @@ async function boot(){
   if(!CONFIG.pages || !CONFIG.pages.length) CONFIG = FALLBACK_CONFIG;
   const sel=$('#page-sel'); sel.innerHTML='';
   CONFIG.pages.forEach(p=>{ const o=document.createElement('option'); o.value=p.key; o.textContent=p.label; sel.appendChild(o); });
-  sel.addEventListener('change',()=>{
+  sel.onchange=()=>{
     if((state.dirty||state.footerDirty) && !confirm('Há alterações não salvas. Trocar de página vai descartá-las?')){
       sel.value = PAGE.key; return;
     }
     loadPage(sel.value);
-  });
+  };
   loadPage(CONFIG.pages[0].key);
 }
 
 async function loadPage(key){
   PAGE = CONFIG.pages.find(p=>p.key===key) || CONFIG.pages[0];
-  state.doc=null; state.footer={}; state.dirty=false; state.footerDirty=false; state.model=[]; markClean();
+  state.doc=null; state.footer={}; state.footerFields=[]; state.dirty=false; state.footerDirty=false; state.model=[]; selM=null; selFooter=false;
+  markClean();
+  $('#seclist').innerHTML=''; $('#insp').innerHTML='<div class="empty">Carregando…</div>';
   $('#loading').style.display='flex'; $('#loading').textContent='Carregando conteúdo…';
   // 1) carrega doc da página + rodapé global (leitura pública)
   try{
@@ -250,33 +302,16 @@ function onFrameLoad(){
 ====================================================================== */
 function setupCanvas(){
   const d = idoc();
-  // A) neutraliza animações de reveal e a classe anim
+  // A) neutraliza animações de reveal + injeta estilos do editor (só realce/oculto)
   d.documentElement.classList.remove('anim');
   const st = d.createElement('style');
   st.textContent = `
     [data-fade],[data-reveal],.reveal{opacity:1!important;transform:none!important}
-    /* ---- overlays do editor (prefixo cmsx-) ---- */
-    .cmsx-hl{outline:2px solid #008896!important;outline-offset:2px;cursor:pointer}
-    .cmsx-editing{outline:2px solid #008896!important;background:rgba(0,136,150,.06)!important;cursor:text}
-    .cmsx-tip{position:fixed;z-index:2147483000;background:#063237;color:#fff;font:600 11.5px/1.2 system-ui,sans-serif;padding:5px 9px;border-radius:6px;pointer-events:none;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,.3)}
-    .cmsx-bar{position:fixed;z-index:2147483000;display:flex;gap:6px;align-items:center;background:#063237;color:#fff;font:600 12px/1 system-ui,sans-serif;padding:5px 8px;border-radius:9px;box-shadow:0 5px 16px rgba(0,0,0,.3)}
-    .cmsx-bar .cmsx-lbl{font-weight:800;padding-right:4px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .cmsx-bar.item{background:#0a5560}
-    .cmsx-bar button{background:rgba(255,255,255,.16);color:#fff;border:none;border-radius:6px;padding:4px 9px;cursor:pointer;font-size:13px;line-height:1}
-    .cmsx-bar button:hover:not(:disabled){background:#00abbf}
-    .cmsx-bar button:disabled{opacity:.35;cursor:default}
-    .cmsx-warn{background:#c67a12!important}
-    .cmsx-hiddenmark{position:relative;opacity:.3!important;transition:opacity .15s}
+    .cmsx-hl{outline:2px dashed #00abbf!important;outline-offset:2px;cursor:pointer}
+    .cmsx-sel{outline:2px solid #008896!important;outline-offset:2px}
+    .cmsx-selsec{box-shadow:inset 0 0 0 2px rgba(0,136,150,.35)!important}
+    .cmsx-hiddenmark{position:relative;opacity:.35!important}
     .cmsx-tarja{position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:20;background:#c67a12;color:#fff;font:800 11.5px system-ui,sans-serif;padding:4px 11px;border-radius:999px;pointer-events:none;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.25)}
-    .cmsx-panel{position:fixed;z-index:2147483001;width:300px;max-width:92vw;background:#fff;color:#16282b;border-radius:14px;box-shadow:0 16px 50px rgba(0,0,0,.35);padding:16px;font:14px system-ui,sans-serif}
-    .cmsx-panel h4{margin:0 0 10px;font-size:14px;color:#063237;display:flex;align-items:center}
-    .cmsx-panel h4 button{margin-left:auto;background:none;border:none;font-size:18px;cursor:pointer;color:#5c7075;line-height:1}
-    .cmsx-panel img{width:100%;max-height:150px;object-fit:contain;background:#f2f7f7;border:1px solid #e2e8e9;border-radius:8px;margin-bottom:10px}
-    .cmsx-panel .cmsx-up{width:100%;background:#008896;color:#fff;border:none;border-radius:9px;padding:10px;font-weight:700;cursor:pointer;margin-bottom:10px}
-    .cmsx-panel .cmsx-up:hover{background:#00525d}
-    .cmsx-panel input{width:100%;padding:9px 11px;border:1px solid #e2e8e9;border-radius:8px;font-size:13px;margin-bottom:8px}
-    .cmsx-panel .cmsx-apply{width:100%;background:transparent;color:#008896;border:1.5px solid #008896;border-radius:9px;padding:8px;font-weight:700;cursor:pointer}
-    .cmsx-panel .cmsx-msg{font-size:12px;margin-top:8px;min-height:14px;color:#5c7075}
   `;
   d.head.appendChild(st);
 
@@ -285,18 +320,14 @@ function setupCanvas(){
   d.addEventListener('submit', e=>e.preventDefault(), true);
   d.querySelectorAll('video[autoplay]').forEach(v=>{ try{ v.pause(); v.removeAttribute('autoplay'); }catch(_){} });
 
-  // C) elementos de overlay compartilhados
-  ensureOverlayEls();
-
-  // D) monta modelo (seções, coleções, itens) + aplica doc salvo sobre o DOM + cabeia edição
+  // C) monta modelo + aplica doc salvo sobre o DOM + cabeia seleção no canvas + monta painel
   buildModel();
   applyDocToDom();
-  wireEditing();
-  wireFooter();
-
-  // esconde overlays ao rolar (reaparecem no próximo hover)
-  d.addEventListener('scroll', hideBars, true);
-  frame.contentWindow.addEventListener('scroll', hideBars, true);
+  collectFooter();
+  wireCanvasSelect();
+  renderPanel();
+  if(state.model.length) selectSection(state.model[0], {scroll:false});
+  else selectFooter({scroll:false});
 }
 
 /* ---------- helpers de mapeamento doc↔DOM ---------- */
@@ -399,7 +430,7 @@ function applyItemOrder(m){
   });
 }
 
-/* ---------- ocultar / reexibir (opacity .3 + tarja) ---------- */
+/* ---------- ocultar / reexibir (opacity .35 + tarja) ---------- */
 function markHidden(el, label){
   const d=idoc();
   let tarja=el.querySelector(':scope > .cmsx-tarja');
@@ -413,272 +444,261 @@ function markHidden(el, label){
 }
 
 /* ======================================================================
-   OVERLAYS: outline + tooltip + barras de seção/item + painel de imagem
+   SELEÇÃO NO CANVAS (clicar = selecionar; edição acontece à esquerda)
 ====================================================================== */
-let TIP, SECBAR, ITEMBAR, PANEL;
-function ensureOverlayEls(){
-  const d=idoc();
-  TIP=d.createElement('div'); TIP.className='cmsx-tip'; TIP.style.display='none'; d.body.appendChild(TIP);
-  SECBAR=d.createElement('div'); SECBAR.className='cmsx-bar'; SECBAR.style.display='none'; d.body.appendChild(SECBAR);
-  ITEMBAR=d.createElement('div'); ITEMBAR.className='cmsx-bar item'; ITEMBAR.style.display='none'; d.body.appendChild(ITEMBAR);
-  let hs,hi;
-  SECBAR.addEventListener('mouseenter',()=>clearTimeout(hs));
-  SECBAR.addEventListener('mouseleave',()=>{hs=setTimeout(()=>SECBAR.style.display='none',180);});
-  ITEMBAR.addEventListener('mouseenter',()=>clearTimeout(hi));
-  ITEMBAR.addEventListener('mouseleave',()=>{hi=setTimeout(()=>ITEMBAR.style.display='none',180);});
-  SECBAR._hideSoon=()=>{hs=setTimeout(()=>SECBAR.style.display='none',180);};
-  SECBAR._cancel=()=>clearTimeout(hs);
-  ITEMBAR._hideSoon=()=>{hi=setTimeout(()=>ITEMBAR.style.display='none',180);};
-  ITEMBAR._cancel=()=>clearTimeout(hi);
-}
-function hideBars(){ if(SECBAR)SECBAR.style.display='none'; if(ITEMBAR)ITEMBAR.style.display='none'; if(TIP)TIP.style.display='none'; }
+const fk = (...p)=>p.join('|');   // chave de campo (data-field)
 
-function showTip(el, txt){
-  const r=el.getBoundingClientRect();
-  TIP.textContent=txt; TIP.style.display='block';
-  TIP.style.left=Math.max(6,r.left)+'px';
-  TIP.style.top=Math.max(6,r.top-26)+'px';
+function wireCanvasSelect(){
+  state.model.forEach(m=>{
+    const {sec, secEl, col, itemNodes, mismatch}=m;
+    // clique em área "vazia" da seção → seleciona a seção
+    secEl.addEventListener('click', ()=>selectSection(m));
+    // textos da seção
+    for(const id of Object.keys(sec.texts||{})) tagEditable(textEl(secEl,id), m, fk('t',id));
+    // imgs da seção
+    const imgs=sectionImgs(secEl,itemNodes);
+    for(const idx of Object.keys(sec.imgs||{})) tagEditable(imgs[+idx], m, fk('si',idx));
+    // itens da coleção
+    if(col && !mismatch && Array.isArray(sec.items)){
+      sec.items.forEach(it=>{
+        const node=itemNodes[it.i]; if(!node) return;
+        for(const k of Object.keys(it.texts||{})) tagEditable(itemTextEl(node,k), m, fk('it',it.i,'t',k));
+        for(const idx of Object.keys(it.imgs||{})) tagEditable(node.querySelectorAll('img')[+idx], m, fk('it',it.i,'si',idx));
+        if(it.tail) tagEditable(node, m, fk('it',it.i,'tail'));
+      });
+    }
+  });
 }
-function hideTip(){ TIP.style.display='none'; }
-
-// bottom de um header fixo/sticky do site (pra a barra não sumir atrás dele)
-function stickyBottom(){
-  const d=idoc(); const h=d.querySelector('header'); if(!h) return 0;
-  const pos=frame.contentWindow.getComputedStyle(h).position;
-  return (pos==='fixed'||pos==='sticky') ? h.getBoundingClientRect().bottom : 0;
-}
-function positionBar(bar, el, minTop){
-  const r=el.getBoundingClientRect();
-  bar.style.display='flex';
-  const bw=bar.offsetWidth||240;
-  bar.style.left=Math.min(Math.max(6,r.left), (idoc().documentElement.clientWidth-bw-6))+'px';
-  bar.style.top=Math.max(minTop||6, r.top+6)+'px';
-}
-
-/* ---------- edição de TEXTO in-place ---------- */
-function makeTextEditable(el, setVal){
+function tagEditable(el, m, key){
   if(!el) return;
-  el.addEventListener('mouseenter',()=>{ if(!el.isContentEditable){ el.classList.add('cmsx-hl'); showTip(el,'Clique para editar texto'); }});
-  el.addEventListener('mouseleave',()=>{ el.classList.remove('cmsx-hl'); hideTip(); });
-  el.addEventListener('click',e=>{
-    e.preventDefault(); e.stopPropagation();
-    if(el.isContentEditable) return;
-    startTextEdit(el,setVal);
-  });
+  el.dataset.cmsxKey=key;
+  el.addEventListener('mouseenter',()=>el.classList.add('cmsx-hl'));
+  el.addEventListener('mouseleave',()=>el.classList.remove('cmsx-hl'));
+  el.addEventListener('click', e=>{ e.preventDefault(); e.stopPropagation(); onPick(m, key); });
 }
-function startTextEdit(el, setVal){
-  hideTip(); el.classList.remove('cmsx-hl');
-  const orig=el.innerHTML;
-  el.contentEditable='true'; el.classList.add('cmsx-editing'); el.focus();
-  // caret no fim
-  try{ const rg=idoc().createRange(); rg.selectNodeContents(el); rg.collapse(false);
-    const sel=frame.contentWindow.getSelection(); sel.removeAllRanges(); sel.addRange(rg); }catch(_){}
-  const finish=(commit)=>{
-    el.removeEventListener('keydown',onKey); el.removeEventListener('blur',onBlur);
-    el.contentEditable='false'; el.classList.remove('cmsx-editing');
-    if(commit){ if(el.innerHTML!==orig){ setVal(el.innerHTML); markDirty(); } }
-    else el.innerHTML=orig;
-  };
-  const onKey=e=>{
-    if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); el.blur(); }
-    else if(e.key==='Escape'){ e.preventDefault(); finish(false); el.blur(); }
-  };
-  const onBlur=()=>finish(true);
-  el.addEventListener('keydown',onKey); el.addEventListener('blur',onBlur);
-}
+function onPick(m, key){ selectSection(m); requestAnimationFrame(()=>focusField(key)); }
 
-/* ---------- edição de texto-folha (tail: chips de sabor) ---------- */
-function makeTailEditable(node, tailObj){
-  // edita o elemento do item; ao confirmar, lê o último nó de texto de volta pro doc
-  node.addEventListener('mouseenter',()=>{ if(!node.isContentEditable){ node.classList.add('cmsx-hl'); showTip(node,'Clique para editar texto'); }});
-  node.addEventListener('mouseleave',()=>{ node.classList.remove('cmsx-hl'); hideTip(); });
-  node.addEventListener('click',e=>{
-    if(node.isContentEditable) return;
-    e.preventDefault(); e.stopPropagation();
-    hideTip(); node.classList.remove('cmsx-hl');
-    const orig=node.innerHTML;
-    node.contentEditable='true'; node.classList.add('cmsx-editing'); node.focus();
-    const finish=(commit)=>{
-      node.removeEventListener('keydown',onKey); node.removeEventListener('blur',onBlur);
-      node.contentEditable='false'; node.classList.remove('cmsx-editing');
-      if(commit){ const tn=tailTextNode(node); const v=tn?tn.nodeValue:''; if(v!==tailObj.val){ tailObj.val=v; markDirty(); } }
-      else node.innerHTML=orig;
-    };
-    const onKey=ev=>{ if(ev.key==='Enter'&&!ev.shiftKey){ev.preventDefault();node.blur();} else if(ev.key==='Escape'){ev.preventDefault();finish(false);node.blur();} };
-    const onBlur=()=>finish(true);
-    node.addEventListener('keydown',onKey); node.addEventListener('blur',onBlur);
-  });
-}
+/* ======================================================================
+   PAINEL ESQUERDO: lista de seções (camadas) + inspetor
+====================================================================== */
+let selM = null;          // section model selecionado
+let selFooter = false;
+let panelRows = [];       // [{row, m}]
+let itemExpand = {};       // i -> fn que expande o bloco do item no inspetor
 
-/* ---------- edição de IMAGEM (painel flutuante) ---------- */
-function makeImgEditable(img, setSrc){
-  if(!img) return;
-  img.style.cursor='pointer';
-  img.addEventListener('mouseenter',()=>{ img.classList.add('cmsx-hl'); showTip(img,'Clique para editar imagem'); });
-  img.addEventListener('mouseleave',()=>{ img.classList.remove('cmsx-hl'); hideTip(); });
-  img.addEventListener('click',e=>{ e.preventDefault(); e.stopPropagation(); openImgPanel(img,setSrc); });
+function renderPanel(){
+  const list=$('#seclist'); list.innerHTML=''; panelRows=[];
+  state.doc.sections.forEach(sec=>{
+    const m=state.model.find(x=>x.sec===sec); if(!m) return;
+    const i=state.doc.sections.indexOf(sec);
+    const row=document.createElement('div'); row.className='sec-row'+(sec.v===false?' hid':'');
+    row.innerHTML=`<span class="nm">${esc(sec.label||sec.key)}</span>
+      <button class="mini" data-a="up" ${i<=0?'disabled':''} title="Subir seção">↑</button>
+      <button class="mini" data-a="dn" ${i>=state.doc.sections.length-1?'disabled':''} title="Descer seção">↓</button>
+      <button class="mini" data-a="hide" title="Ocultar / mostrar">${sec.v===false?'🚫':'👁'}</button>`;
+    row.querySelector('.nm').addEventListener('click', ()=>selectSection(m));
+    row.querySelector('[data-a="up"]').addEventListener('click', e=>{ e.stopPropagation(); moveSection(sec,-1); });
+    row.querySelector('[data-a="dn"]').addEventListener('click', e=>{ e.stopPropagation(); moveSection(sec,1); });
+    row.querySelector('[data-a="hide"]').addEventListener('click', e=>{ e.stopPropagation(); toggleSection(m); });
+    list.appendChild(row); panelRows.push({row, m});
+  });
+  // linha do rodapé (vale pra todas as páginas)
+  const fr=document.createElement('div'); fr.className='sec-row footer-row';
+  fr.innerHTML='<span class="nm">🔗 Rodapé (todas as páginas)</span>';
+  fr.querySelector('.nm').addEventListener('click', ()=>selectFooter());
+  list.appendChild(fr);
+  // mantém seleção corrente
+  if(selFooter) markRowsActive(null);
+  else if(selM) markRowsActive(selM);
 }
-function openImgPanel(img, setSrc){
-  closePanel(); hideTip();
+function markRowsActive(m){ panelRows.forEach(pr=>pr.row.classList.toggle('active', pr.m===m)); }
+
+function selectSection(m, opts){
+  opts=opts||{};
+  selFooter=false; selM=m; itemExpand={};
+  markRowsActive(m);
   const d=idoc();
-  PANEL=d.createElement('div'); PANEL.className='cmsx-panel';
-  PANEL.innerHTML=`<h4>Imagem <button title="Fechar">✕</button></h4>
-    <img class="cmsx-prev" src="${esc(img.getAttribute('src')||'')}" alt="">
-    <button class="cmsx-up" type="button">⬆ Enviar nova imagem</button>
-    <input class="cmsx-url" value="${esc(img.getAttribute('src')||'')}" placeholder="ou cole uma URL de imagem">
-    <button class="cmsx-apply" type="button">Aplicar URL</button>
-    <div class="cmsx-msg"></div>`;
-  d.body.appendChild(PANEL);
-  // posiciona ao lado da imagem, dentro da viewport
-  const r=img.getBoundingClientRect(); const vw=d.documentElement.clientWidth, vh=d.documentElement.clientHeight;
-  let left=r.right+12; if(left+312>vw) left=Math.max(6,r.left-312);
-  let top=Math.min(Math.max(6,r.top), vh-320);
-  PANEL.style.left=left+'px'; PANEL.style.top=top+'px';
-  const q=s=>PANEL.querySelector(s); const msg=q('.cmsx-msg');
-  const apply=url=>{ img.src=url; q('.cmsx-prev').src=url; setSrc(url); markDirty(); };
-  q('h4 button').addEventListener('click',closePanel);
-  q('.cmsx-apply').addEventListener('click',()=>{ const u=q('.cmsx-url').value.trim(); if(u){ apply(u); msg.textContent='Aplicado ✓'; } });
-  q('.cmsx-up').addEventListener('click',()=>{
-    const fi=d.createElement('input'); fi.type='file'; fi.accept='image/*';
-    fi.addEventListener('change',async()=>{
-      const f=fi.files[0]; if(!f) return; msg.style.color='#5c7075'; msg.textContent='Enviando…';
-      try{ const url=await uploadFile(f); apply(url); q('.cmsx-url').value=url; msg.style.color='#0a8f5b'; msg.textContent='Enviada e aplicada ✓'; }
-      catch(err){ msg.style.color='#c0392b'; msg.textContent=err.message; }
+  d.querySelectorAll('.cmsx-selsec').forEach(x=>x.classList.remove('cmsx-selsec'));
+  m.secEl.classList.add('cmsx-selsec');
+  if(opts.scroll!==false) m.secEl.scrollIntoView({behavior:'smooth', block:'start'});
+  renderInspector(m);
+}
+
+function renderInspector(m){
+  const box=$('#insp'); box.innerHTML=''; itemExpand={};
+  const {sec, secEl, col, itemNodes, mismatch}=m;
+  const h=document.createElement('div'); h.className='insp-title'; h.textContent=sec.label||sec.key; box.appendChild(h);
+  let any=false;
+  // textos da seção
+  for(const [id,t] of Object.entries(sec.texts||{})){
+    const el=textEl(secEl,id); if(!el) continue; any=true;
+    box.appendChild(richField('Texto', fk('t',id), el.innerHTML, v=>{ el.innerHTML=v; t.val=v; markDirty(); }));
+  }
+  // imgs da seção
+  const imgs=sectionImgs(secEl,itemNodes);
+  for(const [idx,im] of Object.entries(sec.imgs||{})){
+    const el=imgs[+idx]; if(!el) continue; any=true;
+    box.appendChild(imgField('Imagem', fk('si',idx), el, v=>{ el.src=v; im.val=v; markDirty(); }));
+  }
+  // itens da coleção
+  if(col && Array.isArray(sec.items) && sec.items.length){
+    const hh=document.createElement('div'); hh.className='flabel'; hh.style.margin='4px 0 8px'; hh.textContent='Itens'; box.appendChild(hh);
+    if(mismatch){
+      const w=document.createElement('div'); w.className='tag-warn';
+      w.textContent='⚠ A estrutura desta seção mudou no código — a edição de itens está travada por segurança.';
+      box.appendChild(w);
+    }else{
+      any=true;
+      sec.items.forEach(it=>box.appendChild(itemBlock(m, it)));
+    }
+  }
+  if(!any){ const e=document.createElement('div'); e.className='empty'; e.textContent='Nada editável nesta seção.'; box.appendChild(e); }
+}
+
+/* ---------- campos do inspetor ---------- */
+function richField(label, key, html, onChange){
+  const w=document.createElement('div'); w.className='fgroup'; w.id='f-'+key; w.dataset.field=key;
+  const l=document.createElement('div'); l.className='flabel'; l.textContent=label; w.appendChild(l);
+  const r=document.createElement('div'); r.className='insp-rich'; r.contentEditable='true'; r.innerHTML=html;
+  r.addEventListener('input', ()=>onChange(r.innerHTML));
+  w.appendChild(r); return w;
+}
+function lineField(label, key, val, onChange){
+  const w=document.createElement('div'); w.className='fgroup'; w.id='f-'+key; w.dataset.field=key;
+  const l=document.createElement('div'); l.className='flabel'; l.textContent=label; w.appendChild(l);
+  const inp=document.createElement('input'); inp.className='insp-url'; inp.value=val==null?'':val;
+  inp.addEventListener('input', ()=>onChange(inp.value));
+  w.appendChild(inp); return w;
+}
+function imgField(label, key, el, apply){
+  const w=document.createElement('div'); w.className='fgroup insp-img'; w.id='f-'+key; w.dataset.field=key;
+  const l=document.createElement('div'); l.className='flabel'; l.textContent=label; w.appendChild(l);
+  const src=el.getAttribute('src')||'';
+  const prev=document.createElement('img'); prev.src=src; prev.alt=''; w.appendChild(prev);
+  const up=document.createElement('button'); up.className='insp-up'; up.type='button'; up.textContent='⬆ Enviar nova imagem'; w.appendChild(up);
+  const url=document.createElement('input'); url.className='insp-url'; url.value=src; url.placeholder='ou cole uma URL de imagem'; w.appendChild(url);
+  const ap=document.createElement('button'); ap.className='btn btn--ghost btn--sm'; ap.type='button'; ap.textContent='Aplicar URL'; ap.style.width='100%'; w.appendChild(ap);
+  const msg=document.createElement('div'); msg.className='insp-msg'; w.appendChild(msg);
+  const setA=v=>{ apply(v); prev.src=v; };
+  ap.addEventListener('click', ()=>{ const u=url.value.trim(); if(u){ setA(u); msg.style.color='var(--ok)'; msg.textContent='Aplicado ✓'; } });
+  up.addEventListener('click', ()=>{
+    const fi=document.createElement('input'); fi.type='file'; fi.accept='image/*';
+    fi.addEventListener('change', async()=>{
+      const f=fi.files[0]; if(!f) return; msg.style.color='var(--mut)'; msg.textContent='Enviando…';
+      try{ const u=await uploadFile(f); setA(u); url.value=u; msg.style.color='var(--ok)'; msg.textContent='Enviada e aplicada ✓'; }
+      catch(err){ msg.style.color='var(--err)'; msg.textContent=err.message; }
     });
     fi.click();
   });
-}
-function closePanel(){ if(PANEL){ PANEL.remove(); PANEL=null; } }
-
-/* ======================================================================
-   CABEAMENTO DA EDIÇÃO (por seção / item / textos / imgs / barras)
-====================================================================== */
-function wireEditing(){
-  const d=idoc();
-  // fecha painel de imagem ao clicar fora dele
-  d.addEventListener('mousedown',e=>{ if(PANEL && !PANEL.contains(e.target) && e.target.tagName!=='IMG') closePanel(); }, true);
-
-  state.model.forEach((m,mi)=>{
-    const {sec, secEl, col, itemNodes, mismatch} = m;
-
-    // textos de seção
-    for(const [id,t] of Object.entries(sec.texts||{}))
-      makeTextEditable(textEl(secEl,id), v=>{ t.val=v; });
-    // imgs de seção
-    const imgs=sectionImgs(secEl,itemNodes);
-    for(const [idx,im] of Object.entries(sec.imgs||{})){
-      const el=imgs[+idx]; if(el) makeImgEditable(el, v=>{ im.val=v; });
-    }
-
-    // itens de coleção
-    if(col && Array.isArray(sec.items) && sec.items.length){
-      if(mismatch){
-        // estrutura do DOM ≠ doc → edição segura: nada de item (só avisa na barra da seção)
-      }else{
-        sec.items.forEach(it=>{
-          const node=itemNodes[it.i]; if(!node) return;
-          for(const [k,t] of Object.entries(it.texts||{}))
-            makeTextEditable(itemTextEl(node,k), v=>{ t.val=v; });
-          for(const [idx,im] of Object.entries(it.imgs||{})){
-            const el=node.querySelectorAll('img')[+idx]; if(el) makeImgEditable(el, v=>{ im.val=v; });
-          }
-          if(it.tail) makeTailEditable(node, it.tail);
-          // barra do item (estrutural) — só se a coleção não for fixedOrder
-          if(!col.fixedOrder){
-            node.addEventListener('mouseenter',()=>showItemBar(m, it, node));
-            node.addEventListener('mouseleave',()=>ITEMBAR._hideSoon());
-          }
-        });
-      }
-    }
-
-    // barra da seção
-    secEl.addEventListener('mouseenter',()=>showSecBar(m));
-    secEl.addEventListener('mouseleave',()=>SECBAR._hideSoon());
-  });
+  return w;
 }
 
-function showSecBar(m){
-  SECBAR._cancel();
-  const {sec, secEl, mismatch, col}=m;
-  const idx=state.doc.sections.indexOf(sec);
-  const first=idx<=0, last=idx>=state.doc.sections.length-1;
-  const warn = mismatch ? `<span class="cmsx-lbl cmsx-warn" style="border-radius:6px;padding:3px 7px">⚠ estrutura mudou — itens travados</span>` : '';
-  SECBAR.className='cmsx-bar';
-  SECBAR.innerHTML=`<span class="cmsx-lbl">▤ ${esc(sec.label||sec.key)}</span>
-    <button data-a="up" ${first?'disabled':''} title="Subir seção">↑</button>
-    <button data-a="dn" ${last?'disabled':''} title="Descer seção">↓</button>
-    <button data-a="hide" title="Ocultar/mostrar seção">${sec.v===false?'🚫':'👁'}</button>${warn}`;
-  positionBar(SECBAR, secEl, stickyBottom()+4);
-  SECBAR.querySelector('[data-a="up"]').onclick=()=>moveSection(sec,-1);
-  SECBAR.querySelector('[data-a="dn"]').onclick=()=>moveSection(sec,1);
-  SECBAR.querySelector('[data-a="hide"]').onclick=()=>toggleSection(m);
+function itemBlock(m, it){
+  const {sec, itemNodes, col}=m; const node=itemNodes[it.i];
+  const arr=sec.items; const i=arr.indexOf(it);
+  const b=document.createElement('div'); b.className='item-block';
+  const head=document.createElement('div'); head.className='item-head';
+  const nm=(it.name||'Item').replace(/<[^>]*>/g,'').slice(0,42) || 'Item';
+  head.innerHTML=`<span class="tw">▸</span><span class="nm">${esc(nm)}</span>`
+    + (col.fixedOrder?'':`<button class="mini" data-a="up" ${i<=0?'disabled':''} title="Subir">↑</button>`
+       +`<button class="mini" data-a="dn" ${i>=arr.length-1?'disabled':''} title="Descer">↓</button>`
+       +`<button class="mini" data-a="hide" title="Ocultar / mostrar">${it.v===false?'🚫':'👁'}</button>`);
+  b.appendChild(head);
+  const body=document.createElement('div'); body.className='item-body'; body.style.display='none'; b.appendChild(body);
+  let built=false;
+  const build=()=>{ if(built||!node) return; built=true;
+    let any=false;
+    for(const [k,t] of Object.entries(it.texts||{})){ const el=itemTextEl(node,k); if(el){ any=true; body.appendChild(richField('Texto', fk('it',it.i,'t',k), el.innerHTML, v=>{ el.innerHTML=v; t.val=v; markDirty(); })); } }
+    for(const [idx,im] of Object.entries(it.imgs||{})){ const el=node.querySelectorAll('img')[+idx]; if(el){ any=true; body.appendChild(imgField('Imagem', fk('it',it.i,'si',idx), el, v=>{ el.src=v; im.val=v; markDirty(); })); } }
+    if(it.tail){ any=true; const tn=tailTextNode(node); body.appendChild(lineField('Texto', fk('it',it.i,'tail'), it.tail.val!=null?it.tail.val:(tn?tn.nodeValue:''), v=>{ const t2=tailTextNode(node); if(t2) t2.nodeValue=v; it.tail.val=v; markDirty(); })); }
+    if(!any){ const e=document.createElement('div'); e.className='empty'; e.textContent='Sem campos editáveis.'; body.appendChild(e); }
+  };
+  const setOpen=open=>{ if(open) build(); body.style.display=open?'block':'none'; head.querySelector('.tw').textContent=open?'▾':'▸'; };
+  head.querySelector('.nm').addEventListener('click', ()=>{ const willOpen=body.style.display==='none'; setOpen(willOpen); if(willOpen && node) node.scrollIntoView({behavior:'smooth', block:'center'}); });
+  if(!col.fixedOrder){
+    const up=head.querySelector('[data-a="up"]'), dn=head.querySelector('[data-a="dn"]'), hd=head.querySelector('[data-a="hide"]');
+    up&&up.addEventListener('click', e=>{ e.stopPropagation(); moveItem(m,it,-1); });
+    dn&&dn.addEventListener('click', e=>{ e.stopPropagation(); moveItem(m,it,1); });
+    hd&&hd.addEventListener('click', e=>{ e.stopPropagation(); toggleItem(m,it); });
+  }
+  itemExpand[it.i]=()=>{ setOpen(true); };
+  return b;
 }
+
+/* rola até o campo e foca (ao clicar no elemento correspondente do canvas) */
+function focusField(key){
+  const box=$('#insp');
+  const mit=/^it\|(\d+)\|/.exec(key);
+  if(mit && itemExpand[mit[1]]) itemExpand[mit[1]]();
+  const target=box.querySelector('[data-field="'+cssEsc(key)+'"]');
+  if(!target) return;
+  target.scrollIntoView({block:'center'});
+  const ed=target.querySelector('.insp-rich') || target.querySelector('.insp-url');
+  if(ed) ed.focus();
+}
+
+/* ---------- reordenar / ocultar seções ---------- */
 function moveSection(sec, dir){
   const arr=state.doc.sections; const i=arr.indexOf(sec); const j=i+dir;
   if(j<0||j>=arr.length) return;
   arr[i]=arr[j]; arr[j]=sec;
-  applySectionOrder(); markDirty(); hideBars();
+  applySectionOrder(); markDirty(); renderPanel();
 }
 function toggleSection(m){
   m.sec.v = m.sec.v===false ? true : false;
   markHidden(m.secEl, m.sec.v===false ? 'seção oculta — some ao publicar' : null);
-  markDirty(); hideBars();
+  markDirty(); renderPanel();
 }
-
-function showItemBar(m, it, node){
-  ITEMBAR._cancel();
-  const arr=m.sec.items; const idx=arr.indexOf(it);
-  const first=idx<=0, last=idx>=arr.length-1;
-  ITEMBAR.innerHTML=`<span class="cmsx-lbl">${esc((it.name||'Item').replace(/<[^>]*>/g,'').slice(0,40))}</span>
-    <button data-a="up" ${first?'disabled':''} title="Subir">↑</button>
-    <button data-a="dn" ${last?'disabled':''} title="Descer">↓</button>
-    <button data-a="hide" title="Ocultar/mostrar">${it.v===false?'🚫':'👁'}</button>`;
-  positionBar(ITEMBAR, node);
-  ITEMBAR.querySelector('[data-a="up"]').onclick=()=>moveItem(m,it,-1);
-  ITEMBAR.querySelector('[data-a="dn"]').onclick=()=>moveItem(m,it,1);
-  ITEMBAR.querySelector('[data-a="hide"]').onclick=()=>toggleItem(m,it);
-}
+/* ---------- reordenar / ocultar itens ---------- */
 function moveItem(m, it, dir){
   const arr=m.sec.items; const i=arr.indexOf(it); const j=i+dir;
   if(j<0||j>=arr.length) return;
   arr[i]=arr[j]; arr[j]=it;
-  applyItemOrder(m); markDirty(); hideBars();
+  applyItemOrder(m); markDirty(); renderInspector(m);
 }
 function toggleItem(m, it){
   it.v = it.v===false ? true : false;
   const node=m.itemNodes[it.i];
   markHidden(node, it.v===false ? 'item oculto — some ao publicar' : null);
-  markDirty(); hideBars();
+  markDirty(); renderInspector(m);
 }
 
 /* ======================================================================
-   RODAPÉ (editável em qualquer página)
+   RODAPÉ (editável em qualquer página, pelo inspetor)
 ====================================================================== */
-function wireFooter(){
+function collectFooter(){
+  state.footerFields=[];
   const footer=idoc().querySelector('footer'); if(!footer) return;
   const used=new Set();
-  // textos: casa por textContent com default OU valor salvo
   for(const [k,def] of Object.entries(FOOTER_TEXTS)){
     const saved=state.footer[k];
-    const el=findFooterText(footer, [def, saved], used);
-    if(!el) continue;
+    const el=findFooterText(footer, [def, saved], used); if(!el) continue;
     if(saved && el.textContent.trim()!==saved) el.textContent=saved;  // reflete salvo
-    makeTextEditable(el, v=>{ state.footer[k]=el.textContent.trim(); state.footerDirty=true; });
+    state.footerFields.push({ key:k, label:FOOTER_TEXT_LABELS[k]||'Texto', el, set:v=>{ state.footer[k]=v; } });
   }
-  // links: casa <a> por label default OU salvo
   for(const [k,def] of Object.entries(FOOTER_LINKS)){
-    const cfg=(state.footer.links||{})[k]||{};
-    const saved=cfg.label;
-    const a=findFooterLink(footer, [def, saved], used);
-    if(!a) continue;
+    const cfg=(state.footer.links||{})[k]||{}; const saved=cfg.label;
+    const a=findFooterLink(footer, [def, saved], used); if(!a) continue;
     if(saved && a.textContent.trim()!==saved) a.textContent=saved;  // reflete salvo
-    makeTextEditable(a, v=>{
-      state.footer.links=state.footer.links||{};
-      state.footer.links[k]=Object.assign({}, state.footer.links[k], {label:a.textContent.trim()});
-      state.footerDirty=true;
-    });
+    state.footerFields.push({ key:k, label:'Link: '+def, el:a, set:v=>{ state.footer.links=state.footer.links||{}; state.footer.links[k]=Object.assign({}, state.footer.links[k], {label:v}); } });
   }
+}
+function selectFooter(opts){
+  opts=opts||{};
+  selFooter=true; selM=null; itemExpand={};
+  markRowsActive(null);
+  const d=idoc(); d.querySelectorAll('.cmsx-selsec').forEach(x=>x.classList.remove('cmsx-selsec'));
+  const footer=d.querySelector('footer'); if(footer && opts.scroll!==false) footer.scrollIntoView({behavior:'smooth', block:'start'});
+  const box=$('#insp'); box.innerHTML='';
+  const h=document.createElement('div'); h.className='insp-title'; h.textContent='Rodapé'; box.appendChild(h);
+  if(!state.footerFields.length){ const e=document.createElement('div'); e.className='empty'; e.textContent='Rodapé não encontrado nesta página.'; box.appendChild(e); return; }
+  state.footerFields.forEach(f=>{
+    const w=document.createElement('div'); w.className='fgroup'; w.dataset.field='ft-'+f.key;
+    const l=document.createElement('div'); l.className='flabel'; l.textContent=f.label; w.appendChild(l);
+    const r=document.createElement('div'); r.className='insp-rich'; r.contentEditable='true'; r.textContent=f.el.textContent.trim();
+    r.addEventListener('input', ()=>{ const v=r.textContent.trim(); f.el.textContent=v; f.set(v); state.footerDirty=true; setDirtyUI(); });
+    w.appendChild(r); box.appendChild(w);
+  });
 }
 // folha de texto = sem filhos-elemento (exceto <br>, comum em blocos de endereço)
 const isTextLeaf = el => ![...el.children].some(c=>c.tagName!=='BR');
