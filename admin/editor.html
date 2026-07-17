@@ -115,6 +115,7 @@ firebase.initializeApp({
   appId: "1:139838701463:web:9938229ebeed4c545c8ed2"
 });
 const auth = firebase.auth();
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{}); // sessão persiste entre reloads/abas
 const db = firebase.firestore();
 const $ = s => document.querySelector(s);
 const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -136,12 +137,21 @@ $('#loginForm').addEventListener('submit', async e=>{
 });
 $('#logout').addEventListener('click', e=>{ e.preventDefault(); auth.signOut(); });
 
+// Gate no cliente é só UX — o gate REAL é o servidor (verifyAdmin) + as regras do Firestore.
+// NUNCA desloga por erro transitório (rede, refresh de token, signOut de outra aba):
+// só desloga se a leitura teve SUCESSO e o doc de admin não existe (negação definitiva).
 auth.onAuthStateChanged(async user=>{
   if(!user){ $('#login').classList.remove('hidden'); $('#app').classList.add('hidden'); return; }
-  const ok = await db.collection('admins').doc(user.email).get().then(s=>s.exists).catch(()=>false);
-  if(!ok){ $('#lg-msg').className='msg err'; $('#lg-msg').textContent='Este usuário não tem acesso ao editor.'; await auth.signOut(); return; }
   $('#login').classList.add('hidden'); $('#app').classList.remove('hidden');
   boot();
+  try{
+    const s = await db.collection('admins').doc(user.email).get();
+    if(!s.exists){
+      $('#lg-msg').className='msg err'; $('#lg-msg').textContent='Este usuário não tem acesso ao editor.';
+      $('#app').classList.add('hidden'); $('#login').classList.remove('hidden');
+      await auth.signOut();
+    }
+  }catch(_){ /* erro transitório: mantém logado */ }
 });
 
 /* Upload de mídia (idêntico ao painel — Vercel Blob via /api/upload, gated por admin) */

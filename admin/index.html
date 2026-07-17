@@ -147,6 +147,7 @@ firebase.initializeApp({
   appId: "1:139838701463:web:9938229ebeed4c545c8ed2"
 });
 const auth = firebase.auth();
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{}); // sessão persiste entre reloads/abas
 const db = firebase.firestore();
 const $ = s => document.querySelector(s);
 const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -167,30 +168,23 @@ $('#lg-forgot').addEventListener('click', async e=>{
 });
 $('#logout').addEventListener('click', ()=>auth.signOut());
 
-// Verifica a allowlist com retry — falha de REDE nunca desloga (só "não existe" desloga).
-async function checkAllowlist(user){
-  let lastErr=null;
-  for(let i=0;i<3;i++){
-    try{ const s=await db.collection('admins').doc(user.email).get(); return s.exists?'ok':'denied'; }
-    catch(e){ lastErr=e; await new Promise(r=>setTimeout(r,900*(i+1))); }
-  }
-  return 'error:'+((lastErr&&lastErr.code)||'rede');
-}
+// Gate no cliente é só UX — o gate REAL é o servidor (verifyAdmin) + as regras do Firestore.
+// Por isso NUNCA deslogamos por erro transitório (rede, refresh de token, signOut de outra aba):
+// só deslogamos se a leitura teve SUCESSO e o doc de admin não existe (negação definitiva).
 auth.onAuthStateChanged(async user=>{
   if(!user){ $('#login').classList.remove('hidden'); $('#app').classList.add('hidden'); return; }
-  const m=$('#lg-msg'); m.className='msg'; m.textContent='Confirmando acesso…';
-  const r=await checkAllowlist(user);
-  if(r==='denied'){ m.className='msg err'; m.textContent='Este usuário não tem acesso ao painel.'; await auth.signOut(); return; }
-  if(r!=='ok'){ // erro de conexão: mantém logado e oferece tentar de novo
-    m.className='msg err';
-    m.innerHTML='Conexão instável ao confirmar o acesso ('+esc(r.slice(6))+'). <a href="#" id="lg-retry">Tentar de novo</a>';
-    $('#lg-retry').addEventListener('click',e=>{e.preventDefault();location.reload();});
-    return;
-  }
-  m.textContent='';
+  $('#lg-msg').textContent='';
   $('#login').classList.add('hidden'); $('#app').classList.remove('hidden');
   $('#who').textContent = user.email;
   loadCounts(); router('inbox');
+  try{
+    const s = await db.collection('admins').doc(user.email).get();
+    if(!s.exists){
+      $('#app').classList.add('hidden'); $('#login').classList.remove('hidden');
+      const m=$('#lg-msg'); m.className='msg err'; m.textContent='Este usuário não tem acesso ao painel.';
+      await auth.signOut();
+    }
+  }catch(_){ /* erro transitório: mantém logado — o servidor barra quem não é admin */ }
 });
 
 /* ---------- NAV ---------- */
