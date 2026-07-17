@@ -1,40 +1,28 @@
-// POST /api/publish — dispara a republicação do site (admin autenticado).
-// Verifica o ID token do Firebase (precisa ser admin) e aciona o Deploy Hook da Vercel,
-// que roda o buildCommand (regenera o site a partir do Firestore).
-// Env: FIREBASE_SERVICE_ACCOUNT (verificação do token) + DEPLOY_HOOK_URL (gatilho de deploy).
-const admin = require("firebase-admin");
-
-function initAdmin() {
-  if (!admin.apps.length) {
-    admin.initializeApp({ credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)) });
-  }
-}
+// POST /api/publish?target=preview|production — dispara a republicação (admin autenticado).
+//   production (padrão) → DEPLOY_HOOK_URL         → rebuild do site no ar.
+//   preview             → PREVIEW_DEPLOY_HOOK_URL → rebuild da branch `staging` (URL de preview),
+//                                                   pra revisar as mudanças ANTES de ir pro ar.
+// Ambos leem o mesmo Firestore; a diferença é só QUAL deploy é reconstruído.
+// Env: FIREBASE_SERVICE_ACCOUNT (verificação do token) + DEPLOY_HOOK_URL (+ PREVIEW_DEPLOY_HOOK_URL).
+const { verifyAdmin } = require("./_lib/backend");
 
 module.exports = async (req, res) => {
   if (req.method !== "POST") return res.status(405).json({ ok: false, error: "method" });
-  const hook = process.env.DEPLOY_HOOK_URL;
-  const sa = process.env.FIREBASE_SERVICE_ACCOUNT;
-  if (!sa || !hook) return res.status(503).json({ ok: false, error: "not-configured" });
 
-  const authz = req.headers.authorization || "";
-  const token = authz.startsWith("Bearer ") ? authz.slice(7) : null;
-  if (!token) return res.status(401).json({ ok: false, error: "no-token" });
-
-  try {
-    initAdmin();
-    const decoded = await admin.auth().verifyIdToken(token);
-    const email = (decoded.email || "").toLowerCase();
-    const snap = await admin.firestore().collection("admins").doc(email).get();
-    if (!snap.exists) return res.status(403).json({ ok: false, error: "not-admin" });
-  } catch (e) {
-    return res.status(401).json({ ok: false, error: "invalid-token" });
+  const target = (req.query && req.query.target) === "preview" ? "preview" : "production";
+  const hook = target === "preview" ? process.env.PREVIEW_DEPLOY_HOOK_URL : process.env.DEPLOY_HOOK_URL;
+  if (!process.env.FIREBASE_SERVICE_ACCOUNT || !hook) {
+    return res.status(503).json({ ok: false, error: "not-configured", target });
   }
+
+  const email = await verifyAdmin(req);
+  if (!email) return res.status(401).json({ ok: false, error: "unauthorized" });
 
   try {
     const r = await fetch(hook, { method: "POST" });
     if (!r.ok) throw new Error("hook " + r.status);
-    return res.status(200).json({ ok: true });
+    return res.status(200).json({ ok: true, target });
   } catch (e) {
-    return res.status(502).json({ ok: false, error: "hook-failed" });
+    return res.status(502).json({ ok: false, error: "hook-failed", target });
   }
 };

@@ -125,8 +125,10 @@
       <span class="dot"></span>
       <div style="flex:1">
         <strong id="pub-title">Alterações são salvas na hora.</strong>
-        <div class="hint" id="pub-hint">Editou banner, blog ou configurações? Clique em “Publicar no site” para o site no ar refletir as mudanças.</div>
+        <div class="hint" id="pub-hint">Gere um <b>preview</b> pra revisar antes, ou clique em “Publicar no site” pra ir direto pro ar.</div>
       </div>
+      <a id="pv-link" class="btn btn--ghost btn--sm hidden" target="_blank" rel="noopener" style="text-decoration:none">Abrir preview ↗</a>
+      <button class="btn btn--ghost" id="btn-preview">Gerar preview</button>
       <button class="btn" id="btn-publish">Publicar no site</button>
     </div>
     <div id="view"></div>
@@ -635,17 +637,37 @@ async function vSettings(){
   });
 }
 
-/* ---------- PUBLICAR ---------- */
-$('#btn-publish').addEventListener('click',async()=>{
-  const btn=$('#btn-publish'), pb=$('#pubbar'), t=$('#pub-title'), hint=$('#pub-hint');
-  btn.disabled=true; t.textContent='Publicando…'; hint.textContent='Isso leva 1–2 minutos. Pode continuar usando o painel.';
+/* ---------- PREVIEW / PUBLICAR ---------- */
+// URL estável da branch `staging` (deploy de preview). Requer estar logado na conta Vercel dona
+// do projeto pra visualizar (proteção de deployment da Vercel).
+const PREVIEW_URL='https://aformula-institucional-git-staging-viniciusal60-5414s-projects.vercel.app';
+async function triggerBuild(target){
+  const token = await auth.currentUser.getIdToken();
+  const r = await fetch('/api/publish?target='+target,{method:'POST',headers:{Authorization:'Bearer '+token}});
+  const data = await r.json().catch(()=>({}));
+  if(!r.ok || !data.ok) throw new Error(data.error||'falha');
+  return data;
+}
+$('#btn-preview').addEventListener('click',async()=>{
+  const bp=$('#btn-preview'), bpub=$('#btn-publish'), pb=$('#pubbar'), t=$('#pub-title'), hint=$('#pub-hint'), lk=$('#pv-link');
+  bp.disabled=true; bpub.disabled=true; lk.classList.add('hidden'); pb.classList.remove('clean');
+  t.textContent='Gerando preview…'; hint.textContent='Reconstruindo o preview (1–2 min). O link aparece aqui.';
   try{
-    const token = await auth.currentUser.getIdToken();
-    const r = await fetch('/api/publish',{method:'POST',headers:{Authorization:'Bearer '+token}});
-    if(!r.ok) throw new Error('falha');
+    const d = await triggerBuild('preview');
+    t.textContent='Preview em preparo ✓';
+    hint.innerHTML='Em 1–2 min o preview reflete as mudanças. Confira e, se aprovar, clique em <b>Publicar no site</b>.';
+    lk.href = d.url || PREVIEW_URL; lk.classList.remove('hidden');
+  }catch(e){ t.textContent='Não foi possível gerar o preview.'; hint.textContent = e.message==='not-configured' ? 'Preview ainda não configurado (falta a variável do deploy hook de preview).' : 'Tente de novo; se persistir, avise o suporte técnico.'; }
+  finally{ bp.disabled=false; bpub.disabled=false; }
+});
+$('#btn-publish').addEventListener('click',async()=>{
+  const bp=$('#btn-preview'), btn=$('#btn-publish'), pb=$('#pubbar'), t=$('#pub-title'), hint=$('#pub-hint');
+  btn.disabled=true; bp.disabled=true; t.textContent='Publicando…'; hint.textContent='Isso leva 1–2 minutos. Pode continuar usando o painel.';
+  try{
+    await triggerBuild('production');
     pb.classList.add('clean'); t.textContent='Publicação iniciada ✓'; hint.textContent='O site no ar reflete as mudanças em 1–2 minutos.';
   }catch(e){ t.textContent='Não foi possível publicar.'; hint.textContent='Tente de novo; se persistir, avise o suporte técnico.'; }
-  finally{ btn.disabled=false; }
+  finally{ btn.disabled=false; bp.disabled=false; }
 });
 </script>
 </body>
