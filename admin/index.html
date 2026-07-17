@@ -106,15 +106,10 @@
 <div id="app" class="hidden">
   <aside>
     <p class="brand">a fórmula</p>
-    <a class="nav-item" href="/admin/editor.html" style="text-decoration:none">🎨 Editor visual</a>
     <button class="nav-item active" data-view="inbox">📥 Mensagens <span class="badge hidden" id="badge-inbox">0</span></button>
     <button class="nav-item" data-view="prescritores">🩺 Prescritores <span class="badge hidden" id="badge-presc">0</span></button>
     <button class="nav-item" data-view="newsletter">✉️ Newsletter</button>
-    <button class="nav-item" data-view="posts">📝 Blog</button>
     <button class="nav-item" data-view="preContent">🔬 Conteúdo prescritor</button>
-    <button class="nav-item" data-view="pet">🐾 Página Pet</button>
-    <button class="nav-item" data-view="footer">🔗 Rodapé</button>
-    <button class="nav-item" data-view="banner">🖼️ Banner da home</button>
     <button class="nav-item" data-view="settings">⚙️ Configurações</button>
     <div class="foot">
       <div class="who" id="who"></div>
@@ -126,10 +121,8 @@
       <span class="dot"></span>
       <div style="flex:1">
         <strong id="pub-title">Alterações são salvas na hora.</strong>
-        <div class="hint" id="pub-hint">Gere um <b>preview</b> pra revisar antes, ou clique em “Publicar no site” pra ir direto pro ar.</div>
+        <div class="hint" id="pub-hint">O “e-mail p/ notificações” e o Conteúdo do prescritor valem na hora. Os demais campos de Configurações (redes, e-mails do site, anos) só aparecem no site depois de “Publicar no site”.</div>
       </div>
-      <a id="pv-link" class="btn btn--ghost btn--sm hidden" target="_blank" rel="noopener" style="text-decoration:none">Abrir preview ↗</a>
-      <button class="btn btn--ghost" id="btn-preview">Gerar preview</button>
       <button class="btn" id="btn-publish">Publicar no site</button>
     </div>
     <div id="view"></div>
@@ -156,7 +149,7 @@ const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','
 function fmtTs(ts){ if(!ts) return '—'; const d=ts.toDate?ts.toDate():new Date(ts); return `${String(d.getDate()).padStart(2,'0')}/${MESES[d.getMonth()]} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
 
 /* ---------- DIAGNÓSTICO (versão no ar + motivo do último logout) ---------- */
-const CMSX_VER='2026-07-17-c';
+const CMSX_VER='2026-07-17-d';
 let cmsxWasIn=false, cmsxHandled=false;   // cmsxHandled = o logout foi causado por nós (Sair ou negação)
 const CMSX_REASONS={ 'clicou-sair':'você clicou em Sair', 'nao-admin':'conta sem acesso (fora da allowlist)', 'firebase-encerrou':'a sessão do Firebase encerrou sozinha (token/segurança)' };
 function cmsxNote(reason){ try{ localStorage.setItem('cmsx_logout', JSON.stringify({reason, at:new Date().toISOString(), email:(auth.currentUser&&auth.currentUser.email)||''})); }catch(_){} }
@@ -214,9 +207,9 @@ document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',()=
   document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
   b.classList.add('active'); router(b.dataset.view);
 }));
-function router(v){ ({inbox:vInbox,prescritores:vPresc,newsletter:vNews,posts:vPosts,preContent:vPreContent,pet:vPet,footer:vFooter,banner:vBanner,settings:vSettings}[v]||vInbox)(); }
+function router(v){ ({inbox:vInbox,prescritores:vPresc,newsletter:vNews,preContent:vPreContent,settings:vSettings}[v]||vInbox)(); }
 
-/* Upload de mídia (Vercel Blob via /api/upload, gated por admin) */
+/* Upload de mídia (Vercel Blob via /api/upload, gated por admin) — usado pelo Conteúdo do prescritor (PDF) */
 async function uploadFile(file){
   if(file.size>4*1024*1024) throw new Error('Arquivo acima de 4 MB — reduza antes de enviar.');
   const token=await auth.currentUser.getIdToken();
@@ -421,216 +414,6 @@ async function vNews(){
   }
 }
 
-/* ---------- POSTS ---------- */
-let CATS=[];
-async function vPosts(){
-  const v=$('#view'); v.innerHTML='<div class="topbar"><div><h1 class="page">Blog</h1><p class="hint">Edite, crie ou remova matérias. Depois clique em “Publicar no site”.</p></div><button class="btn" id="new">+ Nova matéria</button></div><div class="toolbar"><input class="fld search" id="q" placeholder="Buscar por título…"></div><div id="rows">Carregando…</div>';
-  if(!CATS.length){ const cs=await db.collection('categories').orderBy('order').get(); CATS=cs.docs.map(d=>({slug:d.id,...d.data()})); }
-  const snap = await db.collection('posts').get();
-  const posts = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.publishedAt||'').localeCompare(a.publishedAt||''));
-  function render(list){
-    if(!list.length){ $('#rows').innerHTML='<div class="empty">Nenhuma matéria.</div>'; return; }
-    let h='<table><thead><tr><th>Publicado</th><th>Título</th><th>Categoria</th><th></th><th></th></tr></thead><tbody>';
-    list.forEach(p=>{ h+=`<tr><td>${(p.publishedAt||'').slice(0,10)}</td><td class="postrow-title">${esc(p.title)}</td><td>${esc(p.categoryLabel||p.categorySlug)}</td>
-      <td><button class="btn btn--ghost btn--sm" data-edit="${p.id}">Editar</button></td>
-      <td><button class="btn btn--danger btn--sm" data-del="${p.id}">Excluir</button></td></tr>`; });
-    h+='</tbody></table>'; $('#rows').innerHTML=h;
-    v.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>editPost(posts.find(p=>p.id===b.dataset.edit))));
-    v.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',async()=>{
-      const p=posts.find(x=>x.id===b.dataset.del);
-      if(confirm(`Excluir a matéria “${p.title}”? Isso remove do site na próxima publicação.`)){ await db.collection('posts').doc(p.id).delete(); vPosts(); }
-    }));
-  }
-  render(posts);
-  $('#q').addEventListener('input',e=>{const q=e.target.value.toLowerCase();render(posts.filter(p=>(p.title||'').toLowerCase().includes(q)));});
-  $('#new').addEventListener('click',()=>editPost(null));
-}
-function slugify(s){return s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'').slice(0,80);}
-function editPost(p){
-  const isNew=!p; p=p||{categorySlug:'saude',status:'published',author:'A Fórmula',readTime:4};
-  const catOpts=CATS.map(c=>`<option value="${c.slug}" ${c.slug===p.categorySlug?'selected':''}>${esc(c.label)}</option>`).join('');
-  const bg=document.createElement('div'); bg.className='modal-bg';
-  bg.innerHTML=`<div class="modal"><h2>${isNew?'Nova matéria':'Editar matéria'}</h2>
-    <label>Título</label><input class="fld" id="e-title" value="${esc(p.title||'')}">
-    <div class="row"><div><label>Categoria</label><select class="fld" id="e-cat">${catOpts}</select></div>
-    <div><label>Tempo de leitura (min)</label><input class="fld" id="e-read" type="number" value="${p.readTime||4}"></div>
-    <div><label>Data (AAAA-MM-DD)</label><input class="fld" id="e-date" value="${(p.publishedAt||new Date().toISOString()).slice(0,10)}"></div></div>
-    <label>Resumo (aparece nos cards e no Google)</label><textarea class="fld" id="e-exc">${esc(p.excerpt||'')}</textarea>
-    <label>Imagem de capa</label>
-    <div class="row"><input class="fld" id="e-cover" value="${esc(p.cover||'')}" placeholder="Envie um arquivo ao lado ou cole uma URL">
-    <button class="btn btn--ghost" id="e-upl" style="flex:0" type="button">⬆ Enviar imagem</button></div>
-    <input type="file" id="e-cover-file" accept="image/*" class="hidden">
-    <label>Conteúdo (HTML — use &lt;h2&gt;, &lt;p&gt;, &lt;ul&gt;&lt;li&gt;, &lt;strong&gt;)</label>
-    <textarea class="fld code" id="e-body">${esc(p.contentHTML||'<p></p>')}</textarea>
-    <p class="msg" id="e-msg"></p>
-    <div class="row" style="margin-top:14px"><button class="btn" id="e-save" style="flex:0">Salvar</button><button class="btn btn--ghost" id="e-cancel" style="flex:0">Cancelar</button></div>
-  </div>`;
-  document.body.appendChild(bg);
-  bg.querySelector('#e-cancel').addEventListener('click',()=>bg.remove());
-  bg.addEventListener('click',e=>{if(e.target===bg)bg.remove();});
-  bg.querySelector('#e-upl').addEventListener('click',()=>bg.querySelector('#e-cover-file').click());
-  bg.querySelector('#e-cover-file').addEventListener('change',async()=>{
-    const f=bg.querySelector('#e-cover-file').files[0]; if(!f) return; const m=bg.querySelector('#e-msg');
-    m.className='msg'; m.textContent='Enviando imagem…';
-    try{ bg.querySelector('#e-cover').value=await uploadFile(f); m.className='msg ok'; m.textContent='Imagem enviada ✓ (salve a matéria pra aplicar)'; }
-    catch(err){ m.className='msg err'; m.textContent=err.message; }
-  });
-  bg.querySelector('#e-save').addEventListener('click',async()=>{
-    const title=bg.querySelector('#e-title').value.trim(); const m=bg.querySelector('#e-msg');
-    if(!title){m.className='msg err';m.textContent='Título é obrigatório.';return;}
-    const catSlug=bg.querySelector('#e-cat').value; const cat=CATS.find(c=>c.slug===catSlug)||{};
-    const slug = p.id || slugify(title);
-    const date = bg.querySelector('#e-date').value + 'T10:00:00';
-    const doc={
-      slug, path:`/blog/${catSlug}/${slug}`, title,
-      excerpt:bg.querySelector('#e-exc').value.trim(),
-      contentHTML:bg.querySelector('#e-body').value,
-      categorySlug:catSlug, categoryLabel:cat.label||catSlug,
-      author:p.author||'A Fórmula', publishedAt:p.publishedAt||date, modifiedAt:date,
-      readTime:parseInt(bg.querySelector('#e-read').value)||4,
-      cover:bg.querySelector('#e-cover').value.trim()||null, coverAlt:p.coverAlt||title,
-      status:'published', wpId:p.wpId||0,
-    };
-    m.className='msg';m.textContent='Salvando…';
-    await db.collection('posts').doc(slug).set(doc,{merge:true});
-    bg.remove(); vPosts();
-  });
-}
-
-/* ---------- PÁGINA PET (CMS pages/pet) ---------- */
-let PET=null;
-async function vPet(){
-  const v=$('#view');
-  v.innerHTML='<div class="topbar"><div><h1 class="page">Página Pet</h1><p class="hint">Textos, imagens, cards e ordem das seções. Depois clique em “Publicar no site”.</p></div><button class="btn" id="pet-save">Salvar</button></div><div id="pet-body">Carregando…</div>';
-  const d=await db.collection('pages').doc('pet').get();
-  if(!d.exists){ $('#pet-body').innerHTML='<div class="empty">Conteúdo da página ainda não foi semeado. Avise o suporte técnico.</div>'; return; }
-  PET=d.data();
-  renderPet();
-  $('#pet-save').addEventListener('click',async()=>{
-    const b=$('#pet-save'); b.disabled=true; b.textContent='Salvando…';
-    try{ await db.collection('pages').doc('pet').set(PET); b.textContent='Salvo ✓'; }
-    catch(e){ alert('Falha ao salvar: '+e.message); b.textContent='Salvar'; }
-    finally{ b.disabled=false; setTimeout(()=>b.textContent='Salvar',2200); }
-  });
-}
-function petField(pathStr,label,val){
-  const long=(val||'').length>70;
-  const inp=long?`<textarea class="fld" style="min-height:64px" data-pp="${pathStr}">${esc(val)}</textarea>`
-              :`<input class="fld" data-pp="${pathStr}" value="${esc(val)}">`;
-  return `<div style="margin-top:10px"><label>${esc(label)}</label>${inp}</div>`;
-}
-function petImg(pathStr,label,val){
-  return `<div style="margin-top:10px"><label>${esc(label)}</label>
-  <div class="row" style="align-items:center">
-    <img src="${esc(val)}" alt="" style="height:42px;max-width:74px;object-fit:cover;border-radius:8px;border:1px solid var(--line);flex:0 0 auto" onerror="this.style.opacity=.2">
-    <input class="fld" data-pp="${pathStr}" value="${esc(val)}">
-    <button class="btn btn--ghost btn--sm pet-upl" data-target="${pathStr}" style="flex:0 0 auto" type="button">⬆ Enviar</button>
-  </div></div>`;
-}
-function renderPet(){
-  const secList=PET.sections.map((s,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)">
-    <input type="checkbox" data-secv="${i}" ${s.v!==false?'checked':''} title="mostrar/ocultar">
-    <span style="flex:1;font-weight:600">${esc(s.label)}</span>
-    <button class="btn btn--ghost btn--sm" data-secup="${i}" ${i===0?'disabled':''}>↑</button>
-    <button class="btn btn--ghost btn--sm" data-secdn="${i}" ${i===PET.sections.length-1?'disabled':''}>↓</button>
-  </div>`).join('');
-  let h=`<div class="card" style="max-width:860px;margin-bottom:18px"><strong>Ordem e visibilidade das seções</strong><p class="hint" style="margin:4px 0 10px">Desmarque pra esconder a seção; use ↑↓ pra reordenar.</p>${secList}</div>`;
-  for(const [si,s] of PET.sections.entries()){
-    let inner='';
-    for(const [id,t] of Object.entries(s.texts||{})) inner+=petField(`sections.${si}.texts.${id}.val`,t.label,t.val);
-    for(const [idx,im] of Object.entries(s.imgs||{})) inner+=petImg(`sections.${si}.imgs.${idx}.val`,im.label,im.val);
-    if(Array.isArray(s.items)&&s.items.length){
-      inner+=`<p style="margin:18px 0 4px;font-weight:700;color:var(--teal-d)">${esc(s.itemsLabel||'Itens')} <span class="hint">(desmarque pra esconder; ↑↓ reordena)</span></p>`;
-      s.items.forEach((it,ii)=>{
-        let f='';
-        for(const [k,t] of Object.entries(it.texts||{})) f+=petField(`sections.${si}.items.${ii}.texts.${k}.val`,t.label,t.val);
-        if(it.tail) f+=petField(`sections.${si}.items.${ii}.tail.val`,'Texto',it.tail.val);
-        for(const [idx,im] of Object.entries(it.imgs||{})) f+=petImg(`sections.${si}.items.${ii}.imgs.${idx}.val`,'Imagem',im.val);
-        inner+=`<details style="border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-top:8px;background:#fbfdfd">
-          <summary style="cursor:pointer;display:flex;align-items:center;gap:10px">
-            <input type="checkbox" data-itv="${si}:${ii}" ${it.v!==false?'checked':''} onclick="event.stopPropagation()">
-            <span style="flex:1;font-weight:600">${esc((it.name||'Item').replace(/<[^>]*>/g,'').slice(0,60))}</span>
-            <button class="btn btn--ghost btn--sm" data-itup="${si}:${ii}" ${ii===0?'disabled':''} onclick="event.stopPropagation()">↑</button>
-            <button class="btn btn--ghost btn--sm" data-itdn="${si}:${ii}" ${ii===s.items.length-1?'disabled':''} onclick="event.stopPropagation()">↓</button>
-          </summary>${f}</details>`;
-      });
-    }
-    h+=`<details class="card" style="max-width:860px;margin-bottom:12px"><summary style="cursor:pointer;font-weight:800;color:var(--teal-d)">${esc(s.label)}</summary>${inner||'<p class="hint" style="margin-top:8px">Esta seção não tem campos editáveis individualmente — só ordem/visibilidade.</p>'}</details>`;
-  }
-  const body=$('#pet-body'); body.innerHTML=h;
-  const setPath=(obj,pathStr,val)=>{const ks=pathStr.split('.');let o=obj;for(let i=0;i<ks.length-1;i++)o=o[ks[i]];o[ks[ks.length-1]]=val;};
-  body.querySelectorAll('[data-pp]').forEach(el=>el.addEventListener('input',()=>setPath(PET,el.dataset.pp,el.value)));
-  body.querySelectorAll('.pet-upl').forEach(b=>b.addEventListener('click',()=>{
-    const fi=document.createElement('input'); fi.type='file'; fi.accept='image/*';
-    fi.addEventListener('change',async()=>{
-      const f=fi.files[0]; if(!f)return; b.textContent='…';
-      try{ const url=await uploadFile(f); setPath(PET,b.dataset.target,url);
-        const inp=body.querySelector(`[data-pp="${b.dataset.target}"]`); if(inp){inp.value=url; inp.previousElementSibling && (inp.previousElementSibling.src=url);}
-        const row=b.closest('.row'); const img=row&&row.querySelector('img'); if(img)img.src=url;
-        b.textContent='Enviado ✓'; setTimeout(()=>b.textContent='⬆ Enviar',2000);
-      }catch(e){ alert(e.message); b.textContent='⬆ Enviar'; }
-    });
-    fi.click();
-  }));
-  body.querySelectorAll('[data-secv]').forEach(c=>c.addEventListener('change',()=>{PET.sections[+c.dataset.secv].v=c.checked;}));
-  const swap=(arr,i,j)=>{const t=arr[i];arr[i]=arr[j];arr[j]=t;};
-  body.querySelectorAll('[data-secup]').forEach(b=>b.addEventListener('click',()=>{const i=+b.dataset.secup;swap(PET.sections,i,i-1);renderPet();}));
-  body.querySelectorAll('[data-secdn]').forEach(b=>b.addEventListener('click',()=>{const i=+b.dataset.secdn;swap(PET.sections,i,i+1);renderPet();}));
-  body.querySelectorAll('[data-itv]').forEach(c=>c.addEventListener('change',()=>{const [si,ii]=c.dataset.itv.split(':');PET.sections[+si].items[+ii].v=c.checked;}));
-  body.querySelectorAll('[data-itup]').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();const [si,ii]=b.dataset.itup.split(':');swap(PET.sections[+si].items,+ii,+ii-1);renderPet();}));
-  body.querySelectorAll('[data-itdn]').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();const [si,ii]=b.dataset.itdn.split(':');swap(PET.sections[+si].items,+ii,+ii+1);renderPet();}));
-}
-
-/* ---------- RODAPÉ (site inteiro) ---------- */
-const FOOTER_DEFS={
-  texts:{brand:['Texto da marca','Há 37 anos transformando manipulação em ciência, cuidado e inovação.'],
-         copyright:['Linha de copyright','© A Fórmula 2026'],
-         legal1:['Razão social / CNPJ','A FÓRMULA SERVIÇOS E FRANCHISE LTDA — CNPJ: 10.760.350/0001-00'],
-         legal2:['Endereço','Rua Tabapuã, 627 — Itaim Bibi, São Paulo - SP']},
-  links:{sobrenos:'Sobre nós',blog:'Blog',prescritor:'Área do prescritor',lgpd:'LGPD',loja:'Encontre uma loja'}
-};
-async function vFooter(){
-  const v=$('#view');
-  v.innerHTML='<div class="topbar"><div><h1 class="page">Rodapé</h1><p class="hint">Vale para todas as páginas do site. Depois clique em “Publicar no site”.</p></div></div><div class="card" style="max-width:760px" id="fx">Carregando…</div>';
-  const d=await db.collection('settings').doc('global').get(); const f=(d.data()||{}).footer||{};
-  let h='';
-  for(const [k,[label,def]] of Object.entries(FOOTER_DEFS.texts))
-    h+=`<div style="margin-top:12px"><label>${label}</label><input class="fld" id="ft-${k}" value="${esc(f[k]||def)}"></div>`;
-  h+='<p style="margin:20px 0 4px;font-weight:700;color:var(--teal-d)">Links do rodapé <span class="hint">(nome exibido + endereço)</span></p>';
-  for(const [k,def] of Object.entries(FOOTER_DEFS.links)){
-    const cfg=(f.links||{})[k]||{};
-    h+=`<div class="row" style="margin-top:8px"><input class="fld" id="fl-${k}-label" value="${esc(cfg.label||def)}" placeholder="${esc(def)}">
-        <input class="fld" id="fl-${k}-href" value="${esc(cfg.href||'')}" placeholder="deixe vazio pra manter o link padrão"></div>`;
-  }
-  h+='<p class="hint" style="margin-top:10px">Campo igual ao padrão ou vazio = mantém como está. Links aceitam página do site (ex.: /contato) ou URL completa.</p>';
-  h+='<p class="msg" id="ft-msg"></p><div style="margin-top:14px"><button class="btn" id="ft-save">Salvar</button></div>';
-  $('#fx').innerHTML=h;
-  $('#ft-save').addEventListener('click',async()=>{
-    const footer={links:{}};
-    for(const k of Object.keys(FOOTER_DEFS.texts)) footer[k]=$('#ft-'+k).value.trim();
-    for(const k of Object.keys(FOOTER_DEFS.links)) footer.links[k]={label:$('#fl-'+k+'-label').value.trim(),href:$('#fl-'+k+'-href').value.trim()};
-    const m=$('#ft-msg'); m.className='msg'; m.textContent='Salvando…';
-    await db.collection('settings').doc('global').set({footer},{merge:true});
-    m.className='msg ok'; m.textContent='Salvo. Clique em “Publicar no site” para aplicar.';
-  });
-}
-
-/* ---------- BANNER ---------- */
-async function vBanner(){
-  const v=$('#view'); v.innerHTML='<div class="topbar"><div><h1 class="page">Banner da home</h1><p class="hint">Texto do topo da página inicial.</p></div></div><div class="card" style="max-width:640px" id="bx">Carregando…</div>';
-  const d=await db.collection('banners').doc('home-hero').get(); const b=d.data()||{};
-  $('#bx').innerHTML=`<label>Título principal</label><input class="fld" id="b-h" value="${esc(b.headline||'')}">
-    <label>Subtítulo</label><input class="fld" id="b-l" value="${esc(b.lead||'')}">
-    <label>Texto de apoio</label><textarea class="fld" id="b-b">${esc(b.body||'')}</textarea>
-    <p class="msg" id="b-msg"></p>
-    <div style="margin-top:14px"><button class="btn" id="b-save">Salvar</button></div>`;
-  $('#b-save').addEventListener('click',async()=>{
-    const m=$('#b-msg');m.className='msg';m.textContent='Salvando…';
-    await db.collection('banners').doc('home-hero').set({headline:$('#b-h').value,lead:$('#b-l').value,body:$('#b-b').value,active:true},{merge:true});
-    m.className='msg ok';m.textContent='Salvo. Clique em “Publicar no site” para aplicar.';
-  });
-}
-
 /* ---------- SETTINGS ---------- */
 async function vSettings(){
   const v=$('#view'); v.innerHTML='<div class="topbar"><div><h1 class="page">Configurações</h1><p class="hint">Dados globais usados no site inteiro.</p></div></div><div class="card" style="max-width:720px" id="sx">Carregando…</div>';
@@ -653,10 +436,7 @@ async function vSettings(){
   });
 }
 
-/* ---------- PREVIEW / PUBLICAR ---------- */
-// URL estável da branch `staging` (deploy de preview). Requer estar logado na conta Vercel dona
-// do projeto pra visualizar (proteção de deployment da Vercel).
-const PREVIEW_URL='https://aformula-institucional-git-staging-viniciusal60-5414s-projects.vercel.app';
+/* ---------- PUBLICAR ---------- */
 async function triggerBuild(target){
   const token = await auth.currentUser.getIdToken();
   const r = await fetch('/api/publish?target='+target,{method:'POST',headers:{Authorization:'Bearer '+token}});
@@ -664,26 +444,15 @@ async function triggerBuild(target){
   if(!r.ok || !data.ok) throw new Error(data.error||'falha');
   return data;
 }
-$('#btn-preview').addEventListener('click',async()=>{
-  const bp=$('#btn-preview'), bpub=$('#btn-publish'), pb=$('#pubbar'), t=$('#pub-title'), hint=$('#pub-hint'), lk=$('#pv-link');
-  bp.disabled=true; bpub.disabled=true; lk.classList.add('hidden'); pb.classList.remove('clean');
-  t.textContent='Gerando preview…'; hint.textContent='Reconstruindo o preview (1–2 min). O link aparece aqui.';
-  try{
-    const d = await triggerBuild('preview');
-    t.textContent='Preview em preparo ✓';
-    hint.innerHTML='Em 1–2 min o preview reflete as mudanças. Confira e, se aprovar, clique em <b>Publicar no site</b>.';
-    lk.href = d.url || PREVIEW_URL; lk.classList.remove('hidden');
-  }catch(e){ t.textContent='Não foi possível gerar o preview.'; hint.textContent = e.message==='not-configured' ? 'Preview ainda não configurado (falta a variável do deploy hook de preview).' : 'Tente de novo; se persistir, avise o suporte técnico.'; }
-  finally{ bp.disabled=false; bpub.disabled=false; }
-});
 $('#btn-publish').addEventListener('click',async()=>{
-  const bp=$('#btn-preview'), btn=$('#btn-publish'), pb=$('#pubbar'), t=$('#pub-title'), hint=$('#pub-hint');
-  btn.disabled=true; bp.disabled=true; t.textContent='Publicando…'; hint.textContent='Isso leva 1–2 minutos. Pode continuar usando o painel.';
+  const btn=$('#btn-publish'), pb=$('#pubbar'), t=$('#pub-title'), hint=$('#pub-hint');
+  if(!confirm('Publicar as alterações no site ao vivo? Leva 1–2 minutos.')) return;
+  btn.disabled=true; t.textContent='Publicando…'; hint.textContent='Isso leva 1–2 minutos. Pode continuar usando o painel.';
   try{
     await triggerBuild('production');
     pb.classList.add('clean'); t.textContent='Publicação iniciada ✓'; hint.textContent='O site no ar reflete as mudanças em 1–2 minutos.';
   }catch(e){ t.textContent='Não foi possível publicar.'; hint.textContent='Tente de novo; se persistir, avise o suporte técnico.'; }
-  finally{ btn.disabled=false; bp.disabled=false; }
+  finally{ btn.disabled=false; }
 });
 </script>
 </body>
