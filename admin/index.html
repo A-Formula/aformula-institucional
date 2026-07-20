@@ -181,10 +181,13 @@ $('#loginForm').addEventListener('submit', async e=>{
 $('#lg-forgot').addEventListener('click', async e=>{
   e.preventDefault(); const em=$('#lg-email').value.trim(); const m=$('#lg-msg');
   if(!em){ m.className='msg err'; m.textContent='Digite seu e-mail acima primeiro.'; return; }
-  // Mensagem neutra sempre (evita enumeração de e-mails); só o rate-limit é sinalizado.
-  try{ await auth.sendPasswordResetEmail(em); }
-  catch(err){ if(err.code==='auth/too-many-requests'){ m.className='msg err'; m.textContent='Muitas tentativas. Aguarde alguns minutos.'; return; } }
-  m.className='msg ok'; m.textContent='Se esse e-mail tiver acesso ao painel, enviamos um link de redefinição.';
+  const okMsg='Se esse e-mail tiver acesso ao painel, enviamos um link de redefinição.';
+  try{ await auth.sendPasswordResetEmail(em); m.className='msg ok'; m.textContent=okMsg; }
+  catch(err){
+    // user-not-found parece sucesso (anti-enumeração); erros reais (rede, formato, rate-limit) aparecem.
+    if(err.code==='auth/user-not-found'){ m.className='msg ok'; m.textContent=okMsg; }
+    else { m.className='msg err'; m.textContent = LOGIN_MSGS[err.code] || err.message; }
+  }
 });
 $('#logout').addEventListener('click', ()=>{ cmsxHandled=true; cmsxNote('clicou-sair'); auth.signOut(); });
 
