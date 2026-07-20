@@ -12,6 +12,15 @@ const BASE = 'https://aformula-institucional.vercel.app';
 const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const dataPt = iso => { const [y,m,d]=iso.slice(0,10).split('-'); return `${String(+d).padStart(2,'0')} de ${MESES[+m-1]}, ${y}`; };
 const E = s => (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// Remove construtos perigosos de HTML autoral (contentHTML) SEM reserializar — byte-idêntico
+// em conteúdo limpo; barra <script>/<iframe>/handlers on*/javascript: em conteúdo malicioso.
+const stripDangerous = h => (h==null?'':String(h))
+  .replace(/<\s*(script|iframe|object|embed|base)\b[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi,'')
+  .replace(/<\s*(script|iframe|object|embed|base|link|meta)\b[^>]*\/?>/gi,'')
+  .replace(/\son[a-z]+\s*=\s*"[^"]*"/gi,'')
+  .replace(/\son[a-z]+\s*=\s*'[^']*'/gi,'')
+  .replace(/\son[a-z]+\s*=\s*[^\s>]+/gi,'')
+  .replace(/((?:href|src)\s*=\s*["']?)\s*javascript:[^"'>\s]*/gi,'$1#');
 const FALLBACK = {saude:'blog_assets/a36.jpg',dicas:'blog_assets/a38.jpg','cuidados-com-o-corpo':'blog_assets/a35.jpg',novidades:'blog_assets/a33.jpg',mercado:'blog_assets/a39.jpg',beleza:'blog_assets/a37.jpg',ativos:'blog_assets/a40.jpg','cuidados-com-o-cabelo':'blog_assets/a34.jpg','sem-categoria':'blog_assets/a38.jpg'};
 const imgOf = p => p.cover || FALLBACK[p.categorySlug] || 'blog_assets/a38.jpg';
 
@@ -160,7 +169,7 @@ ${parts.header}
     </div>
   </section>
   <article class="art-wrap"><div class="art-body">
-${p.contentHTML}
+${stripDangerous(p.contentHTML)}
   </div>
   <a class="art-back" href="/blog.html">← Voltar ao blog</a>
   </article>
