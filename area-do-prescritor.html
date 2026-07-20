@@ -681,10 +681,18 @@ function renderHub(user,access){
     var items=snap.docs.map(function(d){return d.data();}).sort(function(a,b){return (b.publishedAt||"").localeCompare(a.publishedAt||"");});
     var art=items.filter(function(i){return i.type==="artigo"||i.type==="pdf";});
     var form=items.filter(function(i){return i.type==="formula";});
+    // Remove construtos perigosos do corpo HTML (admin-authored) antes do innerHTML — mesmo strip do build.
+    function stripDangerous(h){return (h==null?"":String(h))
+      .replace(/<\s*(script|iframe|object|embed|base)\b[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi,"")
+      .replace(/<\s*(script|iframe|object|embed|base|link|meta)\b[^>]*\/?>/gi,"")
+      .replace(/\son[a-z]+\s*=\s*"[^"]*"/gi,"")
+      .replace(/\son[a-z]+\s*=\s*'[^']*'/gi,"")
+      .replace(/\son[a-z]+\s*=\s*[^\s>]+/gi,"")
+      .replace(/((?:href|src)\s*=\s*["']?)\s*javascript:[^"'>\s]*/gi,"$1#");}
     function cardHTML(i){
       var date=i.publishedAt?('<span class="pa-date">'+esc(String(i.publishedAt).slice(0,10).split("-").reverse().join("/"))+'</span>'):"";
       if(i.type==="pdf") return '<div class="pa-card"><h3>'+esc(i.title)+'</h3>'+date+(i.excerpt?'<div class="pa-body">'+esc(i.excerpt)+'</div>':"")+'<a class="pa-pdf" href="'+esc(i.fileUrl||"#")+'" target="_blank" rel="noopener">📄 Abrir PDF</a></div>';
-      return '<div class="pa-card"><h3>'+esc(i.title)+'</h3>'+date+'<div class="pa-body">'+(i.body||"")+'</div><button class="pa-link pa-more">Ler mais</button></div>';
+      return '<div class="pa-card"><h3>'+esc(i.title)+'</h3>'+date+'<div class="pa-body">'+stripDangerous(i.body||"")+'</div><button class="pa-link pa-more">Ler mais</button></div>';
     }
     var h="";
     h+='<p class="pa-sec">Conteúdo científico</p>';
