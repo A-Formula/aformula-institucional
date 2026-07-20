@@ -2,7 +2,8 @@
 // CNPJ obrigatório · grava no Firestore (status pending) · linha na planilha Google Sheets
 // (fila de aprovação) · notificação p/ NOTIFY_EMAIL. Login só é liberado após aprovação.
 // Env extra: GOOGLE_SHEET_ID (planilha compartilhada com o e-mail da service account)
-const { getDb, notify, guard, isEmail, isBlockedEmail, verifyCaptcha, FieldValue } = require("./_lib/backend");
+const { getDb, notify, sendMail, guard, isEmail, isBlockedEmail, verifyCaptcha, FieldValue } = require("./_lib/backend");
+const { welcomePrescriber } = require("./_lib/emails");
 const { JWT } = require("google-auth-library");
 
 function validCNPJ(v) {
@@ -101,6 +102,12 @@ module.exports = async (req, res) => {
     `Especialidade: ${especialidade || "—"}\nCidade: ${cidade || "—"}/${uf}\nTelefone: ${telefone || "—"}\nE-mail: ${email}\n\n` +
     `Status: pendente de aprovação (planilha atualizada).`
   ).catch((e) => console.error("[cadastro] notify falhou:", e && e.message));
+
+  // Boas-vindas ao próprio prescritor (confirma recebimento + pede p/ adicionar o remetente aos
+  // contatos, pra que o e-mail de APROVAÇÃO com o link de senha não caia no spam). Best effort.
+  const wm = welcomePrescriber(nome);
+  await sendMail(email, wm.subject, wm.text, wm.html)
+    .catch((e) => console.error("[cadastro] boas-vindas falhou:", e && e.message));
 
   return res.status(200).json({ ok: true });
 };

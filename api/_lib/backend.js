@@ -52,12 +52,12 @@ function mailFrom() {
   return process.env.NOTIFY_FROM ||
     (process.env.SMTP_USER ? `Site A Fórmula <${process.env.SMTP_USER}>` : "Site A Fórmula <onboarding@resend.dev>");
 }
-// Envia um e-mail avulso. Retorna true/false, nunca lança — o chamador decide o que fazer.
-async function sendMail(to, subject, text) {
+// Envia um e-mail avulso (texto + HTML opcional). Retorna true/false, nunca lança — o chamador decide o que fazer.
+async function sendMail(to, subject, text, html) {
   const from = mailFrom();
   const t = mailer();
   if (t) {
-    try { await t.sendMail({ from, to, subject, text }); return true; }
+    try { await t.sendMail({ from, to, subject, text, ...(html ? { html } : {}) }); return true; }
     catch (e) { console.error("[sendMail] SMTP falhou:", e && e.message); /* cai pro Resend abaixo */ }
   }
   const key = process.env.RESEND_API_KEY;
@@ -66,7 +66,7 @@ async function sendMail(to, subject, text) {
     const r = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from, to: [to], subject, text }),
+      body: JSON.stringify({ from, to: [to], subject, text, ...(html ? { html } : {}) }),
     });
     return r.ok;
   } catch (e) { console.error("[sendMail] Resend falhou:", e && e.message); return false; }
