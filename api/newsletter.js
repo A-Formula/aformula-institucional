@@ -14,9 +14,14 @@ module.exports = async (req, res) => {
   if (!db) return res.status(503).json({ ok: false, error: "backend-offline" });
 
   // doc id = e-mail → inscrição idempotente (re-inscrever não duplica)
-  await db.collection("newsletter").doc(email).set({
-    email, source, consent: true, createdAt: FieldValue.serverTimestamp(),
-  }, { merge: true });
+  try {
+    await db.collection("newsletter").doc(email).set({
+      email, source, consent: true, createdAt: FieldValue.serverTimestamp(),
+    }, { merge: true });
+  } catch (e) {
+    console.error("[newsletter] gravação falhou:", e && e.message);
+    return res.status(503).json({ ok: false, error: "database-error" });
+  }
 
   return res.status(200).json({ ok: true });
 };

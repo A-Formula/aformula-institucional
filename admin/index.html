@@ -141,39 +141,50 @@ firebase.initializeApp({
   appId: "1:139838701463:web:9938229ebeed4c545c8ed2"
 });
 const auth = firebase.auth();
-auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{}); // sessão persiste entre reloads/abas
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(err=>{ // sessão persiste entre reloads/abas
+  // Opera GX e navegadores com anti-fingerprint podem bloquear IndexedDB → persistência falha silenciosa.
+  try{ localStorage.setItem('cmsx_persist_err', JSON.stringify({code:(err&&err.code)||'', msg:(err&&err.message)||'', at:new Date().toISOString()})); }catch(_){}
+});
 const db = firebase.firestore();
 const $ = s => document.querySelector(s);
 const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 function fmtTs(ts){ if(!ts) return '—'; const d=ts.toDate?ts.toDate():new Date(ts); return `${String(d.getDate()).padStart(2,'0')}/${MESES[d.getMonth()]} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
+// Data completa (com ano) p/ exports CSV — evita ambiguidade entre anos.
+function fmtTsCSV(ts){ if(!ts) return ''; const d=ts.toDate?ts.toDate():new Date(ts); return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
+// Neutraliza fórmulas em CSV (Excel executa células que começam com = + - @) — segurança do export.
+const csvSafe = v => { const s=(v==null?'':String(v)); return /^[=+\-@\t\r]/.test(s) ? "'"+s : s; };
 
 /* ---------- DIAGNÓSTICO (versão no ar + motivo do último logout) ---------- */
-const CMSX_VER='2026-07-17-d';
-let cmsxWasIn=false, cmsxHandled=false;   // cmsxHandled = o logout foi causado por nós (Sair ou negação)
-const CMSX_REASONS={ 'clicou-sair':'você clicou em Sair', 'nao-admin':'conta sem acesso (fora da allowlist)', 'firebase-encerrou':'a sessão do Firebase encerrou sozinha (token/segurança)' };
-function cmsxNote(reason){ try{ localStorage.setItem('cmsx_logout', JSON.stringify({reason, at:new Date().toISOString(), email:(auth.currentUser&&auth.currentUser.email)||''})); }catch(_){} }
+const CMSX_VER='2026-07-20-e';
+let cmsxWasIn=false, cmsxHandled=false, cmsxLastEmail='';   // cmsxHandled = o logout foi causado por nós (Sair ou negação)
+const CMSX_REASONS={ 'clicou-sair':'você clicou em Sair', 'nao-admin':'conta sem acesso (fora da allowlist)', 'firebase-encerrou':'a sessão do Firebase encerrou sozinha (token/segurança)', 'sessao-nao-restaurada':'a sessão não foi restaurada ao reabrir (armazenamento do navegador bloqueado?)' };
+function cmsxNote(reason){ try{ localStorage.setItem('cmsx_logout', JSON.stringify({reason, at:new Date().toISOString(), email:(auth.currentUser&&auth.currentUser.email)||cmsxLastEmail||''})); }catch(_){} }
 function cmsxDiag(){
   const el=$('#lg-diag'); if(!el) return;
   let s='Painel v'+CMSX_VER;
   try{ const j=JSON.parse(localStorage.getItem('cmsx_logout')||'null');
     if(j){ const w=new Date(j.at), hh=String(w.getHours()).padStart(2,'0')+':'+String(w.getMinutes()).padStart(2,'0');
       s+=' · último logout '+hh+': '+(CMSX_REASONS[j.reason]||j.reason)+(j.email?(' ('+j.email+')'):''); } }catch(_){}
+  try{ const p=JSON.parse(localStorage.getItem('cmsx_persist_err')||'null'); if(p) s+=' · ⚠ armazenamento seguro bloqueado ('+(p.code||p.msg||'erro')+')'; }catch(_){}
   el.textContent=s;
 }
 cmsxDiag();
 
 /* ---------- AUTH ---------- */
+const LOGIN_MSGS={'auth/invalid-credential':'E-mail ou senha incorretos.','auth/wrong-password':'E-mail ou senha incorretos.','auth/user-not-found':'E-mail ou senha incorretos.','auth/invalid-email':'E-mail em formato inválido.','auth/too-many-requests':'Muitas tentativas. Aguarde alguns minutos e tente de novo.','auth/network-request-failed':'Falha de rede — verifique sua conexão ou o bloqueio de rastreadores do navegador.','auth/user-disabled':'Esta conta foi desativada.'};
 $('#loginForm').addEventListener('submit', async e=>{
   e.preventDefault(); const m=$('#lg-msg'); m.className='msg'; m.textContent='Entrando…';
   try{ await auth.signInWithEmailAndPassword($('#lg-email').value.trim(), $('#lg-pass').value); }
-  catch(err){ m.className='msg err'; m.textContent = err.code==='auth/invalid-credential'?'E-mail ou senha incorretos.':err.message; }
+  catch(err){ m.className='msg err'; m.textContent = LOGIN_MSGS[err.code] || err.message; }
 });
 $('#lg-forgot').addEventListener('click', async e=>{
   e.preventDefault(); const em=$('#lg-email').value.trim(); const m=$('#lg-msg');
   if(!em){ m.className='msg err'; m.textContent='Digite seu e-mail acima primeiro.'; return; }
-  try{ await auth.sendPasswordResetEmail(em); m.className='msg ok'; m.textContent='Enviamos um link de redefinição para seu e-mail.'; }
-  catch(err){ m.className='msg err'; m.textContent=err.message; }
+  // Mensagem neutra sempre (evita enumeração de e-mails); só o rate-limit é sinalizado.
+  try{ await auth.sendPasswordResetEmail(em); }
+  catch(err){ if(err.code==='auth/too-many-requests'){ m.className='msg err'; m.textContent='Muitas tentativas. Aguarde alguns minutos.'; return; } }
+  m.className='msg ok'; m.textContent='Se esse e-mail tiver acesso ao painel, enviamos um link de redefinição.';
 });
 $('#logout').addEventListener('click', ()=>{ cmsxHandled=true; cmsxNote('clicou-sair'); auth.signOut(); });
 
@@ -182,24 +193,31 @@ $('#logout').addEventListener('click', ()=>{ cmsxHandled=true; cmsxNote('clicou-
 // só deslogamos se a leitura teve SUCESSO e o doc de admin não existe (negação definitiva).
 auth.onAuthStateChanged(async user=>{
   if(!user){
-    if(cmsxWasIn && !cmsxHandled) cmsxNote('firebase-encerrou'); // não fomos nós → o Firebase encerrou a sessão
+    if(cmsxWasIn && !cmsxHandled) cmsxNote('firebase-encerrou'); // não fomos nós → o Firebase encerrou a sessão (na mesma aba)
+    else if(!cmsxWasIn && !cmsxHandled){ // página nova: havia sessão gravada e não restaurou? (bug clássico Opera GX)
+      try{ if(localStorage.getItem('cmsx_hadSession')==='1') cmsxNote('sessao-nao-restaurada'); }catch(_){}
+    }
     cmsxWasIn=false; cmsxHandled=false;
+    try{ localStorage.removeItem('cmsx_hadSession'); }catch(_){}
     $('#login').classList.remove('hidden'); $('#app').classList.add('hidden'); cmsxDiag(); return;
   }
-  cmsxWasIn=true;
+  cmsxWasIn=true; cmsxLastEmail=user.email;
+  try{ localStorage.setItem('cmsx_hadSession','1'); }catch(_){}
+  // Confirma a allowlist ANTES de mostrar o painel: evita flash da UI privilegiada e leituras negadas
+  // (o e-mail é normalizado p/ minúsculas — bate com o doc admins/{email} e com o verifyAdmin do servidor).
+  let allowed=true;
+  try{ allowed = (await db.collection('admins').doc((user.email||'').toLowerCase()).get()).exists; }
+  catch(_){ allowed=true; /* erro transitório: mantém logado — o servidor barra quem não é admin */ }
+  if(!allowed){
+    cmsxNote('nao-admin'); cmsxHandled=true;
+    $('#app').classList.add('hidden'); $('#login').classList.remove('hidden');
+    const m=$('#lg-msg'); m.className='msg err'; m.textContent='Este usuário não tem acesso ao painel.';
+    await auth.signOut(); return;
+  }
   $('#lg-msg').textContent='';
   $('#login').classList.add('hidden'); $('#app').classList.remove('hidden');
   $('#who').textContent = user.email;
   loadCounts(); router('inbox');
-  try{
-    const s = await db.collection('admins').doc(user.email).get();
-    if(!s.exists){
-      cmsxNote('nao-admin'); cmsxHandled=true;
-      $('#app').classList.add('hidden'); $('#login').classList.remove('hidden');
-      const m=$('#lg-msg'); m.className='msg err'; m.textContent='Este usuário não tem acesso ao painel.';
-      await auth.signOut();
-    }
-  }catch(_){ /* erro transitório: mantém logado — o servidor barra quem não é admin */ }
 });
 
 /* ---------- NAV ---------- */
@@ -212,6 +230,7 @@ function router(v){ ({inbox:vInbox,prescritores:vPresc,newsletter:vNews,preConte
 /* Upload de mídia (Vercel Blob via /api/upload, gated por admin) — usado pelo Conteúdo do prescritor (PDF) */
 async function uploadFile(file){
   if(file.size>4*1024*1024) throw new Error('Arquivo acima de 4 MB — reduza antes de enviar.');
+  if(!auth.currentUser) throw new Error('Sessão expirou. Recarregue a página e entre de novo.');
   const token=await auth.currentUser.getIdToken();
   const r=await fetch('/api/upload?filename='+encodeURIComponent(file.name)+'&type='+encodeURIComponent(file.type||'application/octet-stream'),
     {method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/octet-stream'},body:file});
@@ -226,13 +245,15 @@ async function loadCounts(){
     const b1=$('#badge-inbox'); if(c1.size){b1.textContent=c1.size;b1.classList.remove('hidden');}else b1.classList.add('hidden');
     const c2 = await db.collection('prescribers').where('status','==','pending').get();
     const b2=$('#badge-presc'); if(c2.size){b2.textContent=c2.size;b2.classList.remove('hidden');}else b2.classList.add('hidden');
-  }catch(e){}
+  }catch(e){ console.error('loadCounts', e); }
 }
 
 /* ---------- INBOX (contatos) ---------- */
 async function vInbox(){
   const v=$('#view'); v.innerHTML='<div class="topbar"><div><h1 class="page">Mensagens de contato</h1><p class="hint">Enviadas pelo formulário do site.</p></div></div><div id="rows">Carregando…</div>';
-  const snap = await db.collection('contact_messages').orderBy('createdAt','desc').limit(200).get();
+  let snap;
+  try{ snap = await db.collection('contact_messages').orderBy('createdAt','desc').limit(200).get(); }
+  catch(e){ $('#rows').innerHTML='<div class="empty">Não foi possível carregar as mensagens. Recarregue a página.</div>'; return; }
   if(snap.empty){ $('#rows').innerHTML='<div class="empty">Nenhuma mensagem ainda.</div>'; return; }
   let h='<table><thead><tr><th>Quando</th><th>Nome</th><th>Contato</th><th>Assunto</th><th>Mensagem</th><th>Status</th><th></th></tr></thead><tbody>';
   snap.forEach(d=>{ const m=d.data();
@@ -244,9 +265,14 @@ async function vInbox(){
   });
   h+='</tbody></table>'; $('#rows').innerHTML=h;
   v.querySelectorAll('[data-toggle]').forEach(b=>b.addEventListener('click',async()=>{
-    const ns = b.dataset.st==='done'?'new':'done';
-    await db.collection('contact_messages').doc(b.dataset.toggle).update({status:ns});
-    loadCounts(); vInbox();
+    const ns = b.dataset.st==='done'?'new':'done'; b.disabled=true;
+    try{ await db.collection('contact_messages').doc(b.dataset.toggle).update({status:ns}); }
+    catch(e){ alert('Não foi possível atualizar: '+e.message); b.disabled=false; return; }
+    // Atualiza a linha no lugar (preserva a posição de scroll, ao contrário de recarregar a tabela).
+    const tr=b.closest('tr'), tag=tr.querySelector('.tag');
+    tag.className='tag '+(ns==='done'?'done':'new'); tag.textContent=ns==='done'?'resolvido':'novo';
+    b.textContent=ns==='done'?'Reabrir':'Resolver'; b.dataset.st=ns; b.disabled=false;
+    loadCounts();
   }));
 }
 
@@ -263,7 +289,9 @@ async function vPresc(){
     <input class="fld search" id="f-q" placeholder="Buscar nome, e-mail, telefone…">
     <button class="btn btn--ghost btn--sm" id="f-clear">Limpar</button>
   </div><div id="rows">Carregando…</div>`;
-  const snap = await db.collection('prescribers').orderBy('createdAt','desc').limit(1000).get();
+  let snap;
+  try{ snap = await db.collection('prescribers').orderBy('createdAt','desc').limit(1000).get(); }
+  catch(e){ $('#rows').innerHTML='<div class="empty">Não foi possível carregar os cadastros. Recarregue a página.</div>'; return; }
   const all = snap.docs.map(d=>({id:d.id,...d.data()}));
   const fill=(sel,vals)=>{const s=$(sel);[...new Set(vals.filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt')).forEach(x=>{const o=document.createElement('option');o.value=x;o.textContent=x;s.appendChild(o);});};
   fill('#f-esp',all.map(m=>m.especialidade)); fill('#f-uf',all.map(m=>m.uf)); fill('#f-cidade',all.map(m=>m.cidade));
@@ -298,13 +326,16 @@ async function vPresc(){
   $('#f-clear').addEventListener('click',()=>{['#f-status','#f-esp','#f-uf','#f-cidade','#f-q'].forEach(s=>$(s).value='');apply();});
   $('#p-csv').addEventListener('click',()=>{
     const rows=[['data','nome','email','telefone','conselho','registro','uf','cidade','especialidade','cnpj','status']];
-    current.forEach(m=>rows.push([fmtTs(m.createdAt),m.nome,m.email,m.telefone||'',m.conselho||'',m.conselhoNumero||'',m.uf||'',m.cidade||'',m.especialidade||'',m.cnpj||'',ST_LABEL[m.status]||m.status]));
-    const csv='﻿'+rows.map(r=>r.map(c=>`"${String(c??'').replace(/"/g,'""')}"`).join(';')).join('\r\n');
+    current.forEach(m=>rows.push([fmtTsCSV(m.createdAt),m.nome,m.email,m.telefone||'',m.conselho||'',m.conselhoNumero||'',m.uf||'',m.cidade||'',m.especialidade||'',m.cnpj||'',ST_LABEL[m.status]||m.status]));
+    const csv='﻿'+rows.map(r=>r.map(c=>`"${csvSafe(c).replace(/"/g,'""')}"`).join(';')).join('\r\n');
     const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); a.download='prescritores-aformula.csv'; a.click();
   });
   function wire(){
   async function decide(id, action, btn){
-    btn.disabled=true; btn.textContent='…';
+    if(!auth.currentUser){ alert('Sessão expirou. Recarregue a página e entre de novo.'); return; }
+    // Trava OS DOIS botões da linha (Aprovar + Recusar) — evita disparar aprovar e recusar em corrida.
+    const row=btn.closest('tr'), rowBtns=row?[...row.querySelectorAll('button')]:[btn];
+    rowBtns.forEach(b=>b.disabled=true); btn.textContent='…';
     try{
       const token=await auth.currentUser.getIdToken();
       const r=await fetch('/api/prescritor-decide',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({id,action})});
@@ -319,10 +350,15 @@ async function vPresc(){
           <div class="row" style="margin-top:14px"><button class="btn" id="rl-copy" style="flex:0">Copiar link</button><button class="btn btn--ghost" id="rl-close" style="flex:0">Fechar</button></div>
         </div>`;
         document.body.appendChild(bg);
-        bg.querySelector('#rl-copy').addEventListener('click',()=>{bg.querySelector('#rl').select();document.execCommand('copy');bg.querySelector('#rl-copy').textContent='Copiado ✓';});
+        bg.querySelector('#rl-copy').addEventListener('click',async()=>{
+          const link=bg.querySelector('#rl').value;
+          try{ await navigator.clipboard.writeText(link); }
+          catch(_){ bg.querySelector('#rl').select(); try{document.execCommand('copy');}catch(__){} }
+          bg.querySelector('#rl-copy').textContent='Copiado ✓';
+        });
         bg.querySelector('#rl-close').addEventListener('click',()=>{bg.remove();loadCounts();vPresc();});
       } else { loadCounts(); vPresc(); }
-    }catch(e){ alert('Não foi possível concluir: '+e.message); btn.disabled=false; }
+    }catch(e){ alert('Não foi possível concluir: '+e.message); loadCounts(); vPresc(); }
   }
   v.querySelectorAll('[data-ap]').forEach(b=>b.addEventListener('click',()=>decide(b.dataset.ap,'approve',b)));
   v.querySelectorAll('[data-rj]').forEach(b=>b.addEventListener('click',()=>{ if(confirm('Recusar/revogar este cadastro? O acesso (se existir) será desativado.')) decide(b.dataset.rj,'reject',b); }));
@@ -334,7 +370,9 @@ async function vPresc(){
 const PC_TYPES={artigo:'Artigo científico',pdf:'PDF',formula:'Fórmula sugerida'};
 async function vPreContent(){
   const v=$('#view'); v.innerHTML='<div class="topbar"><div><h1 class="page">Conteúdo do prescritor</h1><p class="hint">Artigos, PDFs e fórmulas da área logada. Vale na hora — não precisa de “Publicar”.</p></div><button class="btn" id="new">+ Novo conteúdo</button></div><div id="rows">Carregando…</div>';
-  const snap = await db.collection('prescriber_content').get();
+  let snap;
+  try{ snap = await db.collection('prescriber_content').get(); }
+  catch(e){ $('#rows').innerHTML='<div class="empty">Não foi possível carregar o conteúdo. Recarregue a página.</div>'; $('#new').addEventListener('click',()=>editPreContent(null)); return; }
   const items = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.publishedAt||'').localeCompare(a.publishedAt||''));
   if(!items.length){ $('#rows').innerHTML='<div class="empty">Nenhum conteúdo ainda. Clique em “+ Novo conteúdo”.</div>'; }
   else{
@@ -346,7 +384,11 @@ async function vPreContent(){
     v.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>editPreContent(items.find(p=>p.id===b.dataset.edit))));
     v.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',async()=>{
       const p=items.find(x=>x.id===b.dataset.del);
-      if(confirm(`Excluir “${p.title}”? Some da área do prescritor imediatamente.`)){ await db.collection('prescriber_content').doc(p.id).delete(); vPreContent(); }
+      if(confirm(`Excluir “${p.title}”? Some da área do prescritor imediatamente.`)){
+        try{ await db.collection('prescriber_content').doc(p.id).delete(); }
+        catch(err){ alert('Não foi possível excluir: '+err.message); return; }
+        vPreContent();
+      }
     }));
   }
   $('#new').addEventListener('click',()=>editPreContent(null));
@@ -386,12 +428,16 @@ function editPreContent(p){
     const m=q('#c-msg'); const title=q('#c-title').value.trim(); const type=q('#c-type').value;
     if(!title){m.className='msg err';m.textContent='Título é obrigatório.';return;}
     if(type==='pdf'&&!q('#c-file-url').value){m.className='msg err';m.textContent='Envie o arquivo PDF.';return;}
-    const doc={ title, type, publishedAt:q('#c-date').value+'T10:00:00',
+    const dateStr=q('#c-date').value.trim();
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)||isNaN(new Date(dateStr+'T10:00:00').getTime())){m.className='msg err';m.textContent='Data inválida — use o formato AAAA-MM-DD.';return;}
+    const doc={ title, type, publishedAt:dateStr+'T10:00:00',
       excerpt:q('#c-exc')?q('#c-exc').value.trim():'',
       body:type==='pdf'?'':q('#c-body').value, fileUrl:type==='pdf'?q('#c-file-url').value:'' };
     m.className='msg'; m.textContent='Salvando…';
-    if(p.id) await db.collection('prescriber_content').doc(p.id).set(doc,{merge:true});
-    else await db.collection('prescriber_content').add(doc);
+    try{
+      if(p.id) await db.collection('prescriber_content').doc(p.id).set(doc,{merge:true});
+      else await db.collection('prescriber_content').add(doc);
+    }catch(err){ m.className='msg err'; m.textContent='Não foi possível salvar: '+err.message; return; }
     bg.remove(); vPreContent();
   });
 }
@@ -399,17 +445,19 @@ function editPreContent(p){
 /* ---------- NEWSLETTER ---------- */
 async function vNews(){
   const v=$('#view'); v.innerHTML='<div class="topbar"><div><h1 class="page">Inscritos na newsletter</h1><p class="hint" id="ncount"></p></div><button class="btn" id="csv">Exportar CSV</button></div><div id="rows">Carregando…</div>';
-  const snap = await db.collection('newsletter').orderBy('createdAt','desc').limit(1000).get();
-  $('#ncount').textContent = `${snap.size} inscrito(s).`;
+  let snap;
+  try{ snap = await db.collection('newsletter').orderBy('createdAt','desc').limit(1000).get(); }
+  catch(e){ $('#rows').innerHTML='<div class="empty">Não foi possível carregar os inscritos. Recarregue a página.</div>'; return; }
+  $('#ncount').textContent = snap.size>=1000 ? '1000+ inscritos (mostrando os 1000 mais recentes).' : `${snap.size} inscrito(s).`;
   if(snap.empty){ $('#rows').innerHTML='<div class="empty">Nenhum inscrito ainda.</div>'; }
   else{
     let h='<table><thead><tr><th>Quando</th><th>E-mail</th><th>Origem</th></tr></thead><tbody>';
     const rows=[['email','origem','data']];
-    snap.forEach(d=>{const m=d.data(); h+=`<tr><td>${fmtTs(m.createdAt)}</td><td>${esc(m.email)}</td><td>${esc(m.source||'')}</td></tr>`; rows.push([m.email,m.source||'',fmtTs(m.createdAt)]);});
+    snap.forEach(d=>{const m=d.data(); h+=`<tr><td>${fmtTs(m.createdAt)}</td><td>${esc(m.email)}</td><td>${esc(m.source||'')}</td></tr>`; rows.push([m.email,m.source||'',fmtTsCSV(m.createdAt)]);});
     h+='</tbody></table>'; $('#rows').innerHTML=h;
     $('#csv').addEventListener('click',()=>{
-      const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
-      const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download='newsletter-aformula.csv'; a.click();
+      const csv='﻿'+rows.map(r=>r.map(c=>`"${csvSafe(c).replace(/"/g,'""')}"`).join(';')).join('\r\n');
+      const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); a.download='newsletter-aformula.csv'; a.click();
     });
   }
 }
@@ -417,7 +465,10 @@ async function vNews(){
 /* ---------- SETTINGS ---------- */
 async function vSettings(){
   const v=$('#view'); v.innerHTML='<div class="topbar"><div><h1 class="page">Configurações</h1><p class="hint">Dados globais usados no site inteiro.</p></div></div><div class="card" style="max-width:720px" id="sx">Carregando…</div>';
-  const d=await db.collection('settings').doc('global').get(); const s=d.data()||{};
+  let d;
+  try{ d=await db.collection('settings').doc('global').get(); }
+  catch(e){ $('#sx').innerHTML='Não foi possível carregar as configurações. Recarregue a página.'; return; }
+  const s=d.data()||{};
   const f=(k,l,ph)=>`<div><label>${l}</label><input class="fld" id="s-${k}" value="${esc(s[k]||'')}"${ph?` placeholder="${ph}"`:''}></div>`;
   $('#sx').innerHTML=`<div class="row">${f('years','Anos de história','ex.: 38 (só o número)')}${f('notifyEmail','E-mail p/ notificações','nome@dominio.com.br')}</div>
     <div class="row">${f('sacEmail','E-mail SAC','sac@aformulabr.com.br')}${f('petEmail','E-mail Pet','pet@aformulabr.com.br')}</div>
@@ -428,10 +479,14 @@ async function vSettings(){
     <p class="hint" style="margin-top:10px">Campo vazio ou em formato inválido é ignorado na publicação — o site mantém o valor atual.</p>
     <p class="msg" id="s-msg"></p><div style="margin-top:14px"><button class="btn" id="s-save">Salvar</button></div>`;
   $('#s-save').addEventListener('click',async()=>{
+    const m=$('#s-msg');
+    const yearsRaw=$('#s-years').value.trim();
+    if(yearsRaw && !/^\d{1,3}$/.test(yearsRaw)){ m.className='msg err'; m.textContent='“Anos de história”: digite só o número (ex.: 38).'; return; }
     const keys=['years','notifyEmail','sacEmail','petEmail','franchiseUrl','instagram','facebook','youtube','linkedin','recaptchaSiteKey'];
     const upd={}; keys.forEach(k=>{let val=$('#s-'+k).value; if(k==='years')val=parseInt(val)||val; upd[k]=val;});
-    const m=$('#s-msg');m.className='msg';m.textContent='Salvando…';
-    await db.collection('settings').doc('global').set(upd,{merge:true});
+    m.className='msg';m.textContent='Salvando…';
+    try{ await db.collection('settings').doc('global').set(upd,{merge:true}); }
+    catch(e){ m.className='msg err'; m.textContent='Não foi possível salvar: '+e.message; return; }
     m.className='msg ok';m.textContent='Salvo.';
   });
 }

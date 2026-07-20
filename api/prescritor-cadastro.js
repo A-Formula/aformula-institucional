@@ -74,12 +74,14 @@ module.exports = async (req, res) => {
     return res.status(403).json({ ok: false, error: "blocked-domain" });
   }
 
-  // Evita duplicata por E-MAIL ou TELEFONE (dígitos normalizados).
+  // Evita duplicata por E-MAIL ou TELEFONE (dígitos normalizados). Cadastros RECUSADOS não contam
+  // como duplicata — a pessoa pode se recadastrar (ex.: corrigir dado que causou a recusa).
   const [dupEmail, dupTel] = await Promise.all([
-    db.collection("prescribers").where("email", "==", email).limit(1).get(),
-    db.collection("prescribers").where("telefoneDigits", "==", telefoneDigits).limit(1).get(),
+    db.collection("prescribers").where("email", "==", email).limit(5).get(),
+    db.collection("prescribers").where("telefoneDigits", "==", telefoneDigits).limit(5).get(),
   ]);
-  if (!dupEmail.empty || !dupTel.empty) return res.status(409).json({ ok: false, error: "duplicate" });
+  const activeDup = [...dupEmail.docs, ...dupTel.docs].some((d) => d.data().status !== "rejected");
+  if (activeDup) return res.status(409).json({ ok: false, error: "duplicate" });
 
   const doc = {
     nome, cnpj: cnpj || "", conselho, conselhoNumero, uf, especialidade, cidade, telefone, telefoneDigits, email,
@@ -88,15 +90,17 @@ module.exports = async (req, res) => {
   const ref = await db.collection("prescribers").add(doc);
 
   const stamp = new Date().toISOString().slice(0, 16).replace("T", " ");
+  // Planilha e e-mail são "best effort" (o Firestore já é a fonte de verdade), mas logamos a falha
+  // pra aparecer nos logs da Vercel — sem isso, a fila da planilha pode parar de atualizar em silêncio.
   await appendToSheet([stamp, nome, cnpj, `${conselho} ${conselhoNumero}/${uf}`.trim(),
-    especialidade, telefone, email, "pending", ref.id, cidade]).catch(() => {});
+    especialidade, telefone, email, "pending", ref.id, cidade]).catch((e) => console.error("[cadastro] appendToSheet falhou:", e && e.message));
 
   await notify(
     `[Prescritor] Novo cadastro: ${nome}`,
     `Nome: ${nome}\nCNPJ: ${cnpj || "—"}\nConselho: ${conselho} ${conselhoNumero}/${uf}\n` +
     `Especialidade: ${especialidade || "—"}\nCidade: ${cidade || "—"}/${uf}\nTelefone: ${telefone || "—"}\nE-mail: ${email}\n\n` +
     `Status: pendente de aprovação (planilha atualizada).`
-  ).catch(() => {});
+  ).catch((e) => console.error("[cadastro] notify falhou:", e && e.message));
 
   return res.status(200).json({ ok: true });
 };

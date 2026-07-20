@@ -24,15 +24,20 @@ module.exports = async (req, res) => {
   const db = getDb();
   if (!db) return res.status(503).json({ ok: false, error: "backend-offline" });
 
-  await db.collection("contact_messages").add({
-    nome, telefone: telefone || null, email, assunto, mensagem,
-    status: "new", createdAt: FieldValue.serverTimestamp(),
-  });
+  try {
+    await db.collection("contact_messages").add({
+      nome, telefone: telefone || null, email, assunto, mensagem,
+      status: "new", createdAt: FieldValue.serverTimestamp(),
+    });
+  } catch (e) {
+    console.error("[contato] gravação falhou:", e && e.message);
+    return res.status(503).json({ ok: false, error: "database-error" });
+  }
 
   await notify(
     `[Contato site] ${assunto}`,
     `Nome: ${nome}\nE-mail: ${email}\nTelefone: ${telefone || "—"}\nAssunto: ${assunto}\n\n${mensagem}`
-  ).catch(() => {});
+  ).catch((e) => console.error("[contato] notify falhou:", e && e.message));
 
   return res.status(200).json({ ok: true });
 };
