@@ -30,3 +30,8 @@ COMO-PUBLICAR-BLOG.md
 .env.*
 *.pem
 *-service-account*.json
+
+# planilha/pedido de acessos (confidencial, nunca publicar)
+PEDIDO-ACESSOS-EMPRESA.md
+PLANILHA-ACESSOS-EMPRESA.csv
+PLANILHA-ACESSOS-EMPRESA.xlsx
