@@ -3,8 +3,10 @@
 //   FIREBASE_SERVICE_ACCOUNT  → JSON da service account (string única)
 //   RESEND_API_KEY            → opcional; sem ela a notificação por e-mail é pulada
 //   NOTIFY_EMAIL              → destino das notificações (default abaixo, provisório)
-//   NOTIFY_FROM               → remetente verificado no Resend (ex.: site@aformulabr.com.br)
+//   E-mail (SMTP, preferencial): SMTP_HOST, SMTP_PORT (465 SSL), SMTP_USER, SMTP_PASS (senha de app), NOTIFY_FROM
+//   RESEND_API_KEY            → fallback opcional (Resend HTTP) se o SMTP não estiver configurado
 const admin = require("firebase-admin");
+const nodemailer = require("nodemailer");
 
 const NOTIFY_EMAIL = process.env.NOTIFY_EMAIL || "viniciusgayer@aformulabrasil.com.br";
 
@@ -36,20 +38,41 @@ function getDb() {
   return admin.firestore();
 }
 
-async function notify(subject, text) {
+// Envio de e-mail. Preferência: SMTP (Gmail/Workspace via nodemailer). Fallback: Resend HTTP.
+let _mailer;
+function mailer() {
+  if (_mailer !== undefined) return _mailer;
+  const host = process.env.SMTP_HOST, user = process.env.SMTP_USER, pass = process.env.SMTP_PASS;
+  if (!host || !user || !pass) { _mailer = null; return null; }
+  const port = parseInt(process.env.SMTP_PORT) || 465;
+  _mailer = nodemailer.createTransport({ host, port, secure: port === 465, auth: { user, pass } });
+  return _mailer;
+}
+function mailFrom() {
+  return process.env.NOTIFY_FROM ||
+    (process.env.SMTP_USER ? `Site A Fórmula <${process.env.SMTP_USER}>` : "Site A Fórmula <onboarding@resend.dev>");
+}
+// Envia um e-mail avulso. Retorna true/false, nunca lança — o chamador decide o que fazer.
+async function sendMail(to, subject, text) {
+  const from = mailFrom();
+  const t = mailer();
+  if (t) {
+    try { await t.sendMail({ from, to, subject, text }); return true; }
+    catch (e) { console.error("[sendMail] SMTP falhou:", e && e.message); /* cai pro Resend abaixo */ }
+  }
   const key = process.env.RESEND_API_KEY;
   if (!key) return false;
-  const r = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      from: process.env.NOTIFY_FROM || "Site A Fórmula <onboarding@resend.dev>",
-      to: [await notifyTo()],
-      subject,
-      text,
-    }),
-  });
-  return r.ok;
+  try {
+    const r = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ from, to: [to], subject, text }),
+    });
+    return r.ok;
+  } catch (e) { console.error("[sendMail] Resend falhou:", e && e.message); return false; }
+}
+async function notify(subject, text) {
+  return sendMail(await notifyTo(), subject, text);
 }
 
 // Rate limit simples por IP (memória da instância — suficiente contra spam casual)
@@ -140,6 +163,6 @@ async function verifyAdmin(req) {
 }
 
 module.exports = {
-  getDb, notify, guard, isEmail, isBlockedEmail, verifyCaptcha, verifyAdmin,
+  getDb, notify, sendMail, guard, isEmail, isBlockedEmail, verifyCaptcha, verifyAdmin,
   BLOCKED_EMAIL_DOMAINS, FieldValue: admin.firestore.FieldValue, admin,
 };

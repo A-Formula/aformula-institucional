@@ -5,28 +5,19 @@
 //          falha — o admin copia o link e manda por WhatsApp/e-mail).
 // reject:  marca rejected, desativa o usuário (se existir) e remove o prescriber_access.
 const crypto = require("crypto");
-const { getDb, verifyAdmin, admin, FieldValue } = require("./_lib/backend");
+const { getDb, verifyAdmin, sendMail, admin, FieldValue } = require("./_lib/backend");
 
 const AREA_URL = "https://aformula-institucional.vercel.app/area-do-prescritor";
 
-async function sendApprovalEmail(to, nome, resetLink) {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) return false;
-  const r = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      from: process.env.NOTIFY_FROM || "Site A Fórmula <onboarding@resend.dev>",
-      to: [to],
-      subject: "Cadastro aprovado — Área do Prescritor A Fórmula",
-      text:
-        `Olá, ${nome}!\n\nSeu cadastro na Área do Prescritor da A Fórmula foi aprovado.\n\n` +
-        `Defina sua senha de acesso neste link:\n${resetLink}\n\n` +
-        `Depois é só entrar em ${AREA_URL} com seu e-mail e a senha criada.\n\n` +
-        `Equipe A Fórmula`,
-    }),
-  });
-  return r.ok;
+function sendApprovalEmail(to, nome, resetLink) {
+  return sendMail(
+    to,
+    "Cadastro aprovado — Área do Prescritor A Fórmula",
+    `Olá, ${nome}!\n\nSeu cadastro na Área do Prescritor da A Fórmula foi aprovado.\n\n` +
+    `Defina sua senha de acesso neste link:\n${resetLink}\n\n` +
+    `Depois é só entrar em ${AREA_URL} com seu e-mail e a senha criada.\n\n` +
+    `Equipe A Fórmula`
+  );
 }
 
 module.exports = async (req, res) => {
