@@ -80,8 +80,14 @@ module.exports = async (req, res) => {
   });
   await ref.update({ status: "approved", uid: user.uid, decidedBy: adminEmail, decidedAt: FieldValue.serverTimestamp() });
 
-  // continueUrl → depois de definir a senha, o prescritor volta pra área do site (não fica no handler genérico do Firebase).
-  const resetLink = await admin.auth().generatePasswordResetLink(p.email, { url: AREA_URL });
+  // continueUrl → depois de definir a senha, o prescritor volta pra área do site. Só funciona se o
+  // domínio estiver nos "Authorized domains" do Firebase; se não estiver, cai pro link padrão (que funciona).
+  let resetLink;
+  try { resetLink = await admin.auth().generatePasswordResetLink(p.email, { url: AREA_URL }); }
+  catch (e) {
+    console.error("[decide] resetLink com continueUrl falhou (dominio nao autorizado?):", e && e.code);
+    resetLink = await admin.auth().generatePasswordResetLink(p.email);
+  }
   const emailSent = await sendApprovalEmail(p.email, p.nome, resetLink).catch(() => false);
 
   return res.status(200).json({ ok: true, status: "approved", emailSent, resetLink });
