@@ -8,7 +8,7 @@ import { PAGES, applyPageCms } from './cms-pages.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
-const BASE = 'https://aformula-institucional.vercel.app';
+const BASE = 'https://www.aformulabr.com.br';
 const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const dataPt = iso => { const [y,m,d]=iso.slice(0,10).split('-'); return `${String(+d).padStart(2,'0')} de ${MESES[+m-1]}, ${y}`; };
 const E = s => (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));

@@ -7,7 +7,7 @@
 const crypto = require("crypto");
 const { getDb, verifyAdmin, sendMail, admin, FieldValue } = require("./_lib/backend");
 
-const AREA_URL = "https://aformula-institucional.vercel.app/area-do-prescritor";
+const AREA_URL = "https://www.aformulabr.com.br/area-do-prescritor";
 
 function sendApprovalEmail(to, nome, resetLink) {
   return sendMail(
