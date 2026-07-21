@@ -306,9 +306,17 @@
 
   /* ---------- mais próximas (CEP ou geolocalização) ---------- */
   function rankNearest(lat, lng, label, opts) {
-    var ranked = onlyGeo(STORES).map(function (s) { return { s: s, d: haversine(lat, lng, s.lat, s.lng) }; })
-      .sort(function (a, b) { return a.d - b.d; }).slice(0, 12);
-    stateSel.value = ""; citySel.value = ""; populateCities();
+    var uf = opts && opts.uf;
+    var pool = onlyGeo(STORES);
+    if (uf) {
+      var inState = pool.filter(function (s) { return s.estado === uf; });
+      if (inState.length) { pool = inState; }  // só as unidades do estado do CEP
+      else { uf = null; }                       // estado sem unidade → cai pro geral
+    }
+    var ranked = pool.map(function (s) { return { s: s, d: haversine(lat, lng, s.lat, s.lng) }; })
+      .sort(function (a, b) { return a.d - b.d; });
+    if (!uf) { ranked = ranked.slice(0, 12); }  // sem filtro de estado: 12 mais próximas
+    stateSel.value = uf || ""; citySel.value = ""; populateCities();
     renderRail(ranked.map(function (r) { return r.s; }), ranked.map(function (r) { return r.d; }));
     setVisibleMarkers(ranked.map(function (r) { return r.s; }));
     if (userMarker) userMarker.remove();
@@ -324,7 +332,9 @@
       ranked.slice(0, 4).forEach(function (r) { b.extend([r.s.lng, r.s.lat]); });
       map.fitBounds(b, { padding: { top: 140, bottom: 250, left: 70, right: 70 }, pitch: 38, bearing: -12, maxZoom: 13.5, duration: 2800 });
     }
-    status("Mostrando as " + ranked.length + " unidades mais próximas de " + label + ".");
+    status(uf
+      ? "Mostrando as " + ranked.length + " unidade(s) de " + uf + ", mais próximas de " + label + "."
+      : "Mostrando as " + ranked.length + " unidades mais próximas de " + label + ".");
   }
 
   form.addEventListener("submit", function (e) {
@@ -338,7 +348,7 @@
       .then(function (a) {
         var lat = parseFloat(a && a.lat), lng = parseFloat(a && a.lng);
         if (isFinite(lat) && isFinite(lng) && lat !== 0 && lng !== 0) {
-          rankNearest(lat, lng, a.city || "você", { exact: true });
+          rankNearest(lat, lng, a.city || "você", { exact: true, uf: a.state });
           return;
         }
         throw new Error("sem-coords");
@@ -360,7 +370,7 @@
           })
           .then(function (res) {
             if (!res.geo || !res.geo.length) throw new Error("geo");
-            rankNearest(parseFloat(res.geo[0].lat), parseFloat(res.geo[0].lon), res.via.localidade || "você", { exact: true });
+            rankNearest(parseFloat(res.geo[0].lat), parseFloat(res.geo[0].lon), res.via.localidade || "você", { exact: true, uf: res.via.uf });
           })
           .catch(function () { status("Não conseguimos localizar esse CEP agora. Tente filtrar por estado e cidade.", true); });
       });
