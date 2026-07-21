@@ -143,6 +143,20 @@ ${ogImg}
 <meta property="article:published_time" content="${p.publishedAt}">
 <meta property="article:modified_time" content="${p.modifiedAt||p.publishedAt}">`;
   const ld = JSON.stringify({'@context':'https://schema.org','@type':'Article',headline:p.title,description:p.excerpt,datePublished:p.publishedAt,dateModified:p.modifiedAt||p.publishedAt,author:{'@type':'Organization',name:'A Fórmula'},publisher:{'@type':'Organization',name:'A Fórmula'},mainEntityOfPage:BASE+p.path,...(p.cover?{image:BASE+p.cover}:{})});
+  // FAQPage JSON-LD derivado da seção "Perguntas frequentes" do contentHTML (h3 pergunta + p resposta).
+  // contentHTML não pode carregar <script> (stripDangerous), então o schema nasce aqui no build.
+  const faqLd = (() => {
+    const after = String(p.contentHTML||'').split(/<h2[^>]*>\s*Perguntas [Ff]requentes\s*<\/h2>/)[1];
+    if (!after) return '';
+    const section = after.split(/<h2[\s>]/)[0];
+    const strip = s => s.replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim();
+    const pairs = [...section.matchAll(/<h3[^>]*>([\s\S]*?)<\/h3>\s*<p[^>]*>([\s\S]*?)<\/p>/g)]
+      .map(m2 => ({q: strip(m2[1]), a: strip(m2[2])})).filter(x => x.q && x.a).slice(0,8);
+    if (!pairs.length) return '';
+    const json = JSON.stringify({'@context':'https://schema.org','@type':'FAQPage',
+      mainEntity: pairs.map(x => ({'@type':'Question',name:x.q,acceptedAnswer:{'@type':'Answer',text:x.a}}))}).replace(/<\//g,'<\\/');
+    return `\n<script type="application/ld+json">${json}</script>`;
+  })();
   const heroOpen = p.cover
     ? `<section class="art-hero art-hero--img" role="img" aria-label="${E(p.coverAlt||p.title)}"><div class="art-hero__bg" style="background-image:url(${E(p.cover)})"></div><div class="art-hero__scrim"></div>`
     : '<section class="art-hero">';
@@ -152,7 +166,7 @@ ${ogImg}
   const crumb = `<nav class="art-crumb" aria-label="breadcrumb"><a href="/index.html">Início</a> <span>/</span> <a href="/blog.html">Blog</a> <span>/</span> <span>${E(p.categoryLabel)}</span></nav>`;
   return `${head}
 ${ART_CSS}
-<script type="application/ld+json">${ld}</script>
+<script type="application/ld+json">${ld}</script>${faqLd}
 ${parts.anim}
 </head>
 <body>
