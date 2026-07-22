@@ -119,7 +119,7 @@ function buildIndexHtml(src, posts, banner) {
   let i = 0;
   src = src.replace(/<a class="fcard" href="[^"]*"><img src="[^"]*" alt="[^"]*"([^>]*)><span class="fcard__t">[^<]*<\/span><\/a>/g, (m, imgTail) => {
     const p = gal[i++]; if (!p) return m;
-    const title = p.title.length <= 42 ? p.title : p.title.slice(0,39).trimEnd() + '…';
+    const title = p.title.length <= 84 ? p.title : p.title.slice(0,81).trimEnd() + '…';
     return `<a class="fcard" href="${p.path}"><img src="${p.cover}" alt="${E(p.coverAlt||p.title)}"${imgTail}><span class="fcard__t">${E(title)}</span></a>`;
   });
   return src;
