@@ -203,9 +203,24 @@ function buildBlogHtml(src, posts) {
   const featured = posts.find(p=>p.cover) || posts[0];
   const rest = posts.filter(p=>p.slug!==featured.slug);
   const recent4 = rest.slice(0,4);
-  const trend=[], seen=new Set();
-  for (const p of rest.slice(4)) { if(p.cover && !seen.has(p.categorySlug)){trend.push(p);seen.add(p.categorySlug);} if(trend.length===4)break; }
-  for (const p of rest.slice(4)) { if(trend.length===4)break; if(!trend.includes(p)&&p.cover)trend.push(p); }
+  // "Em alta": curadoria manual dos temas de maior tráfego/clique (RANKING-125 Onda 1).
+  // Ordem = ordem de exibição no carrossel. Fallback auto por categoria se algum slug sumir.
+  const TREND_SLUGS = [
+    'alternativas-naturais-ao-ozempic-e-mounjaro-para-controle-de-peso',
+    'os-analogos-de-glp-1-e-como-podem-ser-aliados-para-o-emagrecimento-saudavel-e-responsavel',
+    'beneficios-da-creatina-na-vida-da-mulher-muito-alem-da-academia',
+    'o-papel-da-suplementacao-na-saude-hormonal-masculina',
+    'feminite-equilibrio-hormonal-e-bem-estar-na-menopausa',
+    'beneficios-dos-suplementos-manipulados-para-o-estresse-e-ansiedade',
+    'conheca-os-suplementos-que-combatem-a-queda-de-cabelo',
+    'nad-e-longevidade-o-que-e-e-como-a-manipulacao-personalizada-pode-ajudar',
+  ];
+  const bySlug = Object.fromEntries(posts.map(p=>[p.slug,p]));
+  let trend = TREND_SLUGS.map(s=>bySlug[s]).filter(p=>p&&p.cover);
+  if (trend.length < 4) { // failsafe: completa por categoria (comportamento antigo)
+    const seen=new Set(trend.map(p=>p.categorySlug));
+    for (const p of rest.slice(4)) { if(p.cover&&!seen.has(p.categorySlug)&&!trend.includes(p)){trend.push(p);seen.add(p.categorySlug);} if(trend.length>=8)break; }
+  }
 
   // destaque
   src = setTplText(src,40,E(featured.title),'h2');
@@ -225,14 +240,20 @@ function buildBlogHtml(src, posts) {
     src=setTplText(src,t.date,dataPt(p.publishedAt),'span');
     src=setTplText(src,t.read,`${p.readTime} min de leitura`,'span');
     src=setTplAttr(src,t.a,'href',E(p.path),'a');});
-  // em alta
-  const TR=[{a:213,img:214,cat:217,h3:218},{a:223,img:224,cat:227,h3:228},{a:233,img:234,cat:237,h3:238},{a:243,img:244,cat:247,h3:248}];
-  trend.forEach((p,i)=>{const t=TR[i];
-    src=setTplAttr(src,t.a,'href',E(p.path),'a');
-    src=setTplAttr(src,t.img,'src',E(imgOf(p)),'img');
-    src=setTplAttr(src,t.img,'alt',E(p.coverAlt||p.title),'img');
-    src=setTplText(src,t.cat,E(p.categoryLabel),'span');
-    src=setTplText(src,t.h3,E(p.title),'h3');});
+  // em alta — renderiza a lista curada (N cards) substituindo o miolo do trilho [data-trend-row]
+  const trendCard = p => `      <a href="${E(p.path)}" data-tcard="" style="scroll-snap-align: start; position: relative; border-radius: 18px; overflow: hidden; aspect-ratio: 3 / 4.1; display: block;">
+        <img src="${E(imgOf(p))}" alt="${E(p.coverAlt||p.title)}" style="position: absolute; inset: 0px; width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);" loading="lazy" decoding="async">
+        <div style="position: absolute; inset: 0px; background: linear-gradient(rgba(6, 50, 55, 0) 0%, rgba(6, 50, 55, 0.38) 44%, rgba(6, 50, 55, 0.97) 100%);"></div>
+        <div style="position: absolute; left: 0px; right: 0px; bottom: 0px; padding: 24px;">
+          <span style="font-family: Avenir, sans-serif; font-weight: 900; font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; color: rgb(79, 182, 192);">${E(p.categoryLabel)}</span>
+          <h3 style="margin-top: 10px; font-family: &quot;Playfair Display&quot;, Georgia, serif; font-weight: 500; font-size: 19px; line-height: 1.2; color: rgb(255, 255, 255);">${E(p.title)}</h3>
+          <span style="margin-top: 14px; display: inline-flex; align-items: center; gap: 7px; font-family: Avenir, sans-serif; font-weight: 900; font-size: 12px; color: rgb(255, 255, 255); border-bottom: 1px solid rgba(255, 255, 255, 0.5); padding-bottom: 2px;">Ler artigo <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg></span>
+        </div>
+      </a>`;
+  src = src.replace(
+    /(<div data-dc-tpl="212" data-trend-row="" style="[^"]*">)[\s\S]*?<\/div>\s*<\/div><\/section>/,
+    (_m, open) => `${open}\n${trend.map(trendCard).join('\n')}\n    </div>\n  </div></section>`
+  );
   // índice embutido (idempotente: remove antigo)
   const index = posts.map(p=>({t:p.title,c:p.categorySlug,cl:p.categoryLabel,x:(p.excerpt||'').slice(0,120),d:dataPt(p.publishedAt),r:`${p.readTime} min de leitura`,i:imgOf(p),h:p.path}));
   const indexJson = JSON.stringify(index).replace(/<\//g,'<\\/');
