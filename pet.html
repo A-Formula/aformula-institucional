@@ -336,18 +336,28 @@ main article[data-dc-tpl]:hover{transform:translateY(-5px)!important;box-shadow:
 </style>
 <style id="pet-nav-cta-css">
 .pet-nav-cta{display:flex;gap:12px;align-items:center;flex:0 0 auto}
-.pet-chip{display:inline-flex;align-items:center;justify-content:center;height:44px;padding:0 22px;border-radius:999px;font-family:Avenir,sans-serif;font-weight:700;font-size:14px;letter-spacing:.02em;text-decoration:none;white-space:nowrap;transition:background .25s,border-color .25s,transform .18s}
-.pet-chip--af{background:#008896;min-width:158px}
-.pet-chip--af img{height:21px;width:auto;display:block;filter:brightness(0) invert(1)}
-.pet-chip--af:hover{background:#04676f}
-.pet-chip--franq{background:transparent;border:1px solid rgba(255,255,255,.55);color:#fff}
-.pet-chip--franq:hover{background:rgba(255,255,255,.12);border-color:#fff}
+.pet-chip{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:42px;padding:0 22px;border-radius:999px;font-family:Avenir,system-ui,sans-serif;font-weight:700;font-size:14px;line-height:1;letter-spacing:.01em;text-decoration:none;white-space:nowrap;transition:background .25s,border-color .25s,color .25s,transform .18s}
+.pet-chip--af{background:#008896;border:1px solid rgba(255,255,255,.5);padding:0 18px;min-width:174px}
+.pet-chip--af img{height:24px;width:auto;display:block;filter:brightness(0) invert(1)}
+.pet-chip--af:hover{background:#04676f;border-color:#fff}
+.pet-chip--franq{background:#fff;color:#063237;min-width:174px}
+.pet-chip--franq:hover{background:#eaf4f4;color:#063237}
 .pet-chip:active{transform:scale(.97)}
 .pet-mob-cta{display:none}
 @media(max-width:1023px){
   .pet-nav-cta{display:none!important}
-  .pet-mob-cta{display:block!important;color:#fff!important;text-decoration:none;font-weight:700}
-  .pet-mob-cta--af{margin-top:10px;padding-top:14px;border-top:1px solid rgba(255,255,255,.2)}
+  .pet-mob-cta{display:inline-flex!important;align-items:center;justify-content:center;gap:8px;width:100%;height:42px;padding:0 22px;border-radius:999px;
+    font-family:Avenir,system-ui,sans-serif;font-weight:700;line-height:1;letter-spacing:.01em;text-decoration:none;min-width:174px;
+    background:#fff;color:#063237!important;transition:background .25s,border-color .25s,color .25s}
+  [data-nav-links] .pet-mob-cta{font-size:14px!important}
+  .pet-mob-cta:hover{background:#eaf4f4}
+  .pet-mob-cta:not(.pet-mob-cta--af){margin-top:-8px}
+  .pet-mob-cta--af{margin-top:auto;background:#008896;border:1px solid rgba(255,255,255,.5);padding:0 18px}
+  .pet-mob-cta--af:hover{background:#04676f;border-color:#fff}
+  .pet-mob-cta--af img{height:26px;width:auto;display:block;filter:brightness(0) invert(1)}
+}
+@media(max-width:767px){
+  .pet-mob-cta{height:48px}
 }
 </style>
 <!-- SCHEMA:START (gen-schema.mjs — não editar à mão) -->
@@ -436,7 +446,7 @@ main article[data-dc-tpl]:hover{transform:translateY(-5px)!important;box-shadow:
         <a data-dc-tpl="15" href="#formas" class="lk scp0" style="font-family: Avenir, sans-serif; font-weight: 500; font-size: 14.5px; color: rgb(255, 255, 255); text-decoration: none; white-space: nowrap; padding: 4px 2px; border-bottom: 2px solid transparent;">Formas farmacêuticas</a>
         <a data-dc-tpl="16" href="#sabores" class="lk scp0" style="font-family: Avenir, sans-serif; font-weight: 500; font-size: 14.5px; color: rgb(255, 255, 255); text-decoration: none; white-space: nowrap; padding: 4px 2px; border-bottom: 2px solid transparent;">Sabores</a>
         <a data-dc-tpl="18" href="#faq" class="lk scp0" style="font-family: Avenir, sans-serif; font-weight: 500; font-size: 14.5px; color: rgb(255, 255, 255); text-decoration: none; white-space: nowrap; padding: 4px 2px; border-bottom: 2px solid transparent;">Perguntas frequentes</a>
-        <a href="index.html" class="pet-mob-cta pet-mob-cta--af">A Fórmula</a>
+        <a href="index.html" class="pet-mob-cta pet-mob-cta--af" aria-label="A Fórmula"><img src="index_assets/a17.webp" alt="A Fórmula" decoding="async"></a>
         <a href="https://franquia.aformulabr.com.br/seja-um-franqueado/" target="_blank" rel="noopener" class="pet-mob-cta">Seja um franqueado</a>
       </nav>
       <div class="pet-nav-cta">
@@ -933,12 +943,14 @@ main article[data-dc-tpl]:hover{transform:translateY(-5px)!important;box-shadow:
 @media(max-width:1023px){
   [data-nav-toggle]{display:flex!important;margin-left:auto;z-index:70;position:relative}
   [data-nav-cta]{display:none!important}
-  [data-nav-links]{position:fixed!important;top:0;right:0;height:100vh;width:min(82vw,340px);background:#008896;
-    flex-direction:column!important;justify-content:center;align-items:flex-start!important;gap:26px!important;
-    padding:88px 36px!important;margin:0!important;transform:translateX(100%);transition:transform .35s ease;
-    z-index:60;box-shadow:-24px 0 60px rgba(0,20,26,.35);display:flex!important}
+  [data-nav-links]{position:fixed!important;top:0;right:0;height:100vh;width:min(82vw,360px);background:linear-gradient(160deg,#052e33,#001a20);
+    flex-direction:column!important;justify-content:flex-start;align-items:flex-start!important;gap:20px!important;
+    padding:100px 32px 40px!important;margin:0!important;transform:translateX(100%);transition:transform .4s ease;
+    z-index:60;box-shadow:-20px 0 60px rgba(0,0,0,.4);display:flex!important}
   [data-nav-links] a{font-size:20px!important}
+  [data-nav-links] a:not(.pet-mob-cta){padding:8px 2px!important;border-bottom-width:0!important}
   body[data-nav-open]{overflow:hidden}
+  body[data-nav-open] .wa{opacity:0;pointer-events:none}
   body[data-nav-open] [data-nav-links]{transform:translateX(0)}
   body[data-nav-open]::before{content:"";position:fixed;inset:0;background:rgba(0,20,26,.5);z-index:55}
   body[data-nav-open] [data-nav-toggle] span:nth-child(1){transform:translateY(7px) rotate(45deg)}
