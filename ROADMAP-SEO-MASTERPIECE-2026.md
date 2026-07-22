@@ -61,9 +61,14 @@
 - *Nota: taxID usa o CNPJ da entidade de franchise (filial 0002-90). Confirmar se prefere o da matriz 0001.*
 
 ### Camada C — Performance / Core Web Vitals SOTA 🟡
-- Converter jpg/png → webp/avif + `srcset`/`sizes` responsivo.
-- Self-hostar 100% das fontes (remover Google Fonts), `font-display: swap`, `preconnect`.
-- `preload` da imagem LCP; critical CSS; Lighthouse CI no build.
+- ✅ **FEITO 2026-07-22:**
+  - **Hero/LCP** (`a18.jpg`→`a18.webp`, 93K→43K): `<source webp>` no `<picture>`, **removido `loading="lazy"`
+    do LCP** (era anti-padrão), `<link rel="preload">` responsivo (mobile/desktop) no `<head>`.
+  - Fallbacks do blog `a33–a40.jpg`→`.webp` (1.2M→679K) + mapa `FALLBACK` do build atualizado.
+  - Fontes já eram 100% self-hosted; **"Google Fonts render-blocking" não existia** (só 2 `preconnect`
+    mortos — mantidos por terem âncoras `data-dc-tpl`/JS; risco > ganho nulo).
+- ⬜ **FALTA:** imagens do pet (CMS-managed — converter exige cuidado c/ Firestore); `srcset` multi-resolução
+  nos cards do blog; critical CSS; Lighthouse CI no build; converter demais jpg/png órfãos referenciados.
 
 ### Camada D — Descoberta & indexação 🟡
 - ✅ **FEITO 2026-07-22:** `rss.xml` (50 itens, gerado do blog) + `<link rel="alternate">` em index/blog;
