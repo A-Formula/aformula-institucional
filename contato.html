@@ -1096,6 +1096,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     .then(function(){
       msg.className="contact__msg ok";msg.textContent="Mensagem enviada! Retornaremos em até 1 dia útil.";
       f.reset();if(btn)btn.disabled=false;
+      if(window.gtag)gtag('event','generate_lead',{form_name:'contato',form_location:'contato'});
     })
     .catch(function(){
       // fallback: backend indisponível → abre o e-mail pronto (comportamento anterior)

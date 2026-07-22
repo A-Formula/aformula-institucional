@@ -45,9 +45,15 @@
 - ✅ **FEITO 2026-07-22:** GA4 `G-3GEYZT8XH5` (propriedade do Firebase) + **Consent Mode v2**
   (padrão denied) + **banner de cookies** LGPD on-brand, injetado em todas as páginas
   (`scripts/gen-analytics.mjs`, idempotente). CSP liberou `googletagmanager.com`. Escolha em localStorage.
-- ⬜ **FALTA:** eventos custom das 7 conversões (receita/contato/prescritor/newsletter — nos handlers de
-  sucesso dos forms; WhatsApp/loja já vêm via Enhanced Measurement=outbound); verificação GSC + Bing
-  (dep. Valbert/DNS); dashboard Looker Studio; governança de UTM; confirmar se há GA4 de marketing separado.
+- ✅ **FEITO 2026-07-22 (Fase 2):** eventos de conversão nos handlers de SUCESSO dos forms, guardados por
+  `if(window.gtag)`, **zero PII** (validado no browser real via Playwright + fetch stubado): `generate_lead`
+  (contato, `form_location:contato`) · `newsletter_signup` (home `form_location:home` + prescritor
+  `area-prescritor`) · `sign_up` (cadastro prescritor, `method:prescritor`). **receita.html não tem form**
+  (passo-a-passo + CTA interno → loja; o WhatsApp por unidade é outbound = Enhanced Measurement). Edições
+  diretas no HTML (não-CMS); o build (`applyAll`/`applyPageCms`) não toca nos scripts inline dos forms → persistem.
+  **Marcar os 4 eventos como *Key events* no GA4** (pré-requisito de funil/atribuição/preditivo).
+- ⬜ **FALTA:** verificação GSC + Bing (dep. Valbert/DNS); dashboard Looker Studio; governança de UTM;
+  confirmar se há GA4 de marketing separado.
 
 ### Camada B — Dados estruturados & entidade 🟠 (o que a Domatech cobraria)
 - ✅ **FEITO 2026-07-22** (`scripts/gen-schema.mjs`, idempotente, NÃO deployado ainda):

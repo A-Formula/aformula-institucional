@@ -516,7 +516,8 @@ document.querySelectorAll("[data-news-form]").forEach(function(f){
   if(inp&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(inp.value||"")){inp.style.borderColor="#e0603f";inp.focus();return;}
   var mail=inp?inp.value.trim():"";
   fetch("/api/newsletter",{method:"POST",headers:{"Content-Type":"application/json"},
-   body:JSON.stringify({email:mail,source:"area-do-prescritor"})}).catch(function(){});
+   body:JSON.stringify({email:mail,source:"area-do-prescritor"})})
+   .then(function(r){if(r&&r.ok&&window.gtag)gtag('event','newsletter_signup',{form_location:'area-prescritor'});}).catch(function(){});
   if(inp){inp.style.borderColor="";inp.value="";}
   if(btn){var o=btn.textContent;btn.textContent="Inscrito! ✓";setTimeout(function(){btn.textContent=o;},2600);}
  });});
@@ -700,6 +701,7 @@ function submitCadastro(e){
   .then(function(r){return r.json().then(function(j){return{s:r.status,j:j};});})
   .then(function(x){
     if(x.j.ok){
+      if(window.gtag)gtag('event','sign_up',{method:'prescritor'});
       card.innerHTML='<div style="text-align:center;padding:26px 6px">'+
       '<div style="width:64px;height:64px;border-radius:50%;background:#e8f7f7;border:1px solid rgba(0,136,150,.3);display:flex;align-items:center;justify-content:center;margin:0 auto 20px"><svg viewBox="0 0 24 24" fill="none" stroke="#008896" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" width="28" height="28"><path d="M20 6L9 17l-5-5"/></svg></div>'+
       '<h2 style="font-family:Avenir,sans-serif;font-weight:900;font-size:24px;color:#063237;margin:0">Cadastro enviado!</h2>'+
