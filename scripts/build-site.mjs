@@ -143,6 +143,13 @@ ${ogImg}
 <meta property="article:published_time" content="${p.publishedAt}">
 <meta property="article:modified_time" content="${p.modifiedAt||p.publishedAt}">`;
   const ld = JSON.stringify({'@context':'https://schema.org','@type':'Article',headline:p.title,description:p.excerpt,datePublished:p.publishedAt,dateModified:p.modifiedAt||p.publishedAt,author:{'@type':'Organization',name:'A Fórmula'},publisher:{'@type':'Organization',name:'A Fórmula'},mainEntityOfPage:BASE+p.path,...(p.cover?{image:BASE+p.cover}:{})});
+  // BreadcrumbList: Início > Blog > Categoria > Artigo
+  const crumbLd = JSON.stringify({'@context':'https://schema.org','@type':'BreadcrumbList',itemListElement:[
+    {'@type':'ListItem',position:1,name:'Início',item:BASE+'/'},
+    {'@type':'ListItem',position:2,name:'Blog',item:BASE+'/blog.html'},
+    {'@type':'ListItem',position:3,name:p.categoryLabel,item:`${BASE}/blog.html?cat=${p.categorySlug}`},
+    {'@type':'ListItem',position:4,name:p.title,item:BASE+p.path},
+  ]}).replace(/<\//g,'<\\/');
   // FAQPage JSON-LD derivado da seção "Perguntas frequentes" do contentHTML (h3 pergunta + p resposta).
   // contentHTML não pode carregar <script> (stripDangerous), então o schema nasce aqui no build.
   const faqLd = (() => {
@@ -166,7 +173,8 @@ ${ogImg}
   const crumb = `<nav class="art-crumb" aria-label="breadcrumb"><a href="/index.html">Início</a> <span>/</span> <a href="/blog.html">Blog</a> <span>/</span> <span>${E(p.categoryLabel)}</span></nav>`;
   return `${head}
 ${ART_CSS}
-<script type="application/ld+json">${ld}</script>${faqLd}
+<script type="application/ld+json">${ld}</script>
+<script type="application/ld+json">${crumbLd}</script>${faqLd}
 ${parts.anim}
 </head>
 <body>
@@ -307,7 +315,59 @@ async function main() {
   const urls = posts.map(p=>`<url><loc>${BASE}${p.path}</loc><lastmod>${(p.modifiedAt||p.publishedAt).slice(0,10)}</lastmod></url>`);
   ['/','/sobre-nos.html','/blog.html','/area-do-prescritor.html','/encontre-uma-loja.html','/contato.html','/pet.html','/receita.html'].reverse().forEach(pg=>urls.unshift(`<url><loc>${BASE}${pg}</loc></url>`));
   fs.writeFileSync(path.join(ROOT,'sitemap.xml'), '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+urls.join('\n')+'\n</urlset>');
-  console.log(`[build] OK — ${posts.length} artigos + blog.html + sitemap regenerados`);
+
+  // 4) rss.xml (fresco do Firestore — mesmo formato do scripts/gen-feeds.mjs)
+  const rfc822 = iso => { try { return new Date(iso).toUTCString(); } catch { return ''; } };
+  const rssItems = posts.slice(0,50).map(p=>`    <item>
+      <title>${E(p.title)}</title>
+      <link>${BASE}${p.path}</link>
+      <guid isPermaLink="true">${BASE}${p.path}</guid>
+      <category>${E(p.categoryLabel)}</category>
+      <pubDate>${rfc822(p.publishedAt)}</pubDate>
+      <description>${E(p.excerpt||'')}</description>
+    </item>`).join('\n');
+  fs.writeFileSync(path.join(ROOT,'rss.xml'), `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Blog A Fórmula</title>
+    <link>${BASE}/blog.html</link>
+    <atom:link href="${BASE}/rss.xml" rel="self" type="application/rss+xml"/>
+    <description>Saúde, manipulação, suplementação, beleza e bem-estar — por A Fórmula.</description>
+    <language>pt-BR</language>
+${rssItems}
+  </channel>
+</rss>`);
+
+  // 5) llms.txt (mapa p/ LLMs — páginas fixas + posts recentes)
+  const INST = [['Início','/','Farmácia de manipulação A Fórmula — visão geral da rede.'],['Sobre nós','/sobre-nos.html','História, propósito e diferenciais.'],['Manipule sua receita','/receita.html','Como enviar sua receita para manipulação.'],['Encontre uma loja','/encontre-uma-loja.html','Localizador das unidades por cidade.'],['Área do prescritor','/area-do-prescritor.html','Espaço para médicos e prescritores.'],['A Fórmula Pet','/pet.html','Manipulados veterinários.'],['Contato','/contato.html','Fale com a A Fórmula.'],['Blog','/blog.html','Artigos sobre saúde e manipulação.']];
+  fs.writeFileSync(path.join(ROOT,'llms.txt'), `# A Fórmula — Farmácia de Manipulação
+
+> Rede de farmácias de manipulação A Fórmula: medicamentos manipulados, dermocosméticos, suplementos e linha pet, com unidades em todo o Brasil. Este arquivo orienta modelos de linguagem sobre o conteúdo do site.
+
+## Páginas principais
+${INST.map(([n,u,d])=>`- [${n}](${BASE}${u}): ${d}`).join('\n')}
+
+## Blog — artigos recentes
+${posts.slice(0,30).map(p=>`- [${p.title}](${BASE}${p.path})${p.excerpt?`: ${p.excerpt}`:''}`).join('\n')}
+
+## Recursos
+- [Sitemap](${BASE}/sitemap.xml)
+- [Feed RSS](${BASE}/rss.xml)
+`);
+
+  // 6) IndexNow — só em produção, avisa Bing/Yandex das URLs atualizadas (failsafe)
+  if (process.env.VERCEL_ENV === 'production') {
+    try {
+      const KEY = 'a4c6b619d39cf0f49cdae9fdb7c740e7';
+      const urlList = ['/','/blog.html', ...posts.map(p=>p.path)].map(u=>BASE+u);
+      const res = await fetch('https://api.indexnow.org/indexnow', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ host:'www.aformulabr.com.br', key:KEY, keyLocation:`${BASE}/${KEY}.txt`, urlList })
+      });
+      console.log(`[indexnow] ${res.status} — ${urlList.length} URLs enviadas`);
+    } catch (e) { console.log('[indexnow] falhou (ignorado):', e.message); }
+  }
+  console.log(`[build] OK — ${posts.length} artigos + blog.html + sitemap + rss + llms regenerados`);
 }
 
 main().catch(err => { console.error('[build] ERRO (mantendo arquivos commitados):', err.message); process.exit(0); });
