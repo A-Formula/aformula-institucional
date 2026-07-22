@@ -42,11 +42,12 @@
 ## 2. ROADMAP EM CAMADAS
 
 ### Camada A — Rastreabilidade (medir antes de otimizar) 🔴
-- GA4 + Google Search Console + Bing Webmaster.
-- GTM com **Consent Mode v2** (LGPD) + eventos das 7 ações de conversão:
-  enviar receita · achar loja · WhatsApp · loja virtual · área prescritor · franquia · contato.
-- Dashboard Looker Studio (GSC + GA4). Governança de UTM.
-- *Dep.: ID GA4 (criar conta) + verificação GSC (DNS/Valbert).*
+- ✅ **FEITO 2026-07-22:** GA4 `G-3GEYZT8XH5` (propriedade do Firebase) + **Consent Mode v2**
+  (padrão denied) + **banner de cookies** LGPD on-brand, injetado em todas as páginas
+  (`scripts/gen-analytics.mjs`, idempotente). CSP liberou `googletagmanager.com`. Escolha em localStorage.
+- ⬜ **FALTA:** eventos custom das 7 conversões (receita/contato/prescritor/newsletter — nos handlers de
+  sucesso dos forms; WhatsApp/loja já vêm via Enhanced Measurement=outbound); verificação GSC + Bing
+  (dep. Valbert/DNS); dashboard Looker Studio; governança de UTM; confirmar se há GA4 de marketing separado.
 
 ### Camada B — Dados estruturados & entidade 🟠 (o que a Domatech cobraria)
 - ✅ **FEITO 2026-07-22** (`scripts/gen-schema.mjs`, idempotente, NÃO deployado ainda):
