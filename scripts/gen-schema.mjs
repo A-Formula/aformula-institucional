@@ -38,7 +38,7 @@ const organization = {
     'https://www.instagram.com/aformulafarmacia/',
     'https://www.facebook.com/aformulafarmacia',
     'https://www.linkedin.com/company/aformulafarmacia/',
-    'https://www.youtube.com/@aformulafarmacia',
+    'https://www.youtube.com/@aformulafarmacia6374',
   ],
 };
 const website = {

@@ -85,7 +85,7 @@ const isMail = v => typeof v === 'string' && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v
 const SOCIAL_DEFAULTS = {
   instagram: '"https://www.instagram.com/aformulafarmacia/"',
   facebook:  '"https://www.facebook.com/aformulafarmacia"',
-  youtube:   '"https://www.youtube.com/@aformulafarmacia"',
+  youtube:   '"https://www.youtube.com/@aformulafarmacia6374"',
   linkedin:  '"https://www.linkedin.com/company/aformulafarmacia/"',
 };
 const FRANCHISE_DEFAULT = 'https://franquia.aformulabr.com.br/seja-um-franqueado/';
