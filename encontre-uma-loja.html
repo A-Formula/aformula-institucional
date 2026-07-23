@@ -935,9 +935,23 @@ ol,ul{margin:0;padding:0;list-style:none}
 /* ---- trilho de cards na base ---- */
 .mapx__railwrap{position:absolute;z-index:10;left:0;right:0;bottom:0;padding:34px 0 18px;pointer-events:none;
   background:linear-gradient(180deg,transparent,rgba(4,38,44,.78) 70%)}
-.mapx__rail{display:flex;gap:14px;overflow-x:auto;padding:6px clamp(16px,3vw,44px) 8px;scroll-snap-type:x mandatory;
-  scrollbar-width:none;-ms-overflow-style:none;pointer-events:auto}
-.mapx__rail::-webkit-scrollbar{display:none}
+.mapx__rail{display:flex;gap:14px;overflow-x:auto;padding:6px clamp(16px,3vw,44px) 12px;scroll-snap-type:x mandatory;
+  scroll-padding-inline:clamp(16px,3vw,44px);scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.42) transparent;pointer-events:auto}
+.mapx__rail::-webkit-scrollbar{height:5px}
+.mapx__rail::-webkit-scrollbar-track{background:transparent}
+.mapx__rail::-webkit-scrollbar-thumb{background:rgba(255,255,255,.42);border-radius:99px}
+.mapx__rail::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.65)}
+/* setas de navegação do trilho — aparecem só quando há mais lojas naquela direção */
+.railnav{position:absolute;z-index:12;top:50%;width:42px;height:42px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  background:rgba(6,52,58,.88);border:1.5px solid rgba(255,255,255,.32);color:#fff;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 8px 24px rgba(0,20,26,.42);
+  opacity:0;pointer-events:none;transform:translateY(-50%) scale(.88);transition:opacity .22s,transform .22s,background .2s,border-color .2s}
+.railnav svg{width:20px;height:20px}
+.railnav--l{left:12px}
+.railnav--r{right:12px}
+.mapx__railwrap.can-l .railnav--l,.mapx__railwrap.can-r .railnav--r{opacity:1;pointer-events:auto;transform:translateY(-50%) scale(1)}
+.railnav:hover{background:var(--brand,#008896);border-color:var(--brand,#008896)}
 .railcard{flex:0 0 288px;scroll-snap-align:start;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);
   border:1.5px solid transparent;border-radius:16px;padding:15px 17px;cursor:pointer;
   transition:transform .28s var(--ease,ease),box-shadow .28s,border-color .28s}
@@ -997,9 +1011,12 @@ ol,ul{margin:0;padding:0;list-style:none}
   .mapx__lead{display:block;font-size:13px}
   .mapx__filters{flex-wrap:wrap}
   #map{position:relative;order:2;inset:auto;width:100%;height:60svh;min-height:420px}
-  .mapx__railwrap{position:static;order:3;padding:16px 0 22px;background:#052c32}
+  .mapx__railwrap{position:relative;order:3;padding:16px 0 22px;background:#052c32}
   .mapx__rail{padding-top:0}
   .railcard{flex-basis:252px}
+  .railnav{width:36px;height:36px}
+  .railnav--l{left:8px}
+  .railnav--r{right:8px}
   .maplibregl-ctrl-bottom-right{margin-bottom:0}
 }
 </style>
@@ -3611,6 +3628,25 @@ ol,ul{margin:0;padding:0;list-style:none}
 <script src="index_assets/a28.js"></script>
 <script src="encontre-uma-loja_assets/finder3d.js"></script>
 
+<script id="rail-nav-js">(function(){
+var rail=document.getElementById('rail');if(!rail)return;
+var wrap=rail.closest('.mapx__railwrap');if(!wrap)return;
+function arw(dir,label){
+  var b=document.createElement('button');b.type='button';b.className='railnav railnav--'+dir;b.setAttribute('aria-label',label);
+  b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">'+(dir==='l'?'<path d="M15 18l-6-6 6-6"/>':'<path d="M9 6l6 6-6 6"/>')+'</svg>';
+  b.addEventListener('click',function(){rail.scrollBy({left:(dir==='l'?-1:1)*Math.max(rail.clientWidth*.85,300),behavior:'smooth'})});
+  return b}
+wrap.appendChild(arw('l','Ver lojas anteriores'));
+wrap.appendChild(arw('r','Ver mais lojas'));
+function sync(){
+  var max=rail.scrollWidth-rail.clientWidth-2;
+  wrap.classList.toggle('can-l',rail.scrollLeft>2);
+  wrap.classList.toggle('can-r',max>2&&rail.scrollLeft<max)}
+rail.addEventListener('scroll',sync,{passive:true});
+window.addEventListener('resize',sync);
+new MutationObserver(sync).observe(rail,{childList:true});
+sync();
+})();</script>
 <script id="polish-anim-safety">setTimeout(function(){
 var any=document.querySelector(".reveal.is-in,.ani-in");
 document.querySelectorAll(".reveal:not(.is-in)").forEach(function(el){
