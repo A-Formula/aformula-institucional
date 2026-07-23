@@ -45,6 +45,24 @@
   }
   function fmtDist(d) { return d < 1 ? Math.round(d * 1000) + " m" : d.toFixed(1) + " km"; }
   function isSoon(s) { return /em breve/i.test(s.nome || ""); }
+  function shareText(s) {
+    return "A Fórmula — " + s.nome +
+      (s.endereco ? "\n" + s.endereco : "") +
+      (waLink(s) ? "\nWhatsApp: " + waLink(s) : "");
+  }
+  var shareBtn = function (s) {
+    return '<button type="button" class="railcard__share" title="Compartilhar unidade" aria-label="Compartilhar unidade" onclick="event.stopPropagation();window.__afShare(' + s.id + ',this)">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"></path></svg></button>';
+  };
+  window.__afShare = function (id, btn) {
+    var s = STORES.filter(function (x) { return x.id === id; })[0];
+    if (!s) return;
+    var txt = shareText(s);
+    if (navigator.share) { navigator.share({ title: "A Fórmula — " + s.nome, text: txt }).catch(function () {}); return; }
+    function done() { if (!btn) return; btn.classList.add("is-copied"); setTimeout(function () { btn.classList.remove("is-copied"); }, 1900); }
+    if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(txt).then(done, done); }
+    else { var t = document.createElement("textarea"); t.value = txt; document.body.appendChild(t); t.select(); try { document.execCommand("copy"); } catch (_) {} document.body.removeChild(t); done(); }
+  };
 
   /* ---------- mapa ---------- */
   var map = new maplibregl.Map({
@@ -221,7 +239,8 @@
         (isSoon(s)
           ? '<span class="railcard__soon">Em breve</span>'
           : '<a href="' + mapsLink(s) + '" target="_blank" rel="noopener">Como chegar</a>' +
-            (wa ? '<a class="wa" href="' + wa + '" target="_blank" rel="noopener">WhatsApp</a>' : "")) + "</div></div>"
+            (wa ? '<a class="wa" href="' + wa + '" target="_blank" rel="noopener">WhatsApp</a>' : "") +
+            shareBtn(s)) + "</div></div>"
       );
   }
 
@@ -260,7 +279,8 @@
       (isSoon(s)
         ? '<span class="railcard__soon">Em breve</span>'
         : '<a href="' + mapsLink(s) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">Como chegar</a>' +
-          (wa ? '<a class="wa" href="' + wa + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">WhatsApp</a>' : "")) +
+          (wa ? '<a class="wa" href="' + wa + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">WhatsApp</a>' : "") +
+          shareBtn(s)) +
       "</div>";
     el.addEventListener("click", function () { focusStore(s, true); });
     return el;

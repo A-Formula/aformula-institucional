@@ -971,6 +971,14 @@ ol,ul{margin:0;padding:0;list-style:none}
 .railcard__acts a.wa:hover{background:#1eb85a;border-color:#1eb85a}
 .railcard__soon{font-size:11.5px;font-weight:700;padding:6px 13px;border-radius:999px;
   background:#eef4f4;color:var(--brand,#008896);letter-spacing:.04em;text-transform:uppercase}
+.railcard__share,.af-pop__share{position:relative;display:inline-flex;align-items:center;justify-content:center;
+  padding:6px 11px;border-radius:999px;border:1.5px solid var(--line,#dbe6e6);background:#fff;
+  color:var(--teal-800,#0a3f45);cursor:pointer;font-family:inherit;transition:background .2s,color .2s,border-color .2s}
+.railcard__share svg,.af-pop__share svg{width:15px;height:15px}
+.railcard__share:hover,.af-pop__share:hover{background:var(--brand,#008896);border-color:var(--brand,#008896);color:#fff}
+.railcard__share.is-copied::after,.af-pop__share.is-copied::after{content:"Copiado ✓";position:absolute;
+  bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);white-space:nowrap;background:#06343a;color:#fff;
+  font-size:11px;font-weight:700;padding:4px 9px;border-radius:7px;pointer-events:none;z-index:5}
 .mapx__empty{color:#fff;font-size:14px;padding:12px 24px;pointer-events:auto}
 
 /* botão usar minha localização */
