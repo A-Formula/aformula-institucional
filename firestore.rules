@@ -18,6 +18,7 @@ service cloud.firestore {
 
     // Submissões: criação via API (admin SDK ignora rules); leitura/edição só admin no painel.
     match /contact_messages/{doc} { allow read, update: if isAdmin(); allow create: if false; }
+    match /career_applications/{doc} { allow read, update: if isAdmin(); allow create: if false; }
     match /prescribers/{doc}      { allow read, update: if isAdmin(); allow create: if false; }
     match /newsletter/{doc}       { allow read: if isAdmin(); allow create: if false; }
     match /prescriber_blocked_attempts/{doc} { allow read: if isAdmin(); allow write: if false; }

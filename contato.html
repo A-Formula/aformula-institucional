@@ -915,6 +915,11 @@ ol,ul{margin:0;padding:0;list-style:none}
 .field textarea{resize:vertical;min-height:130px}
 .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--brand,#008896);box-shadow:0 0 0 4px rgba(0,136,150,.13)}
 .field.invalid input,.field.invalid select,.field.invalid textarea{border-color:#e0603f;box-shadow:0 0 0 4px rgba(224,96,63,.12)}
+.field-opt{font-weight:500;color:var(--muted,#5c7075);letter-spacing:0}
+.field-hint{display:block;font-size:11.5px;color:var(--muted,#5c7075);margin-top:6px;line-height:1.4}
+.contact__optin{display:flex;align-items:flex-start;gap:10px;margin:4px 0 16px;cursor:pointer;font-size:13.5px;line-height:1.45;color:var(--teal-800,#0a3f45)}
+.contact__optin input{flex:0 0 auto;width:18px;height:18px;margin-top:1px;accent-color:var(--brand,#008896);cursor:pointer}
+.contact__career{grid-column:1/-1;margin-top:4px;max-width:760px}
 .contact__submit{margin-top:8px}
 .contact__submit .btn{width:100%;justify-content:center}
 .contact__note{font-size:12.5px;color:var(--muted,#5c7075);margin-top:14px;text-align:center;line-height:1.5}
@@ -1026,7 +1031,10 @@ ol,ul{margin:0;padding:0;list-style:none}
         <div class="field"><label for="c-nome">Nome</label><input id="c-nome" name="nome" type="text" required placeholder="Seu nome completo"></div>
         <div class="field"><label for="c-tel">Telefone</label><input id="c-tel" name="telefone" type="tel" inputmode="tel" placeholder="(00) 00000-0000"></div>
       </div>
-      <div class="field"><label for="c-email">E-mail</label><input id="c-email" name="email" type="email" required placeholder="voce@email.com"></div>
+      <div class="field-row">
+        <div class="field"><label for="c-email">E-mail</label><input id="c-email" name="email" type="email" required placeholder="voce@email.com"></div>
+        <div class="field"><label for="c-cep">CEP <span class="field-opt">(opcional)</span></label><input id="c-cep" name="cep" inputmode="numeric" maxlength="9" placeholder="00000-000"><span class="field-hint">Para dúvidas de manipulação, indicamos a unidade mais próxima.</span></div>
+      </div>
       <div class="field"><label for="c-assunto">Assunto</label>
         <select id="c-assunto" name="assunto" required>
           <option value="">Selecione um assunto</option>
@@ -1040,16 +1048,31 @@ ol,ul{margin:0;padding:0;list-style:none}
         </select>
       </div>
       <div class="field"><label for="c-msg">Mensagem</label><textarea id="c-msg" name="mensagem" required placeholder="Como podemos ajudar?"></textarea></div>
+      <label class="contact__optin"><input type="checkbox" id="c-marketing" name="marketing"><span>Aceito receber novidades, ofertas e conteúdos da A Fórmula por e-mail.</span></label>
       <div class="contact__submit"><button type="submit" class="btn btn--solid">Enviar mensagem</button></div>
-      <p class="contact__note">Ao enviar, abriremos seu aplicativo de e-mail com a mensagem pronta para <b>sac@aformulabr.com.br</b>.</p>
       <p class="contact__msg" id="contactMsg" role="status"></p>
+    </form>
+
+    <form class="contact__form contact__career" id="careerForm" hidden novalidate>
+      <h2>Conte um pouco sobre você</h2>
+      <p class="sub">Sua mensagem foi recebida. Preencha o mini-currículo abaixo para entrar no nosso banco de talentos.</p>
+      <div class="field"><label for="cv-formacao">Formação</label><input id="cv-formacao" name="formacao" type="text" required placeholder="Ex.: Farmácia — USP (2020)"></div>
+      <div class="field"><label for="cv-exp">Experiência profissional</label><textarea id="cv-exp" name="experiencia" required placeholder="Resuma suas experiências, cargos e tempo em cada um."></textarea></div>
+      <div class="field-row">
+        <div class="field"><label for="cv-area">Área de interesse <span class="field-opt">(opcional)</span></label><input id="cv-area" name="area" type="text" placeholder="Ex.: Produção, Atendimento, Farmacêutico(a)"></div>
+        <div class="field"><label for="cv-cidade">Cidade</label><input id="cv-cidade" name="cidade" type="text" required placeholder="Sua cidade"></div>
+      </div>
+      <div class="field"><label for="cv-linkedin">LinkedIn <span class="field-opt">(opcional)</span></label><input id="cv-linkedin" name="linkedin" type="url" inputmode="url" placeholder="https://linkedin.com/in/voce"></div>
+      <label class="contact__optin"><input type="checkbox" id="cv-marketing" name="marketing"><span>Aceito receber novidades e oportunidades da A Fórmula por e-mail.</span></label>
+      <div class="contact__submit"><button type="submit" class="btn btn--solid">Enviar currículo</button></div>
+      <p class="contact__msg" id="careerMsg" role="status"></p>
     </form>
 
     <aside class="contact__aside">
       <div class="contact__card reveal">
         <h3>Atendimento</h3>
         <p><a class="contact__big" href="mailto:sac@aformulabr.com.br">sac@aformulabr.com.br</a></p>
-        <p>Resposta em até 1 dia útil.</p>
+        <p>Retornaremos o quanto antes.</p>
       </div>
       <div class="contact__card reveal">
         <h3>Encontre uma unidade</h3>
@@ -1077,35 +1100,110 @@ ol,ul{margin:0;padding:0;list-style:none}
 <script id="contact-js">(function(){
   var f=document.getElementById("contactForm"); if(!f) return;
   var msg=document.getElementById("contactMsg");
-  function val(id){return (document.getElementById(id).value||"").trim();}
-  function mark(id,ok){document.getElementById(id).closest(".field").classList.toggle("invalid",!ok);}
+  var career=document.getElementById("careerForm");
+  var FRANQUIA="https://franquia.aformulabr.com.br/seja-um-franqueado/";
+  function val(id){var e=document.getElementById(id);return e?(e.value||"").trim():"";}
+  function mark(id,ok){var e=document.getElementById(id);if(e)e.closest(".field").classList.toggle("invalid",!ok);}
+  function digits(s){return (s||"").replace(/\D/g,"");}
+  function set(el,cls,txt){el.className="contact__msg "+cls;el.textContent=txt;}
+
+  /* ---- loja mais próxima por CEP (reusa a abordagem do finder) ---- */
+  function waLink(s){var n=digits(s.celular||s.telefone);if(!n)return null;if(n.length<=11)n="55"+n;return "https://wa.me/"+n;}
+  function haversine(a,b,c,d){var R=6371,p=Math.PI/180,dLat=(c-a)*p,dLon=(d-b)*p;var x=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(a*p)*Math.cos(c*p)*Math.sin(dLon/2)*Math.sin(dLon/2);return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
+  function geocode(cep){cep=digits(cep);
+    return fetch("https://cep.awesomeapi.com.br/json/"+cep).then(function(r){return r.ok?r.json():null;}).then(function(j){
+      if(j&&j.lat&&j.lng)return {lat:+j.lat,lng:+j.lng};
+      return fetch("https://viacep.com.br/ws/"+cep+"/json/").then(function(r){return r.ok?r.json():null;}).then(function(v){
+        if(!v||v.erro)return null;
+        var q=encodeURIComponent((v.logradouro?v.logradouro+", ":"")+(v.localidade||"")+" "+(v.uf||"")+" Brasil");
+        return fetch("https://nominatim.openstreetmap.org/search?format=json&limit=1&q="+q).then(function(r){return r.ok?r.json():null;}).then(function(n){return (n&&n[0])?{lat:+n[0].lat,lng:+n[0].lon}:null;});
+      });
+    }).catch(function(){return null;});
+  }
+  function nearest(cep){
+    return geocode(cep).then(function(loc){
+      if(!loc)return null;
+      return fetch("encontre-uma-loja_assets/lojas.json").then(function(r){return r.json();}).then(function(list){
+        var geo=(list||[]).filter(function(s){return s.lat&&s.lng&&!/em breve/i.test(s.nome||"");});
+        if(!geo.length)return null;
+        geo.forEach(function(s){s._d=haversine(loc.lat,loc.lng,s.lat,s.lng);});
+        geo.sort(function(a,b){return a._d-b._d;});
+        return geo[0];
+      }).catch(function(){return null;});
+    });
+  }
+
+  /* ---- roteamento pós-envio conforme o assunto ---- */
+  function route(assunto,cep,ident){
+    if(assunto==="Trabalhe conosco"){
+      window.__careerIdent=ident;
+      career.hidden=false;
+      set(msg,"ok","Mensagem recebida com sucesso! Complete o mini-currículo abaixo para o nosso banco de talentos.");
+      career.scrollIntoView({behavior:"smooth",block:"start"});
+      return;
+    }
+    if(assunto==="Seja um franqueado"){
+      set(msg,"ok","Mensagem recebida com sucesso! Abrindo a área de franquias…");
+      setTimeout(function(){window.open(FRANQUIA,"_blank","noopener");},900);
+      return;
+    }
+    if(assunto==="Dúvida sobre manipulação"&&digits(cep).length===8){
+      set(msg,"ok","Mensagem recebida! Procurando a unidade mais próxima…");
+      nearest(cep).then(function(s){
+        var w=s&&waLink(s);
+        if(w){
+          var texto="Olá! "+(ident.nome?"Aqui é "+ident.nome+". ":"")+"Tenho uma dúvida sobre manipulação:\n\n"+(ident.mensagem||"");
+          w+="?text="+encodeURIComponent(texto);
+          set(msg,"ok","Unidade mais próxima: "+s.nome+" ("+s.cidade+"/"+s.estado+") — abrindo o WhatsApp…");window.open(w,"_blank","noopener");
+        }
+        else{set(msg,"ok","Mensagem recebida com sucesso! Veja as unidades no mapa.");setTimeout(function(){window.location.href="encontre-uma-loja.html";},1200);}
+      });
+      return;
+    }
+    set(msg,"ok","Mensagem recebida com sucesso!");
+  }
+
   f.addEventListener("submit",function(e){
     e.preventDefault();
-    var nome=val("c-nome"),email=val("c-email"),assunto=val("c-assunto"),mensagem=val("c-msg"),tel=val("c-tel");
+    var nome=val("c-nome"),email=val("c-email"),assunto=val("c-assunto"),mensagem=val("c-msg"),tel=val("c-tel"),cep=val("c-cep");
+    var marketing=!!(document.getElementById("c-marketing")||{}).checked;
     var okEmail=/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email);
     mark("c-nome",!!nome);mark("c-email",okEmail);mark("c-assunto",!!assunto);mark("c-msg",!!mensagem);
-    if(!nome||!okEmail||!assunto||!mensagem){
-      msg.className="contact__msg err";msg.textContent="Preencha nome, e-mail válido, assunto e mensagem.";return;
-    }
+    if(!nome||!okEmail||!assunto||!mensagem){set(msg,"err","Preencha os campos destacados (nome, e-mail válido, assunto e mensagem).");return;}
     var btn=f.querySelector('button[type="submit"]');
     if(btn)btn.disabled=true;
-    msg.className="contact__msg ok";msg.textContent="Enviando…";
+    set(msg,"ok","Enviando…");
+    // registra a mensagem no backend (best-effort — o roteamento NÃO depende disso)
     fetch("/api/contato",{method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({nome:nome,telefone:tel,email:email,assunto:assunto,mensagem:mensagem})})
+      body:JSON.stringify({nome:nome,telefone:tel,email:email,assunto:assunto,mensagem:mensagem,cep:cep,marketing:marketing})})
+      .catch(function(){});
+    if(window.gtag)gtag('event','generate_lead',{form_name:'contato',form_location:'contato'});
+    if(btn)btn.disabled=false;
+    route(assunto,cep,{nome:nome,email:email,telefone:tel,mensagem:mensagem});
+    if(assunto!=="Trabalhe conosco")f.reset();
+  });
+
+  /* ---- envio do mini-currículo (Trabalhe conosco) ---- */
+  if(career)career.addEventListener("submit",function(e){
+    e.preventDefault();
+    var m=document.getElementById("careerMsg");
+    var formacao=val("cv-formacao"),experiencia=val("cv-exp"),cidade=val("cv-cidade");
+    mark("cv-formacao",!!formacao);mark("cv-exp",!!experiencia);mark("cv-cidade",!!cidade);
+    if(!formacao||!experiencia||!cidade){set(m,"err","Preencha formação, experiência e cidade.");return;}
+    var id=window.__careerIdent||{};
+    var data={nome:id.nome,email:id.email,telefone:id.telefone,cidade:cidade,formacao:formacao,
+      experiencia:experiencia,area:val("cv-area"),linkedin:val("cv-linkedin"),
+      marketing:!!(document.getElementById("cv-marketing")||{}).checked};
+    var b=career.querySelector('button[type="submit"]');if(b)b.disabled=true;
+    set(m,"ok","Enviando…");
+    fetch("/api/trabalhe-conosco",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)})
     .then(function(r){if(!r.ok)throw 0;return r.json();})
     .then(function(){
-      msg.className="contact__msg ok";msg.textContent="Mensagem enviada! Retornaremos em até 1 dia útil.";
-      f.reset();if(btn)btn.disabled=false;
-      if(window.gtag)gtag('event','generate_lead',{form_name:'contato',form_location:'contato'});
+      set(m,"ok","Currículo enviado com sucesso! Obrigado pelo interesse.");
+      career.reset();if(b)b.disabled=false;
+      if(window.gtag)gtag('event','sign_up',{method:'trabalhe-conosco'});
     })
-    .catch(function(){
-      // fallback: backend indisponível → abre o e-mail pronto (comportamento anterior)
-      if(btn)btn.disabled=false;
-      var body="Nome: "+nome+"\nE-mail: "+email+"\nTelefone: "+(tel||"—")+"\nAssunto: "+assunto+"\n\n"+mensagem;
-      var href="mailto:sac@aformulabr.com.br?subject="+encodeURIComponent("[Contato site] "+assunto)+"&body="+encodeURIComponent(body);
-      msg.className="contact__msg ok";msg.textContent="Abrindo seu aplicativo de e-mail com a mensagem pronta…";
-      window.location.href=href;
-    });
+    .catch(function(){if(b)b.disabled=false;set(m,"err","Não foi possível enviar agora. Tente novamente em instantes.");});
   });
 })();</script>
 

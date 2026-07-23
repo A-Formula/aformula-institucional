@@ -108,6 +108,7 @@
     <p class="brand">a fórmula</p>
     <button class="nav-item active" data-view="inbox">📥 Mensagens <span class="badge hidden" id="badge-inbox">0</span></button>
     <button class="nav-item" data-view="prescritores">🩺 Prescritores <span class="badge hidden" id="badge-presc">0</span></button>
+    <button class="nav-item" data-view="career">💼 Trabalhe conosco <span class="badge hidden" id="badge-career">0</span></button>
     <button class="nav-item" data-view="newsletter">✉️ Newsletter</button>
     <button class="nav-item" data-view="preContent">🔬 Conteúdo prescritor</button>
     <button class="nav-item" data-view="settings">⚙️ Configurações</button>
@@ -228,7 +229,7 @@ document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',()=
   document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
   b.classList.add('active'); router(b.dataset.view);
 }));
-function router(v){ ({inbox:vInbox,prescritores:vPresc,newsletter:vNews,preContent:vPreContent,settings:vSettings}[v]||vInbox)(); }
+function router(v){ ({inbox:vInbox,prescritores:vPresc,career:vCareer,newsletter:vNews,preContent:vPreContent,settings:vSettings}[v]||vInbox)(); }
 
 /* Upload de mídia (Vercel Blob via /api/upload, gated por admin) — usado pelo Conteúdo do prescritor (PDF) */
 async function uploadFile(file){
@@ -248,6 +249,8 @@ async function loadCounts(){
     const b1=$('#badge-inbox'); if(c1.size){b1.textContent=c1.size;b1.classList.remove('hidden');}else b1.classList.add('hidden');
     const c2 = await db.collection('prescribers').where('status','==','pending').get();
     const b2=$('#badge-presc'); if(c2.size){b2.textContent=c2.size;b2.classList.remove('hidden');}else b2.classList.add('hidden');
+    const c3 = await db.collection('career_applications').where('status','==','new').get();
+    const b3=$('#badge-career'); if(b3){if(c3.size){b3.textContent=c3.size;b3.classList.remove('hidden');}else b3.classList.add('hidden');}
   }catch(e){ console.error('loadCounts', e); }
 }
 
@@ -258,11 +261,12 @@ async function vInbox(){
   try{ snap = await db.collection('contact_messages').orderBy('createdAt','desc').limit(200).get(); }
   catch(e){ $('#rows').innerHTML='<div class="empty">Não foi possível carregar as mensagens. Recarregue a página.</div>'; return; }
   if(snap.empty){ $('#rows').innerHTML='<div class="empty">Nenhuma mensagem ainda.</div>'; return; }
-  let h='<table><thead><tr><th>Quando</th><th>Nome</th><th>Contato</th><th>Assunto</th><th>Mensagem</th><th>Status</th><th></th></tr></thead><tbody>';
+  let h='<table><thead><tr><th>Quando</th><th>Nome</th><th>Contato</th><th>Assunto</th><th>Mensagem</th><th>Marketing</th><th>Status</th><th></th></tr></thead><tbody>';
   snap.forEach(d=>{ const m=d.data();
     h+=`<tr><td>${fmtTs(m.createdAt)}</td><td><strong>${esc(m.nome)}</strong></td>
-    <td>${esc(m.email)}<br><span class="hint">${esc(m.telefone||'')}</span></td>
+    <td>${esc(m.email)}<br><span class="hint">${esc(m.telefone||'')}${m.cep?' · CEP '+esc(m.cep):''}</span></td>
     <td>${esc(m.assunto)}</td><td style="max-width:280px">${esc(m.mensagem)}</td>
+    <td>${m.marketing?'<span class="tag done">✓ aceita</span>':'<span class="hint">—</span>'}</td>
     <td><span class="tag ${m.status==='done'?'done':'new'}">${m.status==='done'?'resolvido':'novo'}</span></td>
     <td><button class="btn btn--ghost btn--sm" data-toggle="${d.id}" data-st="${m.status}">${m.status==='done'?'Reabrir':'Resolver'}</button></td></tr>`;
   });
@@ -366,6 +370,71 @@ async function vPresc(){
   v.querySelectorAll('[data-ap]').forEach(b=>b.addEventListener('click',()=>decide(b.dataset.ap,'approve',b)));
   v.querySelectorAll('[data-rj]').forEach(b=>b.addEventListener('click',()=>{ if(confirm('Recusar/revogar este cadastro? O acesso (se existir) será desativado.')) decide(b.dataset.rj,'reject',b); }));
   }
+  apply();
+}
+
+/* ---------- TRABALHE CONOSCO (triagem de talentos) ---------- */
+async function vCareer(){
+  const v=$('#view');
+  v.innerHTML=`<div class="topbar"><div><h1 class="page">Trabalhe conosco</h1><p class="hint" id="cv-count"></p></div><button class="btn" id="cv-csv">⬇ Exportar CSV</button></div>
+  <div class="toolbar">
+    <select class="fld" id="cf-status" style="max-width:170px"><option value="">Status: todos</option><option value="new">Novos</option><option value="done">Revisados</option></select>
+    <select class="fld" id="cf-area" style="max-width:230px"><option value="">Área: todas</option></select>
+    <select class="fld" id="cf-cidade" style="max-width:200px"><option value="">Cidade: todas</option></select>
+    <input class="fld search" id="cf-q" placeholder="Buscar nome, e-mail, formação…">
+    <button class="btn btn--ghost btn--sm" id="cf-clear">Limpar</button>
+  </div><div id="rows">Carregando…</div>`;
+  let snap;
+  try{ snap = await db.collection('career_applications').orderBy('createdAt','desc').limit(1000).get(); }
+  catch(e){ $('#rows').innerHTML='<div class="empty">Não foi possível carregar as candidaturas. Recarregue a página.</div>'; return; }
+  if(snap.empty){ $('#cv-count').textContent='Nenhuma candidatura ainda.'; $('#rows').innerHTML='<div class="empty">Nenhuma candidatura ainda.</div>'; return; }
+  const all = snap.docs.map(d=>({id:d.id,...d.data()}));
+  const fill=(sel,vals)=>{const s=$(sel);[...new Set(vals.filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt')).forEach(x=>{const o=document.createElement('option');o.value=x;o.textContent=x;s.appendChild(o);});};
+  fill('#cf-area',all.map(m=>m.area)); fill('#cf-cidade',all.map(m=>m.cidade));
+  let current=all;
+  function apply(){
+    const st=$('#cf-status').value, ar=$('#cf-area').value, ci=$('#cf-cidade').value, q=$('#cf-q').value.trim().toLowerCase();
+    current=all.filter(m=>(!st||(m.status||'new')===st)&&(!ar||m.area===ar)&&(!ci||m.cidade===ci)
+      &&(!q||[m.nome,m.email,m.telefone,m.cidade,m.formacao,m.experiencia,m.area].some(x=>String(x||'').toLowerCase().includes(q))));
+    const nNew=all.filter(m=>(m.status||'new')==='new').length;
+    $('#cv-count').textContent=`${current.length} de ${all.length} candidatura(s) · ${nNew} nova(s).`;
+    render(current);
+  }
+  function render(list){
+    if(!list.length){ $('#rows').innerHTML='<div class="empty">Nenhuma candidatura com esses filtros.</div>'; return; }
+    let h='<table><thead><tr><th>Quando</th><th>Candidato</th><th>Cidade</th><th>Área</th><th>Formação</th><th>Experiência</th><th>Mkt</th><th>Status</th><th></th></tr></thead><tbody>';
+    list.forEach(m=>{ const stt=(m.status||'new');
+      h+=`<tr><td>${fmtTs(m.createdAt)}</td>
+      <td><strong>${esc(m.nome)}</strong><br><span class="hint">${esc(m.email)}${m.telefone?' · '+esc(m.telefone):''}</span>${m.linkedin?`<br><a href="${esc(m.linkedin)}" target="_blank" rel="noopener" class="hint">LinkedIn ↗</a>`:''}</td>
+      <td>${esc(m.cidade||'—')}${m.cep?'<br><span class="hint">CEP '+esc(m.cep)+'</span>':''}</td>
+      <td>${esc(m.area||'—')}</td>
+      <td style="max-width:200px">${esc(m.formacao||'')}</td>
+      <td style="max-width:260px">${esc(m.experiencia||'')}</td>
+      <td>${m.marketing?'<span class="tag done">✓</span>':'<span class="hint">—</span>'}</td>
+      <td><span class="tag ${stt==='done'?'done':'new'}">${stt==='done'?'revisado':'novo'}</span></td>
+      <td><button class="btn btn--ghost btn--sm" data-cvtoggle="${m.id}" data-st="${stt}">${stt==='done'?'Reabrir':'Revisar'}</button></td></tr>`;
+    });
+    h+='</tbody></table>'; $('#rows').innerHTML=h;
+    v.querySelectorAll('[data-cvtoggle]').forEach(b=>b.addEventListener('click',async()=>{
+      const ns=b.dataset.st==='done'?'new':'done'; b.disabled=true;
+      try{ await db.collection('career_applications').doc(b.dataset.cvtoggle).update({status:ns}); }
+      catch(e){ alert('Não foi possível atualizar: '+e.message); b.disabled=false; return; }
+      const rec=all.find(x=>x.id===b.dataset.cvtoggle); if(rec)rec.status=ns;
+      const tr=b.closest('tr'), tag=tr.querySelector('.tag');
+      tag.className='tag '+(ns==='done'?'done':'new'); tag.textContent=ns==='done'?'revisado':'novo';
+      b.textContent=ns==='done'?'Reabrir':'Revisar'; b.dataset.st=ns; b.disabled=false;
+      loadCounts();
+    }));
+  }
+  ['#cf-status','#cf-area','#cf-cidade'].forEach(s=>$(s).addEventListener('change',apply));
+  $('#cf-q').addEventListener('input',apply);
+  $('#cf-clear').addEventListener('click',()=>{['#cf-status','#cf-area','#cf-cidade','#cf-q'].forEach(s=>$(s).value='');apply();});
+  $('#cv-csv').addEventListener('click',()=>{
+    const rows=[['data','nome','email','telefone','cidade','cep','area','formacao','experiencia','linkedin','marketing','status']];
+    current.forEach(m=>rows.push([fmtTsCSV(m.createdAt),m.nome,m.email,m.telefone||'',m.cidade||'',m.cep||'',m.area||'',m.formacao||'',m.experiencia||'',m.linkedin||'',m.marketing?'sim':'não',(m.status||'new')==='done'?'revisado':'novo']));
+    const csv='﻿'+rows.map(r=>r.map(c=>`"${csvSafe(c).replace(/"/g,'""')}"`).join(';')).join('\r\n');
+    const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); a.download='trabalhe-conosco-aformula.csv'; a.click();
+  });
   apply();
 }
 

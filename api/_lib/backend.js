@@ -75,6 +75,24 @@ async function notify(subject, text) {
   return sendMail(await notifyTo(), subject, text);
 }
 
+// Adiciona um e-mail à base de mailing (coleção "newsletter"), idempotente. Usado pelo
+// opt-in de marketing dos formulários (contato / trabalhe conosco). Best-effort — nunca lança.
+async function addToMailing(email, source) {
+  const db = getDb();
+  if (!db || !isEmail(email)) return false;
+  try {
+    const ref = db.collection("newsletter").doc(String(email).toLowerCase());
+    const exists = (await ref.get()).exists;
+    const data = {
+      email: String(email).toLowerCase(), source: source || "site", consent: true,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+    if (!exists) data.createdAt = admin.firestore.FieldValue.serverTimestamp();
+    await ref.set(data, { merge: true });
+    return true;
+  } catch (e) { console.error("[mailing] falhou:", e && e.message); return false; }
+}
+
 // Rate limit simples por IP (memória da instância — suficiente contra spam casual)
 const hits = new Map();
 function rateLimited(ip, max = 5, windowMs = 10 * 60 * 1000) {
@@ -163,6 +181,6 @@ async function verifyAdmin(req) {
 }
 
 module.exports = {
-  getDb, notify, sendMail, guard, isEmail, isBlockedEmail, verifyCaptcha, verifyAdmin,
+  getDb, notify, sendMail, addToMailing, guard, isEmail, isBlockedEmail, verifyCaptcha, verifyAdmin,
   BLOCKED_EMAIL_DOMAINS, FieldValue: admin.firestore.FieldValue, admin,
 };
