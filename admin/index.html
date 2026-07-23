@@ -243,6 +243,16 @@ async function uploadFile(file){
   return j.url;
 }
 
+async function adminDelete(collection, id){
+  if(!auth.currentUser){ alert('Sessão expirou. Recarregue a página e entre de novo.'); return false; }
+  try{
+    const token=await auth.currentUser.getIdToken();
+    const r=await fetch('/api/admin-delete',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({collection,id})});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return true;
+  }catch(e){ alert('Não foi possível excluir: '+e.message); return false; }
+}
+
 async function loadCounts(){
   try{
     const c1 = await db.collection('contact_messages').where('status','==','new').get();
@@ -256,31 +266,71 @@ async function loadCounts(){
 
 /* ---------- INBOX (contatos) ---------- */
 async function vInbox(){
-  const v=$('#view'); v.innerHTML='<div class="topbar"><div><h1 class="page">Mensagens de contato</h1><p class="hint">Enviadas pelo formulário do site.</p></div></div><div id="rows">Carregando…</div>';
+  const v=$('#view');
+  v.innerHTML=`<div class="topbar"><div><h1 class="page">Mensagens de contato</h1><p class="hint" id="i-count"></p></div><button class="btn" id="i-csv">⬇ Exportar CSV</button></div>
+  <div class="toolbar">
+    <select class="fld" id="if-status" style="max-width:160px"><option value="">Status: todos</option><option value="new">Novos</option><option value="done">Resolvidos</option></select>
+    <select class="fld" id="if-assunto" style="max-width:230px"><option value="">Assunto: todos</option></select>
+    <select class="fld" id="if-mkt" style="max-width:180px"><option value="">Marketing: todos</option><option value="1">Aceita</option><option value="0">Não aceita</option></select>
+    <input class="fld search" id="if-q" placeholder="Buscar nome, e-mail, mensagem…">
+    <button class="btn btn--ghost btn--sm" id="if-clear">Limpar</button>
+  </div><div id="rows">Carregando…</div>`;
   let snap;
-  try{ snap = await db.collection('contact_messages').orderBy('createdAt','desc').limit(200).get(); }
+  try{ snap = await db.collection('contact_messages').orderBy('createdAt','desc').limit(500).get(); }
   catch(e){ $('#rows').innerHTML='<div class="empty">Não foi possível carregar as mensagens. Recarregue a página.</div>'; return; }
-  if(snap.empty){ $('#rows').innerHTML='<div class="empty">Nenhuma mensagem ainda.</div>'; return; }
-  let h='<table><thead><tr><th>Quando</th><th>Nome</th><th>Contato</th><th>Assunto</th><th>Mensagem</th><th>Marketing</th><th>Status</th><th></th></tr></thead><tbody>';
-  snap.forEach(d=>{ const m=d.data();
-    h+=`<tr><td>${fmtTs(m.createdAt)}</td><td><strong>${esc(m.nome)}</strong></td>
-    <td>${esc(m.email)}<br><span class="hint">${esc(m.telefone||'')}${m.cep?' · CEP '+esc(m.cep):''}</span></td>
-    <td>${esc(m.assunto)}</td><td style="max-width:280px">${esc(m.mensagem)}</td>
-    <td>${m.marketing?'<span class="tag done">✓ aceita</span>':'<span class="hint">—</span>'}</td>
-    <td><span class="tag ${m.status==='done'?'done':'new'}">${m.status==='done'?'resolvido':'novo'}</span></td>
-    <td><button class="btn btn--ghost btn--sm" data-toggle="${d.id}" data-st="${m.status}">${m.status==='done'?'Reabrir':'Resolver'}</button></td></tr>`;
+  if(snap.empty){ $('#i-count').textContent='Nenhuma mensagem ainda.'; $('#rows').innerHTML='<div class="empty">Nenhuma mensagem ainda.</div>'; return; }
+  const all = snap.docs.map(d=>({id:d.id,...d.data()}));
+  const fill=(sel,vals)=>{const s=$(sel);[...new Set(vals.filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt')).forEach(x=>{const o=document.createElement('option');o.value=x;o.textContent=x;s.appendChild(o);});};
+  fill('#if-assunto',all.map(m=>m.assunto));
+  let current=all;
+  function apply(){
+    const st=$('#if-status').value, as=$('#if-assunto').value, mk=$('#if-mkt').value, q=$('#if-q').value.trim().toLowerCase();
+    current=all.filter(m=>(!st||(m.status||'new')===st)&&(!as||m.assunto===as)
+      &&(mk===''||(mk==='1'?!!m.marketing:!m.marketing))
+      &&(!q||[m.nome,m.email,m.telefone,m.mensagem,m.cep].some(x=>String(x||'').toLowerCase().includes(q))));
+    const nNew=all.filter(m=>(m.status||'new')==='new').length;
+    $('#i-count').textContent=`${current.length} de ${all.length} mensagem(ns) · ${nNew} nova(s).`;
+    render(current);
+  }
+  function render(list){
+    if(!list.length){ $('#rows').innerHTML='<div class="empty">Nenhuma mensagem com esses filtros.</div>'; return; }
+    let h='<table><thead><tr><th>Quando</th><th>Nome</th><th>Contato</th><th>Assunto</th><th>Mensagem</th><th>Mkt</th><th>Status</th><th></th></tr></thead><tbody>';
+    list.forEach(m=>{ const stt=(m.status||'new');
+      h+=`<tr><td>${fmtTs(m.createdAt)}</td><td><strong>${esc(m.nome)}</strong></td>
+      <td>${esc(m.email)}<br><span class="hint">${esc(m.telefone||'')}${m.cep?' · CEP '+esc(m.cep):''}</span></td>
+      <td>${esc(m.assunto)}</td><td style="max-width:260px">${esc(m.mensagem)}</td>
+      <td>${m.marketing?'<span class="tag done">✓</span>':'<span class="hint">—</span>'}</td>
+      <td><span class="tag tag--status ${stt==='done'?'done':'new'}">${stt==='done'?'resolvido':'novo'}</span></td>
+      <td><button class="btn btn--ghost btn--sm" data-toggle="${m.id}" data-st="${stt}">${stt==='done'?'Reabrir':'Resolver'}</button> <button class="btn btn--danger btn--sm" data-del="${m.id}">Apagar</button></td></tr>`;
+    });
+    h+='</tbody></table>'; $('#rows').innerHTML=h;
+    $('#rows').querySelectorAll('[data-toggle]').forEach(b=>b.addEventListener('click',async()=>{
+      const ns=b.dataset.st==='done'?'new':'done'; b.disabled=true;
+      try{ await db.collection('contact_messages').doc(b.dataset.toggle).update({status:ns}); }
+      catch(e){ alert('Não foi possível atualizar: '+e.message); b.disabled=false; return; }
+      const rec=all.find(x=>x.id===b.dataset.toggle); if(rec)rec.status=ns;
+      const tr=b.closest('tr'), tag=tr.querySelector('.tag--status');
+      tag.className='tag tag--status '+(ns==='done'?'done':'new'); tag.textContent=ns==='done'?'resolvido':'novo';
+      b.textContent=ns==='done'?'Reabrir':'Resolver'; b.dataset.st=ns; b.disabled=false;
+      loadCounts();
+    }));
+    $('#rows').querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',async()=>{
+      if(!confirm('Apagar esta mensagem permanentemente?')) return; b.disabled=true;
+      if(!await adminDelete('contact_messages', b.dataset.del)){ b.disabled=false; return; }
+      const i=all.findIndex(x=>x.id===b.dataset.del); if(i>=0)all.splice(i,1);
+      apply(); loadCounts();
+    }));
+  }
+  ['#if-status','#if-assunto','#if-mkt'].forEach(s=>$(s).addEventListener('change',apply));
+  $('#if-q').addEventListener('input',apply);
+  $('#if-clear').addEventListener('click',()=>{['#if-status','#if-assunto','#if-mkt','#if-q'].forEach(s=>$(s).value='');apply();});
+  $('#i-csv').addEventListener('click',()=>{
+    const rows=[['data','nome','email','telefone','cep','assunto','mensagem','marketing','status']];
+    current.forEach(m=>rows.push([fmtTsCSV(m.createdAt),m.nome,m.email,m.telefone||'',m.cep||'',m.assunto,m.mensagem,m.marketing?'sim':'não',(m.status||'new')==='done'?'resolvido':'novo']));
+    const csv='﻿'+rows.map(r=>r.map(c=>`"${csvSafe(c).replace(/"/g,'""')}"`).join(';')).join('\r\n');
+    const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); a.download='mensagens-aformula.csv'; a.click();
   });
-  h+='</tbody></table>'; $('#rows').innerHTML=h;
-  v.querySelectorAll('[data-toggle]').forEach(b=>b.addEventListener('click',async()=>{
-    const ns = b.dataset.st==='done'?'new':'done'; b.disabled=true;
-    try{ await db.collection('contact_messages').doc(b.dataset.toggle).update({status:ns}); }
-    catch(e){ alert('Não foi possível atualizar: '+e.message); b.disabled=false; return; }
-    // Atualiza a linha no lugar (preserva a posição de scroll, ao contrário de recarregar a tabela).
-    const tr=b.closest('tr'), tag=tr.querySelector('.tag');
-    tag.className='tag '+(ns==='done'?'done':'new'); tag.textContent=ns==='done'?'resolvido':'novo';
-    b.textContent=ns==='done'?'Reabrir':'Resolver'; b.dataset.st=ns; b.disabled=false;
-    loadCounts();
-  }));
+  apply();
 }
 
 /* ---------- PRESCRITORES ---------- */
@@ -412,7 +462,7 @@ async function vCareer(){
       <td style="max-width:260px">${esc(m.experiencia||'')}</td>
       <td>${m.marketing?'<span class="tag done">✓</span>':'<span class="hint">—</span>'}</td>
       <td><span class="tag ${stt==='done'?'done':'new'}">${stt==='done'?'revisado':'novo'}</span></td>
-      <td><button class="btn btn--ghost btn--sm" data-cvtoggle="${m.id}" data-st="${stt}">${stt==='done'?'Reabrir':'Revisar'}</button></td></tr>`;
+      <td><button class="btn btn--ghost btn--sm" data-cvtoggle="${m.id}" data-st="${stt}">${stt==='done'?'Reabrir':'Revisar'}</button> <button class="btn btn--danger btn--sm" data-cvdel="${m.id}">Apagar</button></td></tr>`;
     });
     h+='</tbody></table>'; $('#rows').innerHTML=h;
     v.querySelectorAll('[data-cvtoggle]').forEach(b=>b.addEventListener('click',async()=>{
@@ -424,6 +474,12 @@ async function vCareer(){
       tag.className='tag '+(ns==='done'?'done':'new'); tag.textContent=ns==='done'?'revisado':'novo';
       b.textContent=ns==='done'?'Reabrir':'Revisar'; b.dataset.st=ns; b.disabled=false;
       loadCounts();
+    }));
+    v.querySelectorAll('[data-cvdel]').forEach(b=>b.addEventListener('click',async()=>{
+      if(!confirm('Apagar esta candidatura permanentemente?')) return; b.disabled=true;
+      if(!await adminDelete('career_applications', b.dataset.cvdel)){ b.disabled=false; return; }
+      const i=all.findIndex(x=>x.id===b.dataset.cvdel); if(i>=0)all.splice(i,1);
+      apply(); loadCounts();
     }));
   }
   ['#cf-status','#cf-area','#cf-cidade'].forEach(s=>$(s).addEventListener('change',apply));
@@ -516,22 +572,49 @@ function editPreContent(p){
 
 /* ---------- NEWSLETTER ---------- */
 async function vNews(){
-  const v=$('#view'); v.innerHTML='<div class="topbar"><div><h1 class="page">Inscritos na newsletter</h1><p class="hint" id="ncount"></p></div><button class="btn" id="csv">Exportar CSV</button></div><div id="rows">Carregando…</div>';
+  const v=$('#view');
+  v.innerHTML=`<div class="topbar"><div><h1 class="page">Inscritos na newsletter</h1><p class="hint" id="ncount"></p></div><button class="btn" id="n-csv">⬇ Exportar CSV</button></div>
+  <div class="toolbar">
+    <select class="fld" id="nf-src" style="max-width:220px"><option value="">Origem: todas</option></select>
+    <input class="fld search" id="nf-q" placeholder="Buscar e-mail…">
+    <button class="btn btn--ghost btn--sm" id="nf-clear">Limpar</button>
+  </div><div id="rows">Carregando…</div>`;
   let snap;
   try{ snap = await db.collection('newsletter').orderBy('createdAt','desc').limit(1000).get(); }
   catch(e){ $('#rows').innerHTML='<div class="empty">Não foi possível carregar os inscritos. Recarregue a página.</div>'; return; }
-  $('#ncount').textContent = snap.size>=1000 ? '1000+ inscritos (mostrando os 1000 mais recentes).' : `${snap.size} inscrito(s).`;
-  if(snap.empty){ $('#rows').innerHTML='<div class="empty">Nenhum inscrito ainda.</div>'; }
-  else{
-    let h='<table><thead><tr><th>Quando</th><th>E-mail</th><th>Origem</th></tr></thead><tbody>';
-    const rows=[['email','origem','data']];
-    snap.forEach(d=>{const m=d.data(); h+=`<tr><td>${fmtTs(m.createdAt)}</td><td>${esc(m.email)}</td><td>${esc(m.source||'')}</td></tr>`; rows.push([m.email,m.source||'',fmtTsCSV(m.createdAt)]);});
-    h+='</tbody></table>'; $('#rows').innerHTML=h;
-    $('#csv').addEventListener('click',()=>{
-      const csv='﻿'+rows.map(r=>r.map(c=>`"${csvSafe(c).replace(/"/g,'""')}"`).join(';')).join('\r\n');
-      const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); a.download='newsletter-aformula.csv'; a.click();
-    });
+  if(snap.empty){ $('#ncount').textContent='Nenhum inscrito ainda.'; $('#rows').innerHTML='<div class="empty">Nenhum inscrito ainda.</div>'; return; }
+  const all = snap.docs.map(d=>({id:d.id,...d.data()}));
+  const fill=(sel,vals)=>{const s=$(sel);[...new Set(vals.filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt')).forEach(x=>{const o=document.createElement('option');o.value=x;o.textContent=x;s.appendChild(o);});};
+  fill('#nf-src',all.map(m=>m.source));
+  let current=all;
+  function apply(){
+    const sr=$('#nf-src').value, q=$('#nf-q').value.trim().toLowerCase();
+    current=all.filter(m=>(!sr||m.source===sr)&&(!q||String(m.email||'').toLowerCase().includes(q)));
+    $('#ncount').textContent=`${current.length} de ${all.length} inscrito(s).`;
+    render(current);
   }
+  function render(list){
+    if(!list.length){ $('#rows').innerHTML='<div class="empty">Nenhum inscrito com esses filtros.</div>'; return; }
+    let h='<table><thead><tr><th>Quando</th><th>E-mail</th><th>Origem</th><th></th></tr></thead><tbody>';
+    list.forEach(m=>{ h+=`<tr><td>${fmtTs(m.createdAt)}</td><td>${esc(m.email)}</td><td>${esc(m.source||'')}</td><td><button class="btn btn--danger btn--sm" data-ndel="${m.id}">Apagar</button></td></tr>`; });
+    h+='</tbody></table>'; $('#rows').innerHTML=h;
+    $('#rows').querySelectorAll('[data-ndel]').forEach(b=>b.addEventListener('click',async()=>{
+      if(!confirm('Remover este e-mail da base de mailing?')) return; b.disabled=true;
+      if(!await adminDelete('newsletter', b.dataset.ndel)){ b.disabled=false; return; }
+      const i=all.findIndex(x=>x.id===b.dataset.ndel); if(i>=0)all.splice(i,1);
+      apply();
+    }));
+  }
+  $('#nf-src').addEventListener('change',apply);
+  $('#nf-q').addEventListener('input',apply);
+  $('#nf-clear').addEventListener('click',()=>{$('#nf-src').value='';$('#nf-q').value='';apply();});
+  $('#n-csv').addEventListener('click',()=>{
+    const rows=[['email','origem','data']];
+    current.forEach(m=>rows.push([m.email,m.source||'',fmtTsCSV(m.createdAt)]));
+    const csv='﻿'+rows.map(r=>r.map(c=>`"${csvSafe(c).replace(/"/g,'""')}"`).join(';')).join('\r\n');
+    const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); a.download='newsletter-aformula.csv'; a.click();
+  });
+  apply();
 }
 
 /* ---------- SETTINGS ---------- */
