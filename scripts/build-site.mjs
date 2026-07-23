@@ -3,7 +3,7 @@
 // Fonte de dados: FIREBASE_SERVICE_ACCOUNT (env). Sem a env, não faz nada (mantém commitado).
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 import { PAGES, applyPageCms } from './cms-pages.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -127,7 +127,7 @@ function buildIndexHtml(src, posts, banner) {
 
 const ART_CSS = fs.readFileSync(path.join(__dirname, 'article.css.html'), 'utf8');
 
-function renderArticle(p, related, parts) {
+export function renderArticle(p, related, parts) {
   const ogImg = p.cover ? `<meta property="og:image" content="${BASE}${E(p.cover)}">` : '';
   const titleBlock = `<title>${E(p.title)} — Blog A Fórmula</title>
 <meta name="description" content="${E(p.excerpt)}">
@@ -171,6 +171,15 @@ ${ogImg}
   const relHtml = related.length ? `<section class="art-rel"><div class="container"><h2>Continue lendo</h2><div class="art-rel-grid">${relCards}</div></div></section>` : '';
   const head = parts.head.replace('{{TITLE_BLOCK}}', titleBlock);
   const crumb = `<nav class="art-crumb" aria-label="breadcrumb"><a href="/index.html">Início</a> <span>/</span> <a href="/blog.html">Blog</a> <span>/</span> <span>${E(p.categoryLabel)}</span></nav>`;
+  const shareUrl = BASE + p.path, shTxt = encodeURIComponent(p.title + ' — ' + shareUrl), shU = encodeURIComponent(shareUrl);
+  const shareBar = `<div class="art-share">
+    <span class="art-share__lbl">Compartilhar:</span>
+    <a class="wa" href="https://wa.me/?text=${shTxt}" target="_blank" rel="noopener" aria-label="Compartilhar no WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm5.8 14.13c-.24.68-1.4 1.3-1.93 1.38-.53.08-1.04.29-3.5-.73-2.95-1.22-4.83-4.27-4.98-4.47-.15-.2-1.2-1.6-1.2-3.05s.76-2.16 1.03-2.46c.27-.3.59-.37.79-.37.2 0 .39.01.56.01.18.01.42-.07.66.5.24.58.82 2.01.89 2.16.07.15.12.32.02.52-.1.2-.15.32-.3.5-.15.17-.31.39-.44.52-.15.15-.3.31-.13.6.17.3.76 1.25 1.63 2.02 1.12.99 2.06 1.3 2.36 1.45.3.15.47.12.64-.07.17-.2.73-.86.93-1.15.2-.3.39-.24.66-.15.27.1 1.7.8 1.99.95.29.15.48.22.55.34.07.12.07.7-.17 1.38z"/></svg>WhatsApp</a>
+    <a href="https://www.facebook.com/sharer/sharer.php?u=${shU}" target="_blank" rel="noopener" aria-label="Compartilhar no Facebook"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0-.002 3.603-.002 8.05c0 4.017 2.926 7.347 6.75 7.951v-5.625h-2.03V8.05H6.75V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.326H9.25V16c3.824-.604 6.75-3.934 6.75-7.951z"/></svg>Facebook</a>
+    <a href="https://www.linkedin.com/sharing/share-offsite/?url=${shU}" target="_blank" rel="noopener" aria-label="Compartilhar no LinkedIn"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854V1.146zm4.943 12.248V6.169H2.542v7.225h2.401zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248-.822 0-1.359.54-1.359 1.248 0 .694.521 1.248 1.327 1.248h.016zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016l.016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225h2.401z"/></svg>LinkedIn</a>
+    <button type="button" class="art-copy" data-copy="${E(shareUrl)}" aria-label="Copiar link do artigo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Copiar link</button>
+    <span class="art-share__ok" id="art-copy-ok" hidden>Link copiado ✓</span>
+  </div>`;
   return `${head}
 ${ART_CSS}
 <script type="application/ld+json">${ld}</script>
@@ -193,11 +202,13 @@ ${parts.header}
   <article class="art-wrap"><div class="art-body">
 ${stripDangerous(p.contentHTML)}
   </div>
+  ${shareBar}
   <a class="art-back" href="/blog.html">← Voltar ao blog</a>
   </article>
   ${relHtml}
 </main>
 ${parts.footer}
+<script id="art-copy-js">(function(){var b=document.querySelector(".art-copy");if(!b)return;b.addEventListener("click",function(){var u=b.getAttribute("data-copy"),ok=document.getElementById("art-copy-ok");function done(){if(ok){ok.hidden=false;setTimeout(function(){ok.hidden=true;},2600);}}if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(u).then(done).catch(done);}else{var t=document.createElement("textarea");t.value=u;document.body.appendChild(t);t.select();try{document.execCommand("copy");}catch(_){}document.body.removeChild(t);done();}});})();</script>
 <script src="/index_assets/a28.js"></script>
 <script src="/index_assets/a31.js"></script>
 </body></html>`;
@@ -370,4 +381,6 @@ ${posts.slice(0,30).map(p=>`- [${p.title}](${BASE}${p.path})${p.excerpt?`: ${p.e
   console.log(`[build] OK — ${posts.length} artigos + blog.html + sitemap + rss + llms regenerados`);
 }
 
-main().catch(err => { console.error('[build] ERRO (mantendo arquivos commitados):', err.message); process.exit(0); });
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch(err => { console.error('[build] ERRO (mantendo arquivos commitados):', err.message); process.exit(0); });
+}

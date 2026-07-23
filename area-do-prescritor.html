@@ -372,6 +372,10 @@ header[data-dc-tpl="6"].hdr-sh{box-shadow:0 6px 24px rgba(0,40,48,.28)}
             Suporte técnico especializado
           </li>
         </ul>
+        <button type="button" id="pa-hero-signup" style="display:inline-flex;align-items:center;gap:10px;margin-top:34px;padding:15px 30px;border:0;border-radius:999px;background:rgb(0,136,150);color:#fff;font-family:Avenir,sans-serif;font-weight:900;font-size:15px;letter-spacing:.02em;cursor:pointer;box-shadow:rgba(0,136,150,.55) 0 16px 32px -16px;transition:background .25s,transform .2s">
+          Criar conta de prescritor
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+        </button>
       </div>
 
       
@@ -562,6 +566,8 @@ select.pa-fld{appearance:none;-webkit-appearance:none;background-image:url("data
 .pa-btn{width:100%;height:52px;border:0;border-radius:999px;background:#008896;color:#fff;font-family:Avenir,sans-serif;font-weight:900;font-size:15px;letter-spacing:.02em;cursor:pointer;transition:background .25s,transform .2s}
 .pa-btn:hover{background:#00727e}.pa-btn:disabled{opacity:.55;cursor:default}
 .pa-link{font-family:Avenir,sans-serif;font-weight:900;color:#008896;text-decoration:underline;text-underline-offset:4px;cursor:pointer;background:none;border:0;font-size:14px}
+/* área de toque maior nos links inline (esqueci senha / criar conta / entrar) */
+a[data-dc-tpl="64"],a[data-dc-tpl="69"],.pa-link{display:inline-block;padding:8px 6px;margin-block:-2px}
 .pa-consent{font-family:Avenir,sans-serif;font-size:12.5px;color:#51686c;line-height:1.5;margin:0}
 .pa-consent a{color:#008896}
 /* área logada */
@@ -778,6 +784,8 @@ auth.onAuthStateChanged(function(user){
     }
   }).catch(function(){ auth.signOut(); });
 });
+var heroSignup=document.getElementById("pa-hero-signup");
+if(heroSignup)heroSignup.addEventListener("click",function(e){e.preventDefault();renderCadastro();if(card)card.scrollIntoView({behavior:"smooth",block:"center"});});
 wireLogin();
 })();</script>
 </body></html>

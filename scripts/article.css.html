@@ -36,4 +36,12 @@
 .rel-cat{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--teal-500);font-weight:700}
 .rel-title{font-size:16.5px;line-height:1.4;font-weight:500}
 .rel-meta{font-size:12.5px;color:#5c7075;margin-top:auto}
+.art-share{display:flex;align-items:center;flex-wrap:wrap;gap:11px;margin-top:40px;padding-top:26px;border-top:1px solid #e2e8e9}
+.art-share__lbl{font-size:13.5px;font-weight:700;color:var(--teal-700);letter-spacing:.02em;margin-right:3px}
+.art-share a,.art-share button{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:42px;padding:0 15px;border-radius:999px;border:1.5px solid #dbe6e6;background:#fff;color:var(--teal-800);font-family:inherit;font-size:13.5px;font-weight:600;text-decoration:none;cursor:pointer;transition:background .2s,color .2s,border-color .2s}
+.art-share a svg,.art-share button svg{width:17px;height:17px}
+.art-share a:hover,.art-share button:hover{background:var(--brand,#008896);border-color:var(--brand,#008896);color:#fff}
+.art-share a.wa:hover{background:#25d366;border-color:#25d366}
+.art-share__ok{font-size:13px;color:var(--brand,#008896);font-weight:700}
+@media(max-width:520px){.art-share__lbl{flex-basis:100%;margin-bottom:2px}}
 </style>
