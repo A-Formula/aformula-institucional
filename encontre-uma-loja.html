@@ -969,7 +969,18 @@ ol,ul{margin:0;padding:0;list-style:none}
 .railcard__acts a:hover{background:var(--brand,#008896);border-color:var(--brand,#008896);color:#fff}
 .railcard__acts a.wa{background:#25d366;border-color:#25d366;color:#fff}
 .railcard__acts a.wa:hover{background:#1eb85a;border-color:#1eb85a}
+.railcard__soon{font-size:11.5px;font-weight:700;padding:6px 13px;border-radius:999px;
+  background:#eef4f4;color:var(--brand,#008896);letter-spacing:.04em;text-transform:uppercase}
 .mapx__empty{color:#fff;font-size:14px;padding:12px 24px;pointer-events:auto}
+
+/* botão usar minha localização */
+.mapx__geo{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:44px;margin-top:10px;
+  border-radius:12px;border:1.5px solid rgba(255,255,255,.28);background:rgba(255,255,255,.08);
+  color:#fff;font-size:13.5px;font-weight:700;font-family:inherit;cursor:pointer;
+  transition:background .2s,border-color .2s}
+.mapx__geo svg{width:17px;height:17px;color:var(--accent-bright,#9fd4d9)}
+.mapx__geo:hover{background:rgba(255,255,255,.16);border-color:var(--accent-bright,#4FB6C0)}
+.mapx__geo:active{transform:scale(.98)}
 
 /* ---- pin do usuário ---- */
 @keyframes pinpulse{0%{transform:scale(.5);opacity:.9}70%{transform:scale(1.7);opacity:0}100%{transform:scale(.5);opacity:0}}
@@ -3494,6 +3505,10 @@ ol,ul{margin:0;padding:0;list-style:none}
           <input id="cepInput" inputmode="numeric" maxlength="9" placeholder="Digite seu CEP" aria-label="CEP">
           <button type="submit" class="btn btn--solid">Buscar</button>
         </div>
+        <button type="button" id="geoBtn" class="mapx__geo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+          Usar minha localização
+        </button>
         <div class="mapx__filters">
           <select id="stateFilter" aria-label="Estado"><option value="">Estado</option></select>
           <select id="cityFilter" aria-label="Cidade" disabled><option value="">Cidade</option></select>

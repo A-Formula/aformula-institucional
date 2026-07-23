@@ -15,6 +15,7 @@
   var statusEl = document.getElementById("status");
   var countEl = document.getElementById("count");
   var clearBtn = document.getElementById("clearBtn");
+  var geoBtn = document.getElementById("geoBtn");
   if (!mapEl || !railEl || typeof maplibregl === "undefined") return;
 
   var STORES = [], userMarker = null, activeId = null, introDone = false;
@@ -43,6 +44,7 @@
     statusEl.className = "mapx__status" + (err ? " is-error" : "");
   }
   function fmtDist(d) { return d < 1 ? Math.round(d * 1000) + " m" : d.toFixed(1) + " km"; }
+  function isSoon(s) { return /em breve/i.test(s.nome || ""); }
 
   /* ---------- mapa ---------- */
   var map = new maplibregl.Map({
@@ -56,7 +58,12 @@
     locale: {
       "CooperativeGesturesHandler.WindowsHelpText": "Use Ctrl + scroll para dar zoom no mapa",
       "CooperativeGesturesHandler.MacHelpText": "Use ⌘ + scroll para dar zoom no mapa",
-      "CooperativeGesturesHandler.MobileHelpText": "Use dois dedos para mover o mapa"
+      "CooperativeGesturesHandler.MobileHelpText": "Use dois dedos para mover o mapa",
+      "NavigationControl.ZoomIn": "Aproximar",
+      "NavigationControl.ZoomOut": "Afastar",
+      "NavigationControl.ResetBearing": "Redefinir orientação para o norte",
+      "GeolocateControl.FindMyLocation": "Usar minha localização",
+      "GeolocateControl.LocationNotAvailable": "Localização indisponível"
     }
   });
   window.__afMap = map; // debug/inspeção
@@ -65,6 +72,13 @@
   map.addControl(geo, "bottom-right");
   geo.on("geolocate", function (e) {
     rankNearest(e.coords.latitude, e.coords.longitude, "sua localização");
+  });
+  geo.on("error", function () {
+    status("Não conseguimos acessar sua localização. Autorize no navegador ou busque pelo CEP.", true);
+  });
+  if (geoBtn) geoBtn.addEventListener("click", function () {
+    status("Localizando você…");
+    try { geo.trigger(); } catch (_) { status("Não conseguimos acessar sua localização. Autorize no navegador ou busque pelo CEP.", true); }
   });
 
   map.on("style.load", function () {
@@ -203,8 +217,11 @@
         '<div class="af-pop__in"><strong>' + s.nome + "</strong>" +
         '<span class="af-pop__loc">' + (s.cidade || "") + (s.estado ? " · " + s.estado : "") + (dist != null ? " — " + fmtDist(dist) : "") + "</span>" +
         (s.endereco ? "<p>" + s.endereco + "</p>" : "") +
-        '<div class="af-pop__acts"><a href="' + mapsLink(s) + '" target="_blank" rel="noopener">Como chegar</a>' +
-        (wa ? '<a class="wa" href="' + wa + '" target="_blank" rel="noopener">WhatsApp</a>' : "") + "</div></div>"
+        '<div class="af-pop__acts">' +
+        (isSoon(s)
+          ? '<span class="railcard__soon">Em breve</span>'
+          : '<a href="' + mapsLink(s) + '" target="_blank" rel="noopener">Como chegar</a>' +
+            (wa ? '<a class="wa" href="' + wa + '" target="_blank" rel="noopener">WhatsApp</a>' : "")) + "</div></div>"
       );
   }
 
@@ -240,8 +257,10 @@
       '<p class="railcard__loc">' + (s.cidade || "") + (s.estado ? " · " + s.estado : "") + "</p>" +
       (s.endereco ? '<p class="railcard__addr">' + s.endereco + "</p>" : "") +
       '<div class="railcard__acts">' +
-      '<a href="' + mapsLink(s) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">Como chegar</a>' +
-      (wa ? '<a class="wa" href="' + wa + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">WhatsApp</a>' : "") +
+      (isSoon(s)
+        ? '<span class="railcard__soon">Em breve</span>'
+        : '<a href="' + mapsLink(s) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">Como chegar</a>' +
+          (wa ? '<a class="wa" href="' + wa + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">WhatsApp</a>' : "")) +
       "</div>";
     el.addEventListener("click", function () { focusStore(s, true); });
     return el;
