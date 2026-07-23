@@ -281,7 +281,7 @@ async function main() {
   // 0) settings/global + rodapé → template dos artigos + páginas que o build não reescreve
   const applyAll = (src) => applySettings(applyFooter(src, settings.footer), settings);
   for (const k of Object.keys(parts)) parts[k] = applyAll(parts[k]);
-  for (const pg of ['contato.html','receita.html','area-do-prescritor.html','encontre-uma-loja.html','lgpd.html']) {
+  for (const pg of ['contato.html','receita.html','area-do-prescritor.html','encontre-uma-loja.html','lgpd.html','404.html']) {
     const f = path.join(ROOT, pg);
     fs.writeFileSync(f, applyAll(fs.readFileSync(f,'utf8')));
   }

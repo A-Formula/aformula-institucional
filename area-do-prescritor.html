@@ -552,6 +552,7 @@ addEventListener("scroll",function(){h.classList.toggle("hdr-sh",scrollY>8)},{pa
 <style id="presc-app-css">
 .pa-fld{width:100%;background:#f5f8f8;border:1.5px solid #e2e8e9;border-radius:999px;padding:13px 20px;font-family:Avenir,sans-serif;font-size:15px;color:#063237;outline:none;transition:border-color .25s}
 .pa-fld:focus{border-color:#008896}
+.pa-fld.pa-invalid{border-color:#e0603f;box-shadow:0 0 0 4px rgba(224,96,63,.12)}
 select.pa-fld{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9' fill='none'%3E%3Cpath d='M1 1l6 6 6-6' stroke='%23008896' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 20px center;padding-right:46px;cursor:pointer}
 .pa-label{font-family:Avenir,sans-serif;font-weight:500;font-size:13.5px;letter-spacing:.02em;color:#16282b;padding-left:6px;display:block;margin-bottom:8px}
 .pa-row{display:flex;gap:12px}.pa-row>div{flex:1;min-width:0}
@@ -669,6 +670,8 @@ function renderCadastro(){
   card.querySelector("#pa-back").addEventListener("click",function(){card.innerHTML=loginHTML;wireLogin();});
   mountCaptcha();
   card.querySelector("#pa-signup").addEventListener("submit",submitCadastro);
+  card.querySelector("#pa-signup").addEventListener("input",function(e){if(e.target&&e.target.classList)e.target.classList.remove("pa-invalid");},true);
+  card.querySelector("#pa-signup").addEventListener("change",function(e){if(e.target&&e.target.classList)e.target.classList.remove("pa-invalid");},true);
 }
 function mountCaptcha(){
   if(!siteKey) return;
@@ -692,9 +695,15 @@ function submitCadastro(e){
     especialidade:g("#pa-esp"), cidade:g("#pa-cidade").trim(), website:g("#pa-web"),
     captcha:(siteKey&&window.grecaptcha)?grecaptcha.getResponse(captchaId):""
   };
-  if(!data.nome||!data.email||!data.telefone||!data.conselho||!data.conselhoNumero||!data.uf||!data.especialidade||!data.cidade){msg(m,"err","Preencha todos os campos obrigatórios.");return;}
-  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(data.email)){msg(m,"err","Confira o e-mail digitado.");return;}
-  if(data.telefone.replace(/\D/g,"").length<10){msg(m,"err","Confira o telefone (DDD + número).");return;}
+  var okEmail=/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(data.email);
+  var okTel=data.telefone.replace(/\D/g,"").length>=10;
+  var checks=[["#pa-nome",!!data.nome],["#pa-email",!!data.email&&okEmail],["#pa-tel",!!data.telefone&&okTel],["#pa-conselho",!!data.conselho],["#pa-cnum",!!data.conselhoNumero],["#pa-uf",!!data.uf],["#pa-esp",!!data.especialidade],["#pa-cidade",!!data.cidade]];
+  var firstBad=null;
+  checks.forEach(function(c){var el=card.querySelector(c[0]);if(el){el.classList.toggle("pa-invalid",!c[1]);if(!c[1]&&!firstBad)firstBad=el;}});
+  if(firstBad){
+    var txt=(!!data.email&&!okEmail)?"Confira o e-mail digitado.":(!!data.telefone&&!okTel)?"Confira o telefone (DDD + número).":"Preencha os campos destacados.";
+    msg(m,"err",txt); try{firstBad.focus();}catch(_){} return;
+  }
   if(siteKey&&!data.captcha){msg(m,"err","Confirme que você não é um robô.");return;}
   btn.disabled=true; msg(m,"ok","Enviando…");
   fetch("/api/prescritor-cadastro",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)})
