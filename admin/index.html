@@ -142,11 +142,21 @@ firebase.initializeApp({
   appId: "1:139838701463:web:9938229ebeed4c545c8ed2"
 });
 const auth = firebase.auth();
-auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(err=>{ // sessão persiste entre reloads/abas
-  // Opera GX e navegadores com anti-fingerprint podem bloquear IndexedDB → persistência falha silenciosa.
+// Persistência resiliente em cascata: LOCAL (IndexedDB) → SESSION (sessionStorage) → NONE (memória).
+// Opera GX e navegadores com anti-fingerprint bloqueiam IndexedDB → LOCAL falha e, sem fallback,
+// o próprio signIn não completa. Caindo pro próximo nível o login FUNCIONA (mesmo que a sessão não
+// sobreviva a fechar a aba). O submit do login aguarda `persistenceReady` antes de autenticar.
+const _P = firebase.auth.Auth.Persistence;
+const persistenceReady = auth.setPersistence(_P.LOCAL).catch(err=>{ // sessão persiste entre reloads/abas
   try{ localStorage.setItem('cmsx_persist_err', JSON.stringify({code:(err&&err.code)||'', msg:(err&&err.message)||'', at:new Date().toISOString()})); }catch(_){}
-});
+  return auth.setPersistence(_P.SESSION);        // sessionStorage: persiste na aba
+}).catch(()=> auth.setPersistence(_P.NONE))      // memória: pelo menos loga nesta sessão
+  .catch(()=>{});                                // último recurso: segue com o default do SDK
 const db = firebase.firestore();
+// Firestore usa streaming (WebChannel) por padrão; redes corporativas, proxies, VPNs e alguns
+// antivírus bloqueiam esse canal → a leitura pendura sem retornar e o login TRAVA em "Entrando…".
+// Auto-detecta a falha e cai pra long-polling (HTTP normal), que passa nessas redes.
+try{ db.settings({ experimentalAutoDetectLongPolling: true, merge: true }); }catch(_){}
 const $ = s => document.querySelector(s);
 const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
@@ -173,10 +183,10 @@ function cmsxDiag(){
 cmsxDiag();
 
 /* ---------- AUTH ---------- */
-const LOGIN_MSGS={'auth/invalid-credential':'E-mail ou senha incorretos.','auth/wrong-password':'E-mail ou senha incorretos.','auth/user-not-found':'E-mail ou senha incorretos.','auth/invalid-email':'E-mail em formato inválido.','auth/too-many-requests':'Muitas tentativas. Aguarde alguns minutos e tente de novo.','auth/network-request-failed':'Falha de rede — verifique sua conexão ou o bloqueio de rastreadores do navegador.','auth/user-disabled':'Esta conta foi desativada.'};
+const LOGIN_MSGS={'auth/invalid-credential':'E-mail ou senha incorretos.','auth/wrong-password':'E-mail ou senha incorretos.','auth/user-not-found':'E-mail ou senha incorretos.','auth/invalid-email':'E-mail em formato inválido.','auth/too-many-requests':'Muitas tentativas. Aguarde alguns minutos e tente de novo.','auth/network-request-failed':'Falha de rede ao autenticar. Se você usa Opera GX/Brave ou bloqueador de anúncios, desative o escudo/ad-blocker para este site (ícone na barra de endereço) ou use o Chrome — eles bloqueiam o login do Firebase.','auth/user-disabled':'Esta conta foi desativada.'};
 $('#loginForm').addEventListener('submit', async e=>{
   e.preventDefault(); const m=$('#lg-msg'); m.className='msg'; m.textContent='Entrando…';
-  try{ await auth.signInWithEmailAndPassword($('#lg-email').value.trim(), $('#lg-pass').value); }
+  try{ await persistenceReady; await auth.signInWithEmailAndPassword($('#lg-email').value.trim(), $('#lg-pass').value); }
   catch(err){ m.className='msg err'; m.textContent = LOGIN_MSGS[err.code] || err.message; }
 });
 $('#lg-forgot').addEventListener('click', async e=>{
@@ -210,8 +220,16 @@ auth.onAuthStateChanged(async user=>{
   // Confirma a allowlist ANTES de mostrar o painel: evita flash da UI privilegiada e leituras negadas
   // (o e-mail é normalizado p/ minúsculas — bate com o doc admins/{email} e com o verifyAdmin do servidor).
   let allowed=true;
-  try{ allowed = (await db.collection('admins').doc((user.email||'').toLowerCase()).get()).exists; }
-  catch(_){ allowed=true; /* erro transitório: mantém logado — o servidor barra quem não é admin */ }
+  try{
+    // Corrida com timeout: se a leitura do Firestore pendurar (WebChannel bloqueado, rede ruim),
+    // não travamos o login pra sempre — libera o painel e deixa o servidor barrar quem não é admin.
+    const snap = await Promise.race([
+      db.collection('admins').doc((user.email||'').toLowerCase()).get(),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error('admins-read-timeout')), 7000))
+    ]);
+    allowed = snap.exists;
+  }
+  catch(_){ allowed=true; /* erro/timeout transitório: mantém logado — o servidor (verifyAdmin) barra quem não é admin */ }
   if(!allowed){
     cmsxNote('nao-admin'); cmsxHandled=true;
     $('#app').classList.add('hidden'); $('#login').classList.remove('hidden');
