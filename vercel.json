@@ -24,6 +24,7 @@
     { "source": "/login", "destination": "/area-do-prescritor", "permanent": true }
   ],
   "rewrites": [
+    { "source": "/download/:path*", "destination": "/download.html" },
     { "source": "/rj", "destination": "https://a-formula-br.vercel.app/rj" },
     { "source": "/rj/:path*", "destination": "https://a-formula-br.vercel.app/rj/:path*" },
     { "source": "/bh", "destination": "https://a-formula-br.vercel.app/bh" },
