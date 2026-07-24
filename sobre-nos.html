@@ -363,6 +363,53 @@ button[data-dc-tpl]:active{transform:scale(.97)}
 }
 </script>
 <!-- SCHEMA:END -->
+<style id="header-canonico">
+/* Header canônico — idêntico à home (index.html). Vars hardcoded (esta página não tem :root). */
+.site-header{position:fixed;top:0;left:0;width:100%;z-index:3000;background:#fff;border-bottom:1px solid rgba(6,50,55,.1);transition:box-shadow .35s cubic-bezier(.22,.61,.36,1),border-color .35s;font-family:"Avenir","Segoe UI",system-ui,-apple-system,sans-serif}
+.site-header.is-scrolled{box-shadow:0 6px 24px rgba(6,50,55,.1);border-bottom-color:rgba(6,50,55,.07)}
+.is-scrolled .navbar{padding:9px 0}
+.navbar{padding:16px 0}
+.navbar__inner{display:flex;align-items:center;gap:24px;width:100%;max-width:1240px;margin:0 auto;padding-inline:clamp(20px,5vw,64px)}
+.brand{display:inline-flex;align-items:center;flex:0 0 auto}
+.brand__logo{height:34px;width:auto;display:block}
+.main-nav{display:flex;gap:30px;flex:1 1 auto;justify-content:center;align-items:center}
+.main-nav a{color:#16282b;font-weight:500;font-size:15px;position:relative;padding:4px 2px;text-align:center;white-space:nowrap;text-decoration:none}
+.main-nav a::after{content:"";position:absolute;left:0;bottom:-2px;width:0;height:2px;background:#008896;transition:width .3s cubic-bezier(.22,.61,.36,1)}
+.main-nav a:hover::after,.main-nav a[aria-current="page"]::after{width:100%}
+.nav-cta{display:flex;gap:12px;margin-left:auto}
+.chip{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:42px;padding:0 22px;border-radius:999px;font-weight:700;font-size:14px;line-height:1;letter-spacing:.01em;text-decoration:none;transition:background .25s,border-color .25s,color .25s,transform .25s cubic-bezier(.22,.61,.36,1)}
+.chip--pet{background:#000;border:1px solid #000;padding:0 18px;min-width:174px}
+.chip--pet img{height:34px;width:auto;display:block}
+.chip--pet:hover{background:#1c1c1c;border-color:#1c1c1c}
+.chip--gold{background:#008896;color:#fff;min-width:174px}
+.chip--gold:hover{background:#04676f;color:#fff}
+.nav-toggle{display:none;flex-direction:column;gap:5px;padding:8px;margin-left:auto;background:none;border:0;cursor:pointer}
+.nav-toggle span{width:26px;height:2px;background:#16282b;border-radius:2px;transition:.3s;display:block}
+@media (max-width:1023px){
+  .main-nav,.nav-cta{position:fixed;top:0;right:-100%;width:min(82vw,360px);height:100vh;background:#008896;flex-direction:column;padding:100px 32px 32px;gap:20px;align-items:flex-start;justify-content:flex-start;flex:0 0 auto;transition:right .4s cubic-bezier(.22,.61,.36,1);z-index:60;box-shadow:-20px 0 60px rgba(0,0,0,.4)}
+  .nav-cta{top:auto;bottom:0;height:auto;right:-100%;padding:0 32px 40px;background:transparent;box-shadow:none;width:min(82vw,360px);justify-content:flex-start}
+  body.nav-open .main-nav,body.nav-open .nav-cta{right:0}
+  .chip{width:100%}
+  .nav-toggle{display:flex;z-index:70}
+  body.nav-open .nav-toggle span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+  body.nav-open .nav-toggle span:nth-child(2){opacity:0}
+  body.nav-open .nav-toggle span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+  body.nav-open .nav-toggle span{background:#fff}
+  .main-nav a{font-size:20px;color:#fff;padding:8px 2px}
+  .nav-cta .chip--pet{color:#fff;border-color:rgba(255,255,255,.4)}
+}
+/* dark-header — header teal #008896 com logo/links brancos (idêntico ao <style id="dark-header"> da home) */
+.site-header{background:#008896;border-bottom-color:rgba(255,255,255,.16)}
+header.site-header{background:#008896}
+.site-header.is-scrolled{box-shadow:0 6px 24px rgba(0,40,48,.22);border-bottom-color:rgba(255,255,255,.12)}
+.site-header .main-nav a{color:#fff}
+.site-header .main-nav a::after{background:#fff}
+.site-header .nav-toggle span{background:#fff}
+.nav-cta .chip--pet{color:#fff;border-color:rgba(255,255,255,.5)}
+.nav-cta .chip--pet:hover{background:rgba(255,255,255,.12);border-color:#fff}
+.site-header .chip--gold{background:#fff;color:#063237}
+.site-header .chip--gold:hover{background:#eaf4f4;color:#063237}
+</style>
 </head>
 <body>
 
@@ -370,27 +417,29 @@ button[data-dc-tpl]:active{transform:scale(.97)}
   <img data-dc-tpl="7" src="sobre-nos_assets/a26.webp" alt="Farmacêutica manipulando uma fórmula no laboratório da A Fórmula" style="position: absolute; inset: 0px; width: 100%; height: 100%; object-fit: cover; object-position: center 38%; z-index: 0;" decoding="async">
   <div data-dc-tpl="8" style="position: absolute; inset: 0px; z-index: 1; background: linear-gradient(rgba(6, 50, 55, 0.46) 0%, rgba(6, 50, 55, 0.58) 50%, rgba(6, 50, 55, 0.92) 100%);"></div>
 
-  <header data-dc-tpl="9" style="position: fixed; top: 0px; left: 0px; width: 100%; z-index: 3000; background: rgb(0, 136, 150); border-bottom: 1px solid rgba(255, 255, 255, 0.16);">
-    <div data-dc-tpl="10" style="width: 100%; max-width: 1240px; margin: 0px auto; padding: 16px clamp(20px, 5vw, 64px);">
-      <div data-dc-tpl="11" style="display: flex; align-items: center; gap: 24px;">
-        <a data-dc-tpl="12" href="index.html" aria-label="A Fórmula — página inicial" style="display: inline-flex; align-items: center; flex: 0 0 auto;">
-          <img data-dc-tpl="13" src="sobre-nos_assets/a27.webp" alt="A Fórmula" style="height: 34px; width: auto; display: block;" decoding="async">
+  <!-- HEADER CANÔNICO (padronizado com a home) -->
+  <header class="site-header" id="header">
+    <div class="navbar">
+      <div class="navbar__inner">
+        <a href="index.html" class="brand" aria-label="A Fórmula — página inicial">
+          <img src="index_assets/a17.webp" alt="A Fórmula" class="brand__logo" decoding="async">
         </a>
-        <nav data-dc-tpl="14" data-nav-links="" style="display: flex; gap: 30px; flex: 1 1 auto; justify-content: center; align-items: center;">
-          <a data-dc-tpl="15" href="#" style="font-family: Avenir, sans-serif; font-weight: 900; font-size: 15px; color: rgb(255, 255, 255); text-decoration: none; white-space: nowrap; padding: 4px 2px; border-bottom: 2px solid rgb(255, 255, 255);">Sobre nós</a>
-          <a data-dc-tpl="16" href="blog.html" class="scp0" style="font-family: Avenir, sans-serif; font-weight: 500; font-size: 15px; color: rgb(255, 255, 255); text-decoration: none; white-space: nowrap; padding: 4px 2px; border-bottom: 2px solid transparent; transition: border-color 0.3s;">Blog</a>
-          <a data-dc-tpl="17" href="area-do-prescritor.html" class="scp0" style="font-family: Avenir, sans-serif; font-weight: 500; font-size: 15px; color: rgb(255, 255, 255); text-decoration: none; white-space: nowrap; padding: 4px 2px; border-bottom: 2px solid transparent; transition: border-color 0.3s;">Área do prescritor</a>
-          <a data-dc-tpl="18" href="encontre-uma-loja.html" class="scp0" style="font-family: Avenir, sans-serif; font-weight: 500; font-size: 15px; color: rgb(255, 255, 255); text-decoration: none; white-space: nowrap; padding: 4px 2px; border-bottom: 2px solid transparent; transition: border-color 0.3s;">Encontre uma loja</a>
-          <a data-dc-tpl="19" href="contato.html" class="scp0" style="font-family: Avenir, sans-serif; font-weight: 500; font-size: 15px; color: rgb(255, 255, 255); text-decoration: none; white-space: nowrap; padding: 4px 2px; border-bottom: 2px solid transparent; transition: border-color 0.3s;">Contato</a>
+
+        <nav class="main-nav" id="mainNav" aria-label="Navegação principal">
+          <a href="sobre-nos.html" aria-current="page">Sobre nós</a>
+          <a href="blog.html">Blog</a>
+          <a href="area-do-prescritor.html">Área do prescritor</a>
+          <a href="encontre-uma-loja.html">Encontre uma loja</a>
+          <a href="contato.html">Contato</a>
         </nav>
-        <div data-dc-tpl="20" data-nav-cta="" style="display: flex; gap: 12px; margin-left: auto; flex: 0 0 auto;">
-          <a data-dc-tpl="21" href="pet.html" class="scp1" style="display: inline-flex; align-items: center; justify-content: center; height: 42px; padding: 0px 22px; border-radius: 999px; font-family: Avenir, sans-serif; font-weight: 900; font-size: 14px; line-height: 1; letter-spacing: 0.01em; color: rgb(255, 255, 255); text-decoration: none; background: #000; border: 1px solid rgba(255, 255, 255, 0.5); transition: background 0.25s, border-color 0.25s;"><img src="assets/logo-af-pet-branco.svg" alt="A Fórmula Pet" style="height: 30px; width: auto; display: block;" loading="lazy" decoding="async"></a>
-          <a data-dc-tpl="22" href="https://franquia.aformulabr.com.br/seja-um-franqueado/" target="_blank" rel="noopener" class="scp2" style="display: inline-flex; align-items: center; justify-content: center; height: 42px; padding: 0px 22px; border-radius: 999px; font-family: Avenir, sans-serif; font-weight: 900; font-size: 14px; line-height: 1; letter-spacing: 0.01em; color: rgb(6, 50, 55); text-decoration: none; background: rgb(255, 255, 255); border: 1px solid rgb(255, 255, 255); transition: background 0.25s, color 0.25s;">Seja um franqueado</a>
+
+        <div class="nav-cta">
+          <a href="pet.html" class="chip chip--pet"><img src="assets/logo-af-pet-branco.svg" alt="A Fórmula Pet" decoding="async"></a>
+          <a href="https://franquia.aformulabr.com.br/seja-um-franqueado/" target="_blank" rel="noopener" class="chip chip--gold">Seja um franqueado</a>
         </div>
-        <button data-dc-tpl="23" data-nav-toggle="" aria-label="Abrir menu" style="display: none; flex-direction: column; gap: 5px; padding: 8px; margin-left: auto; background: none; border: 0px; cursor: pointer;">
-          <span data-dc-tpl="24" style="width: 26px; height: 2px; background: rgb(255, 255, 255); border-radius: 2px; display: block;"></span>
-          <span data-dc-tpl="25" style="width: 26px; height: 2px; background: rgb(255, 255, 255); border-radius: 2px; display: block;"></span>
-          <span data-dc-tpl="26" style="width: 26px; height: 2px; background: rgb(255, 255, 255); border-radius: 2px; display: block;"></span>
+
+        <button class="nav-toggle" id="navToggle" aria-label="Abrir menu" aria-expanded="false">
+          <span></span><span></span><span></span>
         </button>
       </div>
     </div>
@@ -760,35 +809,29 @@ button[data-dc-tpl]:active{transform:scale(.97)}
 
 
 
-<script id="unpack-rehydrate">(function(){var items=document.querySelectorAll("[data-faq-item]");items.forEach(function(it){var q=it.querySelector("[data-faq-q]"); if(!q)return; q.style.cursor="pointer";q.addEventListener("click",function(){var open=it.hasAttribute("data-open");document.querySelectorAll("[data-faq-item][data-open]").forEach(function(o){o.removeAttribute("data-open");});if(!open)it.setAttribute("data-open","");});});var dots=document.querySelectorAll("[data-dif-dot]");var groups=document.querySelectorAll("[data-dif-group]");var ranges=["01 \u2013 03","04 \u2013 06","07 \u2013 09"];function act(i){groups.forEach(function(g){ if(g.getAttribute("data-dif-group")===String(i)){g.setAttribute("data-active","");}else{g.removeAttribute("data-active");} });dots.forEach(function(d){ if(d.getAttribute("data-dif-dot")===String(i)){d.setAttribute("data-active","");}else{d.removeAttribute("data-active");} });document.querySelectorAll("[data-dif-range]").forEach(function(r){ if(ranges[i])r.textContent=ranges[i]; });}dots.forEach(function(d){ d.style.cursor="pointer"; d.addEventListener("click",function(){ act(parseInt(d.getAttribute("data-dif-dot"),10)); }); });})();</script><style id="unpack-mobilenav">
-[data-nav-toggle]{background:none;border:0;cursor:pointer;flex-direction:column;gap:5px;padding:8px;display:none}
-[data-nav-toggle] span{width:24px;height:2px;background:#fff;display:block;border-radius:2px;transition:transform .3s,opacity .3s}
-@media(max-width:1023px){
-  [data-nav-toggle]{display:flex!important;margin-left:auto;z-index:70;position:relative}
-  [data-nav-cta]{display:none!important}
-  [data-nav-links]{position:fixed!important;top:0;right:0;height:100vh;width:min(82vw,340px);background:#008896;
-    flex-direction:column!important;justify-content:center;align-items:flex-start!important;gap:26px!important;
-    padding:88px 36px!important;margin:0!important;transform:translateX(100%);transition:transform .35s ease;
-    z-index:60;box-shadow:-24px 0 60px rgba(0,20,26,.35);display:flex!important}
-  [data-nav-links] a{font-size:20px!important}
-  body[data-nav-open]{overflow:hidden}
-  body[data-nav-open] [data-nav-links]{transform:translateX(0)}
-  body[data-nav-open]::before{content:"";position:fixed;inset:0;background:rgba(0,20,26,.5);z-index:55}
-  body[data-nav-open] [data-nav-toggle] span:nth-child(1){transform:translateY(7px) rotate(45deg)}
-  body[data-nav-open] [data-nav-toggle] span:nth-child(2){opacity:0}
-  body[data-nav-open] [data-nav-toggle] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
-}
-</style>
-<script id="unpack-mobilenav-js">(function(){
-  var header=document.querySelector('header'); if(!header) return;
-  var nav=header.querySelector('[data-nav-links]')||header.querySelector('nav'); if(!nav) return;
-  nav.setAttribute('data-nav-links','');
-  var toggle=header.querySelector('[data-nav-toggle]');
-  if(!toggle){toggle=document.createElement('button');toggle.setAttribute('data-nav-toggle','');
-    toggle.setAttribute('aria-label','Abrir menu');toggle.innerHTML='<span></span><span></span><span></span>';
-    nav.parentNode.appendChild(toggle);}
-  toggle.addEventListener('click',function(){document.body.toggleAttribute('data-nav-open');});
-  nav.addEventListener('click',function(e){if(e.target.closest('a'))document.body.removeAttribute('data-nav-open');});
+<script id="unpack-rehydrate">(function(){var items=document.querySelectorAll("[data-faq-item]");items.forEach(function(it){var q=it.querySelector("[data-faq-q]"); if(!q)return; q.style.cursor="pointer";q.addEventListener("click",function(){var open=it.hasAttribute("data-open");document.querySelectorAll("[data-faq-item][data-open]").forEach(function(o){o.removeAttribute("data-open");});if(!open)it.setAttribute("data-open","");});});var dots=document.querySelectorAll("[data-dif-dot]");var groups=document.querySelectorAll("[data-dif-group]");var ranges=["01 \u2013 03","04 \u2013 06","07 \u2013 09"];function act(i){groups.forEach(function(g){ if(g.getAttribute("data-dif-group")===String(i)){g.setAttribute("data-active","");}else{g.removeAttribute("data-active");} });dots.forEach(function(d){ if(d.getAttribute("data-dif-dot")===String(i)){d.setAttribute("data-active","");}else{d.removeAttribute("data-active");} });document.querySelectorAll("[data-dif-range]").forEach(function(r){ if(ranges[i])r.textContent=ranges[i]; });}dots.forEach(function(d){ d.style.cursor="pointer"; d.addEventListener("click",function(){ act(parseInt(d.getAttribute("data-dif-dot"),10)); }); });})();</script><script id="header-nav-js">(function(){
+  /* Mobile nav toggle + header bg on scroll — idêntico ao index_assets/a28.js da home */
+  var toggle=document.getElementById("navToggle");
+  if(toggle){
+    toggle.addEventListener("click",function(){
+      var open=document.body.classList.toggle("nav-open");
+      toggle.setAttribute("aria-expanded",open?"true":"false");
+    });
+    document.querySelectorAll("#mainNav a, .nav-cta a").forEach(function(a){
+      a.addEventListener("click",function(){
+        document.body.classList.remove("nav-open");
+        toggle.setAttribute("aria-expanded","false");
+      });
+    });
+  }
+  var header=document.getElementById("header");
+  function onScroll(){
+    if(!header)return;
+    if(window.scrollY>40)header.classList.add("is-scrolled");
+    else header.classList.remove("is-scrolled");
+  }
+  window.addEventListener("scroll",onScroll,{passive:true});
+  onScroll();
 })();</script>
 <script id="polish-motion-js">(function(){
 if(!document.documentElement.classList.contains("anim"))return;
