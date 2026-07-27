@@ -1,9 +1,15 @@
-// Templates dos e-mails de BOAS-VINDAS enviados ao público (newsletter + cadastro de prescritor).
+// Templates dos e-mails enviados ao público. Copy da régua institucional v1 —
+// spec e racional em APLICAÇÕES/clientes/a-formula/email/EMAILS-INSTITUCIONAL-v1.md
+//   welcomeNewsletter()                          → N1 (opt-in na newsletter)
+//   welcomePrescriber(nome, dados)               → P1 (cadastro de prescritor recebido)
+//   approvalPrescriber(nome, resetLink, dados)   → P2 (aprovado — carrega o link de senha)
 // Objetivo além de acolher: pedir que a pessoa ADICIONE o remetente aos contatos — melhora a
 // entregabilidade de todos os e-mails futuros (aprovação de prescritor, avisos, novidades).
-// Cada função retorna { subject, text, html } pro sendMail(to, subject, text, html).
+// Cada função retorna { subject, text, html } pro sendMail(to, subject, text, html, replyTo).
 const SENDER = "no_reply@aformulabrasil.com.br";
 const SAC = "sac@aformulabr.com.br";
+const SITE = "https://www.aformulabr.com.br";
+const AREA_URL = `${SITE}/area-do-prescritor`;
 const TEAL = "#008896";
 const DARK = "#052c32";
 
@@ -11,7 +17,7 @@ const esc = (s) => String(s || "").replace(/[&<>"']/g, (c) =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
 // Casca comum: card branco 600px, faixa teal com o wordmark em texto (sem imagens —
-// imagem quebrada em cliente de e-mail piora spam score e a URL do site ainda vai mudar no corte).
+// imagem quebrada em cliente de e-mail piora spam score).
 function layout(bodyHtml) {
   return `<!doctype html>
 <html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
@@ -27,10 +33,11 @@ function layout(bodyHtml) {
           ${bodyHtml}
         </td></tr>
         <tr><td style="padding:18px 32px 26px;border-top:1px solid #edf2f2;color:#7a8c8c;font-size:12px;line-height:1.6;">
-          Este é um e-mail automático enviado por <strong>${SENDER}</strong>.<br>
-          Dúvidas ou atendimento: <a href="mailto:${SAC}" style="color:${TEAL};">${SAC}</a> ·
+          Este e-mail foi enviado por <strong>${SENDER}</strong>. Você pode responder — as respostas
+          chegam numa caixa monitorada por gente.<br>
+          Atendimento: <a href="mailto:${SAC}" style="color:${TEAL};">${SAC}</a> ·
           <a href="https://www.instagram.com/aformulafarmacia" style="color:${TEAL};">@aformulafarmacia</a><br>
-          A Fórmula — há mais de 37 anos cuidando da sua saúde.
+          A Fórmula — farmácia de manipulação em 87 cidades.
         </td></tr>
       </table>
     </td></tr>
@@ -38,43 +45,68 @@ function layout(bodyHtml) {
 </body></html>`;
 }
 
+// Botão de CTA único (a régua proíbe CTA concorrente no mesmo e-mail).
+function btn(href, label) {
+  return `
+  <table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0;">
+    <tr><td style="background:${TEAL};border-radius:8px;">
+      <a href="${href}" style="display:inline-block;padding:14px 28px;color:#ffffff;font-size:15px;font-weight:bold;text-decoration:none;">${label}</a>
+    </td></tr>
+  </table>`;
+}
+
 // Bloco reutilizável: instrução de adicionar o remetente aos contatos (anti-spam).
 const addContactHtml = `
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0;">
     <tr><td style="background:#eef7f6;border-left:4px solid ${TEAL};border-radius:6px;padding:16px 18px;font-size:14px;color:${DARK};">
-      <strong>📥 Importante — garanta que nossos e-mails cheguem até você:</strong><br>
-      adicione <strong>${SENDER}</strong> aos seus contatos (ou marque este e-mail como
-      "Não é spam" / arraste para a caixa <em>Principal</em>). Assim nossos próximos avisos
-      não caem na pasta de spam ou promoções.
+      <strong>Um pedido prático:</strong> adicione <strong>${SENDER}</strong> aos seus contatos, ou
+      arraste este e-mail pra caixa <em>Principal</em>. É o que impede que o próximo caia em
+      promoções ou spam.
     </td></tr>
   </table>`;
-const addContactText =
-  `IMPORTANTE — garanta que nossos e-mails cheguem até você:\n` +
-  `adicione ${SENDER} aos seus contatos (ou marque este e-mail como "Não é spam").\n` +
-  `Assim nossos próximos avisos não caem na pasta de spam.`;
 
-// ── Boas-vindas: NEWSLETTER ──
+// PS — segunda seção mais lida depois do assunto. Nunca repete o CTA: acrescenta razão nova.
+const ps = (t) => `<p style="margin:22px 0 0;padding-top:16px;border-top:1px solid #edf2f2;font-size:14px;color:${DARK};"><strong>PS:</strong> ${t}</p>`;
+
+// ── N1 · Boas-vindas da NEWSLETTER ──
+// A coleção guarda só {email, source, consent} → esta régua NÃO tem primeiro nome disponível.
+// O tema é coletado por RESPOSTA, não por link: não existe centro de preferências ainda, e pedir
+// resposta funciona hoje (o Reply-To já está configurado em _lib/backend.js).
 function welcomeNewsletter() {
-  const subject = "Inscrição confirmada — bem-vindo(a) à A Fórmula";
+  const subject = "Escolhe o que você quer receber";
+  const temas = "saúde e bem-estar, pele e cabelo, performance e suplementação, e pet";
   const text =
     `Olá!\n\n` +
-    `Sua inscrição na newsletter da A Fórmula foi confirmada. A partir de agora você recebe ` +
-    `em primeira mão nossos conteúdos de saúde e bem-estar, novidades e lançamentos.\n\n` +
-    `${addContactText}\n\n` +
-    `Enquanto isso, visite nosso blog e conheça nossas linhas em aformulabr.com.br.\n\n` +
-    `Se você não fez esta inscrição ou não quer mais receber, escreva para ${SAC}.\n\n` +
-    `A Fórmula — há mais de 37 anos cuidando da sua saúde.`;
+    `Sua inscrição na newsletter da A Fórmula está confirmada.\n\n` +
+    `Antes de mais nada, uma pergunta — porque mandar tudo pra todo mundo é o jeito mais rápido ` +
+    `de virar spam: sobre o que você quer receber?\n\n` +
+    `São quatro temas: ${temas}.\n\n` +
+    `RESPONDE ESTE E-MAIL COM O TEMA QUE TE INTERESSA (uma palavra basta) e eu mando só aquilo.\n\n` +
+    `Combinado de frequência, pra não ter surpresa: uma edição por semana, sempre no mesmo dia. ` +
+    `Nada de e-mail diário, nada de promoção disfarçada de conteúdo.\n\n` +
+    `Quem escreve é o time de farmacêuticos da A Fórmula. O que você lê aqui passa por alguém ` +
+    `com CRF antes de sair.\n\n` +
+    `Um pedido prático: adicione ${SENDER} aos seus contatos, ou arraste este e-mail pra caixa ` +
+    `Principal. É o que impede que o próximo caia em promoções.\n\n` +
+    `PS: Se não responder, tudo bem — você recebe a edição geral. E o link pra sair está no pé ` +
+    `de todas, sem ressentimento.\n\n` +
+    `A Fórmula — farmácia de manipulação em 87 cidades.`;
   const html = layout(`
-    <h1 style="margin:0 0 14px;font-size:21px;color:${DARK};">Inscrição confirmada 💚</h1>
+    <h1 style="margin:0 0 14px;font-size:21px;color:${DARK};">Escolhe o que você quer receber</h1>
     <p style="margin:0 0 14px;">Olá!</p>
-    <p style="margin:0 0 14px;">Sua inscrição na newsletter da <strong>A Fórmula</strong> foi confirmada.
-      A partir de agora você recebe em primeira mão nossos conteúdos de saúde e bem-estar,
-      novidades e lançamentos.</p>
+    <p style="margin:0 0 14px;">Sua inscrição na newsletter da <strong>A Fórmula</strong> está confirmada.</p>
+    <p style="margin:0 0 14px;">Antes de mais nada, uma pergunta — porque mandar tudo pra todo mundo
+      é o jeito mais rápido de virar spam: sobre o que você quer receber?</p>
+    <p style="margin:0 0 14px;">São quatro temas: ${temas}.</p>
+    <p style="margin:0 0 14px;"><strong>Responde este e-mail com o tema que te interessa</strong>
+      — uma palavra basta — e eu mando só aquilo.</p>
+    <p style="margin:0 0 14px;">Combinado de frequência, pra não ter surpresa: uma edição por semana,
+      sempre no mesmo dia. Nada de e-mail diário, nada de promoção disfarçada de conteúdo.</p>
+    <p style="margin:0 0 14px;">Quem escreve é o time de farmacêuticos da A Fórmula. O que você lê
+      aqui passa por alguém com CRF antes de sair.</p>
     ${addContactHtml}
-    <p style="margin:0 0 14px;">Enquanto isso, visite nosso blog e conheça nossas linhas em
-      <a href="https://aformulabr.com.br" style="color:${TEAL};font-weight:bold;">aformulabr.com.br</a>.</p>
-    <p style="margin:0;color:#7a8c8c;font-size:13px;">Se você não fez esta inscrição ou não quer mais
-      receber, escreva para <a href="mailto:${SAC}" style="color:${TEAL};">${SAC}</a>.</p>`);
+    ${ps(`Se não responder, tudo bem — você recebe a edição geral. E o link pra sair está no pé de
+      todas, sem ressentimento.`)}`);
   return { subject, text, html };
 }
 
@@ -86,34 +118,122 @@ function firstName(nome) {
   return first || parts[0] || "prescritor(a)";
 }
 
-// ── Boas-vindas: CADASTRO DE PRESCRITOR (recebido, em análise) ──
-function welcomePrescriber(nome) {
+// "CRM 12345/SP" a partir do que o cadastro coletou. Vazio se não vier nada — a copy se adapta.
+function registro(d) {
+  const { conselho, conselhoNumero, uf } = d || {};
+  if (!conselho || !conselhoNumero) return "";
+  return `${conselho} ${conselhoNumero}${uf ? `/${uf}` : ""}`;
+}
+
+// Assinatura institucional, sem nome e sem CRF individual (decisão do operador 2026-07-27:
+// nada que exponha uma pessoa específica ou que precise de manutenção quando alguém sai).
+// O diferencial que a copy explora não é a IDENTIDADE do farmacêutico — é o ACESSO a ele:
+// assinar a fórmula é obrigação legal de qualquer farmácia; deixar você falar com quem assina, não.
+const ASSINATURA_LINHA =
+  "Toda fórmula manipulada é conferida e assinada pelo farmacêutico responsável da unidade.";
+
+function assinaturaText() {
+  return `Equipe A Fórmula\n${ASSINATURA_LINHA}`;
+}
+function assinaturaHtml() {
+  return `<p style="margin:22px 0 0;font-size:14px;line-height:1.5;"><strong>Equipe A Fórmula</strong><br>
+       <span style="color:#5b7276;">${ASSINATURA_LINHA}</span></p>`;
+}
+
+// ── P1 · CADASTRO DE PRESCRITOR recebido (em análise) ──
+// Jargão técnico é OBRIGATÓRIO nesta régua: é par falando com par, e copy de paciente
+// reaproveitada queima credibilidade na primeira linha.
+function welcomePrescriber(nome, dados) {
   const primeiro = firstName(nome);
-  const subject = "Recebemos seu cadastro — Área do Prescritor A Fórmula";
+  const reg = registro(dados);
+  const conselho = (dados && dados.conselho) || "conselho";
+  const subject = "Cadastro em análise";
   const text =
-    `Olá, ${primeiro}!\n\n` +
-    `Recebemos seu cadastro na Área do Prescritor da A Fórmula. Nossa equipe vai analisar ` +
-    `seus dados e, assim que o acesso for aprovado, você recebe NESTE E-MAIL o link para ` +
-    `definir sua senha e entrar.\n\n` +
-    `${addContactText}\n` +
-    `O e-mail de aprovação é o passo mais importante — não deixe que ele se perca.\n\n` +
-    `Na Área do Prescritor você encontra conteúdo científico, sugestões de fórmulas e ` +
-    `materiais exclusivos para a sua prática.\n\n` +
-    `Dúvidas? Escreva para ${SAC}.\n\n` +
-    `A Fórmula — há mais de 37 anos cuidando da sua saúde.`;
+    `Dr(a). ${primeiro},\n\n` +
+    `Recebemos seu cadastro na Área do Prescritor. Antes de liberar o acesso conferimos o ` +
+    `registro no conselho${reg ? ` — ${reg}, no seu caso` : ""}. É por isso que não é automático: ` +
+    `o conteúdo de lá é técnico e restrito a quem prescreve.\n\n` +
+    `Prazo: até 3 dias úteis. O link pra definir a senha chega neste mesmo e-mail.\n\n` +
+    `O que fica disponível depois da aprovação:\n` +
+    `- ativos com faixas de dose usuais e limites de manipulação;\n` +
+    `- formas farmacêuticas disponíveis: cápsula, sachê, gel, creme, solução, cápsula de liberação modificada;\n` +
+    `- modelo de receituário magistral;\n` +
+    `- contato direto do farmacêutico responsável, sem central no meio.\n\n` +
+    `Um pedido prático: adicione ${SENDER} aos seus contatos. O e-mail de aprovação é o que ` +
+    `carrega o link de acesso, e ele não pode cair em spam.\n\n` +
+    `${assinaturaText()}\n\n` +
+    `PS: Passou de três dias úteis e nada chegou? Responde este e-mail que eu verifico na hora. ` +
+    `Quase sempre é divergência de grafia entre o nome do cadastro e o do ${conselho}.`;
   const html = layout(`
-    <h1 style="margin:0 0 14px;font-size:21px;color:${DARK};">Cadastro recebido ✓</h1>
-    <p style="margin:0 0 14px;">Olá, <strong>${esc(primeiro)}</strong>!</p>
-    <p style="margin:0 0 14px;">Recebemos seu cadastro na <strong>Área do Prescritor</strong> da A Fórmula.
-      Nossa equipe vai analisar seus dados e, assim que o acesso for aprovado, você recebe
-      <strong>neste e-mail</strong> o link para definir sua senha e entrar.</p>
+    <h1 style="margin:0 0 14px;font-size:21px;color:${DARK};">Cadastro em análise</h1>
+    <p style="margin:0 0 14px;">Dr(a). <strong>${esc(primeiro)}</strong>,</p>
+    <p style="margin:0 0 14px;">Recebemos seu cadastro na <strong>Área do Prescritor</strong>. Antes de
+      liberar o acesso conferimos o registro no conselho${reg ? ` — <strong>${esc(reg)}</strong>, no seu caso` : ""}.
+      É por isso que não é automático: o conteúdo de lá é técnico e restrito a quem prescreve.</p>
+    <p style="margin:0 0 14px;"><strong>Prazo: até 3 dias úteis.</strong> O link pra definir a senha
+      chega neste mesmo e-mail.</p>
+    <p style="margin:0 0 8px;">O que fica disponível depois da aprovação:</p>
+    <ul style="margin:0 0 14px;padding-left:20px;">
+      <li style="margin-bottom:6px;">ativos com faixas de dose usuais e limites de manipulação;</li>
+      <li style="margin-bottom:6px;">formas farmacêuticas disponíveis — cápsula, sachê, gel, creme, solução, cápsula de liberação modificada;</li>
+      <li style="margin-bottom:6px;">modelo de receituário magistral;</li>
+      <li>contato direto do farmacêutico responsável, sem central no meio.</li>
+    </ul>
     ${addContactHtml}
-    <p style="margin:0 0 14px;">O e-mail de aprovação é o passo mais importante — não deixe que ele se perca.</p>
-    <p style="margin:0 0 14px;">Na Área do Prescritor você encontra conteúdo científico, sugestões de
-      fórmulas e materiais exclusivos para a sua prática.</p>
-    <p style="margin:0;color:#7a8c8c;font-size:13px;">Dúvidas? Escreva para
-      <a href="mailto:${SAC}" style="color:${TEAL};">${SAC}</a>.</p>`);
+    <p style="margin:0;">O e-mail de aprovação é o que carrega o link de acesso — é o único que você
+      realmente não pode perder.</p>
+    ${assinaturaHtml()}
+    ${ps(`Passou de três dias úteis e nada chegou? Responde este e-mail que eu verifico na hora.
+      Quase sempre é divergência de grafia entre o nome do cadastro e o do ${esc(conselho)}.`)}`);
   return { subject, text, html };
 }
 
-module.exports = { welcomeNewsletter, welcomePrescriber };
+// ── P2 · CADASTRO APROVADO ──
+// 🔴 O resetLink é a FUNÇÃO deste e-mail: vem primeiro, antes de qualquer conteúdo.
+// É daqui que P3–P6 contam o offset (evento de aprovação, não de cadastro).
+function approvalPrescriber(nome, resetLink, dados) {
+  const primeiro = firstName(nome);
+  const reg = registro(dados);
+  const subject = `Acesso liberado, Dr(a). ${primeiro}`;
+  const text =
+    `Dr(a). ${primeiro},\n\n` +
+    `Cadastro aprovado.${reg ? ` Registro conferido: ${reg}.` : ""}\n\n` +
+    `Defina sua senha de acesso neste link:\n${resetLink}\n\n` +
+    `Depois é só entrar em ${AREA_URL} com o seu e-mail e a senha que você criar.\n\n` +
+    `Prescrever magistral exige saber o que a farmácia consegue executar: faixa de dose viável, ` +
+    `forma farmacêutica compatível com o ativo, o que estabiliza e o que não estabiliza. Essa ` +
+    `informação normalmente fica atrás do balcão. Aqui ela está aberta:\n` +
+    `- ativos com faixas usuais e limites de manipulação;\n` +
+    `- formas farmacêuticas disponíveis e as incompatibilidades comuns;\n` +
+    `- modelo de receituário magistral;\n` +
+    `- telefone direto do farmacêutico responsável.\n\n` +
+    `${assinaturaText()}\n\n` +
+    `PS: O telefone que está lá dentro não é 0800. É o ramal do farmacêutico. Se precisar discutir ` +
+    `a viabilidade de uma fórmula antes de prescrever, é pra lá que se liga.`;
+  const html = layout(`
+    <h1 style="margin:0 0 14px;font-size:21px;color:${DARK};">Acesso liberado</h1>
+    <p style="margin:0 0 14px;">Dr(a). <strong>${esc(primeiro)}</strong>,</p>
+    <p style="margin:0 0 14px;">Cadastro aprovado.${reg ? ` Registro conferido: <strong>${esc(reg)}</strong>.` : ""}</p>
+    <p style="margin:0 0 4px;">Defina sua senha de acesso:</p>
+    ${btn(resetLink, "Definir minha senha")}
+    <p style="margin:0 0 18px;font-size:13px;color:#5b7276;">Se o botão não funcionar, copie e cole
+      este endereço no navegador:<br><span style="word-break:break-all;">${esc(resetLink)}</span></p>
+    <p style="margin:0 0 14px;">Depois é só entrar na
+      <a href="${AREA_URL}" style="color:${TEAL};">Área do Prescritor</a> com o seu e-mail e a
+      senha que você criar.</p>
+    <p style="margin:0 0 14px;">Prescrever magistral exige saber o que a farmácia consegue executar:
+      faixa de dose viável, forma farmacêutica compatível com o ativo, o que estabiliza e o que não
+      estabiliza. Essa informação normalmente fica atrás do balcão. Aqui ela está aberta:</p>
+    <ul style="margin:0 0 14px;padding-left:20px;">
+      <li style="margin-bottom:6px;">ativos com faixas usuais e limites de manipulação;</li>
+      <li style="margin-bottom:6px;">formas farmacêuticas disponíveis e as incompatibilidades comuns;</li>
+      <li style="margin-bottom:6px;">modelo de receituário magistral;</li>
+      <li>telefone direto do farmacêutico responsável.</li>
+    </ul>
+    ${assinaturaHtml()}
+    ${ps(`O telefone que está lá dentro não é 0800. É o ramal do farmacêutico. Se precisar discutir
+      a viabilidade de uma fórmula antes de prescrever, é pra lá que se liga.`)}`);
+  return { subject, text, html };
+}
+
+module.exports = { welcomeNewsletter, welcomePrescriber, approvalPrescriber };

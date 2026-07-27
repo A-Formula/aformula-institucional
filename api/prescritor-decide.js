@@ -6,18 +6,16 @@
 // reject:  marca rejected, desativa o usuário (se existir) e remove o prescriber_access.
 const crypto = require("crypto");
 const { getDb, verifyAdmin, sendMail, admin, FieldValue } = require("./_lib/backend");
+const { approvalPrescriber } = require("./_lib/emails");
 
 const AREA_URL = "https://www.aformulabr.com.br/area-do-prescritor";
 
-function sendApprovalEmail(to, nome, resetLink) {
-  return sendMail(
-    to,
-    "Cadastro aprovado — Área do Prescritor A Fórmula",
-    `Olá, ${nome}!\n\nSeu cadastro na Área do Prescritor da A Fórmula foi aprovado.\n\n` +
-    `Defina sua senha de acesso neste link:\n${resetLink}\n\n` +
-    `Depois é só entrar em ${AREA_URL} com seu e-mail e a senha criada.\n\n` +
-    `Equipe A Fórmula`
-  );
+// P2 da régua institucional. O resetLink é a função do e-mail — vem antes de qualquer conteúdo.
+// Reply-To no farmacêutico responsável (REPLY_TO_PRESCRITOR), não no SAC: régua de prescritor é
+// par-a-par, e mandar a resposta dele pra central é exatamente o que o Tilt promete não fazer.
+function sendApprovalEmail(to, nome, resetLink, dados) {
+  const m = approvalPrescriber(nome, resetLink, dados);
+  return sendMail(to, m.subject, m.text, m.html, process.env.REPLY_TO_PRESCRITOR);
 }
 
 module.exports = async (req, res) => {
@@ -79,7 +77,9 @@ module.exports = async (req, res) => {
     console.error("[decide] resetLink com continueUrl falhou (dominio nao autorizado?):", e && e.code);
     resetLink = await admin.auth().generatePasswordResetLink(p.email);
   }
-  const emailSent = await sendApprovalEmail(p.email, p.nome, resetLink).catch(() => false);
+  const emailSent = await sendApprovalEmail(p.email, p.nome, resetLink, {
+    conselho: p.conselho, conselhoNumero: p.conselhoNumero, uf: p.uf,
+  }).catch(() => false);
 
   return res.status(200).json({ ok: true, status: "approved", emailSent, resetLink });
 };

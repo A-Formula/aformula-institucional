@@ -105,8 +105,8 @@ module.exports = async (req, res) => {
 
   // Boas-vindas ao próprio prescritor (confirma recebimento + pede p/ adicionar o remetente aos
   // contatos, pra que o e-mail de APROVAÇÃO com o link de senha não caia no spam). Best effort.
-  const wm = welcomePrescriber(nome);
-  await sendMail(email, wm.subject, wm.text, wm.html)
+  const wm = welcomePrescriber(nome, { conselho, conselhoNumero, uf });
+  await sendMail(email, wm.subject, wm.text, wm.html, process.env.REPLY_TO_PRESCRITOR)
     .catch((e) => console.error("[cadastro] boas-vindas falhou:", e && e.message));
 
   return res.status(200).json({ ok: true });

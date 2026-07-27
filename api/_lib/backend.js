@@ -52,12 +52,23 @@ function mailFrom() {
   return process.env.NOTIFY_FROM ||
     (process.env.SMTP_USER ? `Site A Fórmula <${process.env.SMTP_USER}>` : "Site A Fórmula <onboarding@resend.dev>");
 }
+// Caixa que RECEBE as respostas. O From é no_reply@, então sem Reply-To toda resposta do
+// público morre — e vários e-mails da régua pedem resposta explicitamente (P4/P5/P6/N1/N2).
+function mailReplyTo() {
+  return process.env.MAIL_REPLY_TO || "sac@aformulabr.com.br";
+}
 // Envia um e-mail avulso (texto + HTML opcional). Retorna true/false, nunca lança — o chamador decide o que fazer.
-async function sendMail(to, subject, text, html) {
+// replyTo: sobrescreve a caixa de resposta (ex.: e-mail do farmacêutico nas réguas de prescritor).
+// Passar null desliga o Reply-To (notificação interna não precisa).
+async function sendMail(to, subject, text, html, replyTo) {
   const from = mailFrom();
+  const rt = replyTo === null ? null : (replyTo || mailReplyTo());
   const t = mailer();
   if (t) {
-    try { await t.sendMail({ from, to, subject, text, ...(html ? { html } : {}) }); return true; }
+    try {
+      await t.sendMail({ from, to, subject, text, ...(html ? { html } : {}), ...(rt ? { replyTo: rt } : {}) });
+      return true;
+    }
     catch (e) { console.error("[sendMail] SMTP falhou:", e && e.message); /* cai pro Resend abaixo */ }
   }
   const key = process.env.RESEND_API_KEY;
@@ -66,13 +77,17 @@ async function sendMail(to, subject, text, html) {
     const r = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from, to: [to], subject, text, ...(html ? { html } : {}) }),
+      body: JSON.stringify({
+        from, to: [to], subject, text,
+        ...(html ? { html } : {}), ...(rt ? { reply_to: rt } : {}),
+      }),
     });
     return r.ok;
   } catch (e) { console.error("[sendMail] Resend falhou:", e && e.message); return false; }
 }
 async function notify(subject, text) {
-  return sendMail(await notifyTo(), subject, text);
+  // Notificação interna: sem Reply-To, pra responder ao lead continuar sendo ato deliberado.
+  return sendMail(await notifyTo(), subject, text, null, null);
 }
 
 // Adiciona um e-mail à base de mailing (coleção "newsletter"), idempotente. Usado pelo
