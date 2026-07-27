@@ -144,22 +144,6 @@
   "place_id": "ChIJ_9Y-kDe8FgcRdz4ES8sc8n4"
  },
  {
-  "id": 800,
-  "nome": "Barreiras (EM BREVE)",
-  "slug": "barreiras-em-breve",
-  "estado": "BA",
-  "cidade": "Barreiras",
-  "endereco": null,
-  "cep": null,
-  "lat": null,
-  "lng": null,
-  "telefone": null,
-  "celular": null,
-  "email": "aformulabarreiras@aformulabr.com.br",
-  "loja_virtual": null,
-  "place_id": null
- },
- {
   "id": 550,
   "nome": "Brumado",
   "slug": "brumado",
@@ -350,22 +334,6 @@
   "email": "orcamentoaformula@aformulabr.com.br",
   "loja_virtual": null,
   "place_id": "ChIJI_auHk1wcwcRcEoUKi2I_qM"
- },
- {
-  "id": 479,
-  "nome": "Lauro de Freitas – Vilas do Atlântico",
-  "slug": "lauro-de-freitas-vilas-do-atlantico",
-  "estado": "BA",
-  "cidade": "Lauro de Freitas",
-  "endereco": "Av. Praia de Itapuã, 21 - Vilas do Atlântico, Lauro de Freitas - Bahia, Brasil",
-  "cep": "42700-000",
-  "lat": -12.8873766,
-  "lng": -38.2998025,
-  "telefone": "(71) 3379-0904 | (71) 3289-1061",
-  "celular": "(71) 98674-3987",
-  "email": "aformulalaurodefreitas@aformulabr.com.br",
-  "loja_virtual": null,
-  "place_id": "ChIJgVZkk-E9FgcRl63KMT2PqTY"
  },
  {
   "id": 539,
@@ -645,12 +613,12 @@
   "slug": "brasilia-jardim-botanico-em-breve",
   "estado": "DF",
   "cidade": "Brasília | Jardim Botânico ",
-  "endereco": "Brasilia",
-  "cep": null,
+  "endereco": "Condomínio Jardim Botânico V conjunto E lote 07 – Jardim Botânico, Brasília/DF, CEP: 71.680-368",
+  "cep": "71680-368",
   "lat": -15.7975154,
   "lng": -47.89188739999999,
-  "telefone": null,
-  "celular": null,
+  "telefone": "(61) 99228-9892",
+  "celular": "(61) 99228-9892",
   "email": null,
   "loja_virtual": null,
   "place_id": "ChIJdeKa3xg9WpMRJEp1aeRwhHM"
@@ -1322,7 +1290,7 @@
   "lat": -23.5350752,
   "lng": -46.6690817,
   "telefone": "(11) 3875-1864 ",
-  "celular": "(11) 3875-1864 ",
+  "celular": "(11) 99189-9445",
   "email": "perdizes.sp@aformulabr.com.br",
   "loja_virtual": null,
   "place_id": null

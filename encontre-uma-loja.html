@@ -961,6 +961,9 @@ ol,ul{margin:0;padding:0;list-style:none}
 .railcard__top h3{font-size:15.5px;font-weight:700;color:var(--teal-850,#06343a);margin:0;line-height:1.2}
 .railcard__dist{font-size:11.5px;font-weight:700;color:var(--brand,#008896);background:#dff0f1;padding:2px 8px;border-radius:999px;white-space:nowrap}
 .railcard__loc{font-size:11.5px;font-weight:700;color:var(--brand,#008896);margin:4px 0 0;letter-spacing:.02em}
+.railcard__wanum{display:inline-flex;align-items:center;gap:5px;color:inherit;text-decoration:none}
+.railcard__wanum svg{width:13px;height:13px;flex:none}
+a.railcard__wanum:hover{text-decoration:underline}
 .railcard__addr{font-size:12px;color:var(--muted,#5c7075);line-height:1.4;margin:5px 0 0;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .railcard__acts{display:flex;gap:7px;margin-top:11px}
@@ -1322,26 +1325,6 @@ ol,ul{margin:0;padding:0;list-style:none}
       "position": 10,
       "item": {
         "@type": "Pharmacy",
-        "name": "A Fórmula — Barreiras (EM BREVE)",
-        "parentOrganization": {
-          "@id": "https://www.aformulabr.com.br/#organization"
-        },
-        "image": "https://www.aformulabr.com.br/index_assets/a17.webp",
-        "url": "https://www.aformulabr.com.br/encontre-uma-loja#barreiras-em-breve",
-        "address": {
-          "@type": "PostalAddress",
-          "addressLocality": "Barreiras",
-          "addressRegion": "BA",
-          "addressCountry": "BR"
-        },
-        "email": "aformulabarreiras@aformulabr.com.br"
-      }
-    },
-    {
-      "@type": "ListItem",
-      "position": 11,
-      "item": {
-        "@type": "Pharmacy",
         "name": "A Fórmula — Brumado",
         "parentOrganization": {
           "@id": "https://www.aformulabr.com.br/#organization"
@@ -1367,7 +1350,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 12,
+      "position": 11,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Camaçari – Shopping Rivieira",
@@ -1395,7 +1378,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 13,
+      "position": 12,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Candeias",
@@ -1423,7 +1406,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 14,
+      "position": 13,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Eunápolis",
@@ -1451,7 +1434,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 15,
+      "position": 14,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Feira de Santana – Maison",
@@ -1478,7 +1461,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 16,
+      "position": 15,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Feira de Santana – Ponto Central",
@@ -1505,7 +1488,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 17,
+      "position": 16,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Ipiaú",
@@ -1533,7 +1516,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 18,
+      "position": 17,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Irecê",
@@ -1561,7 +1544,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 19,
+      "position": 18,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Itabuna",
@@ -1589,7 +1572,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 20,
+      "position": 19,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Jacobina",
@@ -1617,7 +1600,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 21,
+      "position": 20,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Jequié",
@@ -1645,7 +1628,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 22,
+      "position": 21,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Juazeiro",
@@ -1673,35 +1656,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 23,
-      "item": {
-        "@type": "Pharmacy",
-        "name": "A Fórmula — Lauro de Freitas – Vilas do Atlântico",
-        "parentOrganization": {
-          "@id": "https://www.aformulabr.com.br/#organization"
-        },
-        "image": "https://www.aformulabr.com.br/index_assets/a17.webp",
-        "url": "https://www.aformulabr.com.br/encontre-uma-loja#lauro-de-freitas-vilas-do-atlantico",
-        "address": {
-          "@type": "PostalAddress",
-          "streetAddress": "Av. Praia de Itapuã, 21 - Vilas do Atlântico, Lauro de Freitas - Bahia, Brasil",
-          "addressLocality": "Lauro de Freitas",
-          "addressRegion": "BA",
-          "addressCountry": "BR",
-          "postalCode": "42700-000"
-        },
-        "telephone": "(71) 3379-0904 | (71) 3289-1061",
-        "geo": {
-          "@type": "GeoCoordinates",
-          "latitude": -12.8873766,
-          "longitude": -38.2998025
-        },
-        "email": "aformulalaurodefreitas@aformulabr.com.br"
-      }
-    },
-    {
-      "@type": "ListItem",
-      "position": 24,
+      "position": 22,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Macaúbas",
@@ -1729,7 +1684,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 25,
+      "position": 23,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Paulo Afonso",
@@ -1757,7 +1712,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 26,
+      "position": 24,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Poções",
@@ -1784,7 +1739,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 27,
+      "position": 25,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Salvador – Caminho de Areia",
@@ -1812,7 +1767,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 28,
+      "position": 26,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Salvador – Manoel Dias",
@@ -1840,7 +1795,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 29,
+      "position": 27,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Salvador – Shopping Barra | Bahia",
@@ -1868,7 +1823,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 30,
+      "position": 28,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Salvador – Shopping Paralela",
@@ -1896,7 +1851,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 31,
+      "position": 29,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Santo Antônio de Jesus",
@@ -1924,7 +1879,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 32,
+      "position": 30,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Seabra",
@@ -1952,7 +1907,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 33,
+      "position": 31,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Senhor do Bonfim",
@@ -1980,7 +1935,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 34,
+      "position": 32,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Vitória da Conquista – Centro",
@@ -2007,7 +1962,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 35,
+      "position": 33,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Crateús",
@@ -2034,7 +1989,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 36,
+      "position": 34,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Fortaleza – Aldeota",
@@ -2061,7 +2016,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 37,
+      "position": 35,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Fortaleza – Fátima",
@@ -2089,7 +2044,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 38,
+      "position": 36,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Juazeiro do Norte",
@@ -2117,7 +2072,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 39,
+      "position": 37,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Sobral (Em Breve)",
@@ -2142,7 +2097,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 40,
+      "position": 38,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Brasília | Asa Sul",
@@ -2170,7 +2125,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 41,
+      "position": 39,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Brasília | Jardim Botânico (Em Breve)",
@@ -2181,21 +2136,23 @@ ol,ul{margin:0;padding:0;list-style:none}
         "url": "https://www.aformulabr.com.br/encontre-uma-loja#brasilia-jardim-botanico-em-breve",
         "address": {
           "@type": "PostalAddress",
-          "streetAddress": "Brasilia",
-          "addressLocality": "Brasília | Jardim Botânico",
+          "streetAddress": "Condomínio Jardim Botânico V conjunto E lote 07 – Jardim Botânico",
+          "addressLocality": "Brasília",
           "addressRegion": "DF",
-          "addressCountry": "BR"
+          "addressCountry": "BR",
+          "postalCode": "71680-368"
         },
         "geo": {
           "@type": "GeoCoordinates",
           "latitude": -15.7975154,
           "longitude": -47.89188739999999
-        }
+        },
+        "telephone": "(61) 99228-9892"
       }
     },
     {
       "@type": "ListItem",
-      "position": 42,
+      "position": 40,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — São José de Ribamar (Em Breve)",
@@ -2220,7 +2177,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 43,
+      "position": 41,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — São Luís (EM BREVE)",
@@ -2245,7 +2202,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 44,
+      "position": 42,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Belo Horizonte",
@@ -2272,7 +2229,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 45,
+      "position": 43,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Campo Grande (EM BREVE)",
@@ -2297,7 +2254,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 46,
+      "position": 44,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Sinop",
@@ -2324,7 +2281,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 47,
+      "position": 45,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Belém – Ananindeua",
@@ -2352,7 +2309,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 48,
+      "position": 46,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Belém – Doca",
@@ -2380,7 +2337,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 49,
+      "position": 47,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Belém – Duque",
@@ -2408,7 +2365,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 50,
+      "position": 48,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Redenção",
@@ -2435,7 +2392,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 51,
+      "position": 49,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Campina Grande",
@@ -2463,7 +2420,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 52,
+      "position": 50,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — João Pessoa – Jaguaribe",
@@ -2490,7 +2447,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 53,
+      "position": 51,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — João Pessoa – Manaíra",
@@ -2518,7 +2475,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 54,
+      "position": 52,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Patos/PB (EM BREVE)",
@@ -2543,7 +2500,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 55,
+      "position": 53,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Arcoverde",
@@ -2571,7 +2528,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 56,
+      "position": 54,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Belo Jardim",
@@ -2599,7 +2556,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 57,
+      "position": 55,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Caruaru",
@@ -2627,7 +2584,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 58,
+      "position": 56,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Custódia",
@@ -2654,7 +2611,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 59,
+      "position": 57,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Olinda",
@@ -2681,7 +2638,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 60,
+      "position": 58,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Petrolina – Centro",
@@ -2709,7 +2666,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 61,
+      "position": 59,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Petrolina – Cidade Universitária",
@@ -2737,7 +2694,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 62,
+      "position": 60,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Recife – Graças",
@@ -2765,7 +2722,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 63,
+      "position": 61,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Recife – Shopping Recife",
@@ -2793,7 +2750,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 64,
+      "position": 62,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Salgueiro",
@@ -2821,7 +2778,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 65,
+      "position": 63,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Serra Talhada",
@@ -2848,7 +2805,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 66,
+      "position": 64,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Picos",
@@ -2876,7 +2833,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 67,
+      "position": 65,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Piripiri (EM BREVE)",
@@ -2901,7 +2858,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 68,
+      "position": 66,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Foz do Iguaçu",
@@ -2929,7 +2886,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 69,
+      "position": 67,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Rio de Janeiro",
@@ -2957,7 +2914,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 70,
+      "position": 68,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Mossoró",
@@ -2985,7 +2942,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 71,
+      "position": 69,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Natal",
@@ -3013,7 +2970,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 72,
+      "position": 70,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Porto Velho",
@@ -3041,7 +2998,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 73,
+      "position": 71,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Boa Vista",
@@ -3068,7 +3025,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 74,
+      "position": 72,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Santa Cruz do Sul",
@@ -3095,7 +3052,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 75,
+      "position": 73,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Itajaí- SC (EM BREVE)",
@@ -3120,7 +3077,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 76,
+      "position": 74,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Florianópolis",
@@ -3148,7 +3105,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 77,
+      "position": 75,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Aracaju",
@@ -3176,7 +3133,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 78,
+      "position": 76,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Osasco/SP (EM BREVE)",
@@ -3201,7 +3158,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 79,
+      "position": 77,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Santo André",
@@ -3229,7 +3186,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 80,
+      "position": 78,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Sorocaba",
@@ -3257,7 +3214,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 81,
+      "position": 79,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Brooklin",
@@ -3284,7 +3241,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 82,
+      "position": 80,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Morumbi",
@@ -3312,7 +3269,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 83,
+      "position": 81,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Perdizes",
@@ -3328,7 +3285,7 @@ ol,ul{margin:0;padding:0;list-style:none}
           "addressRegion": "SP",
           "addressCountry": "BR"
         },
-        "telephone": "(11) 3875-1864",
+        "telephone": "(11) 99189-9445",
         "geo": {
           "@type": "GeoCoordinates",
           "latitude": -23.5350752,
@@ -3339,7 +3296,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 84,
+      "position": 82,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Tatuapé",
@@ -3367,7 +3324,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 85,
+      "position": 83,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Araguaína",
@@ -3395,7 +3352,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 86,
+      "position": 84,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Colinas do Tocantins (Em Breve)",
@@ -3421,7 +3378,7 @@ ol,ul{margin:0;padding:0;list-style:none}
     },
     {
       "@type": "ListItem",
-      "position": 87,
+      "position": 85,
       "item": {
         "@type": "Pharmacy",
         "name": "A Fórmula — Palmas",

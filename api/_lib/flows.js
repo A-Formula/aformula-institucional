@@ -314,7 +314,11 @@ function P5(d) {
       { p: `Então: o que o seu paciente vive aqui.` },
       { p: `Ele chega com a receita, no balcão ou por mensagem. O farmacêutico confere a prescrição antes de qualquer coisa: dose, compatibilidade, forma farmacêutica. **Se alguma coisa não fecha, a gente liga pra você.** Não improvisa, não substitui por conta própria.` },
       { p: `Orçamento na hora. Ele é avisado quando fica pronto e retira na unidade, ou recebe em casa. E a receita não fica presa a uma unidade: ele manipula em qualquer uma da rede.` },
-      { cta: { href: LOJAS_URL, label: cidade ? `Ver as unidades de ${cidade}` : "Ver as unidades da rede" } },
+      // Único e-mail da régua P que manda o prescritor pro balcão, e é de propósito: prescritor
+      // que já pisou na unidade e conhece o farmacêutico prescreve com folga. Ver o laboratório
+      // uma vez vale mais que dez e-mails técnicos.
+      { p: `**Vale mais conhecer do que ler sobre.** Passe na unidade mais perto do seu consultório: o farmacêutico responsável recebe prescritor, mostra o laboratório e explica o que dá e o que não dá pra fazer. Sai mais rápido que trocar e-mail, e você passa a saber exatamente o que pode prescrever.` },
+      { cta: { href: LOJAS_URL, label: cidade ? `Ver as unidades de ${cidade}` : "Ver a unidade mais perto de mim" } },
     ],
     psText: `Se um paciente seu tiver qualquer problema — atraso, dúvida na retirada, divergência na fórmula — eu quero saber direto de você. Responde este e-mail. É mais rápido que passar pelo SAC, e eu resolvo pessoalmente.`,
   });

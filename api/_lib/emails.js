@@ -122,9 +122,13 @@ function rodape(unsub) {
       <tr>${REDES.map(ico).join("")}</tr>
     </table>
 
+    <p style="margin:0 0 8px;font-size:14px;line-height:1.6;">
+      <a href="${SITE}" style="color:#ffffff;text-decoration:none;font-weight:bold;">aformulabr.com.br</a>
+    </p>
+
     <p style="margin:0 0 20px;color:${F_CLARO};font-size:13px;line-height:1.7;">
-      <a href="mailto:${SAC}" style="color:#ffffff;text-decoration:underline;">${SAC}</a>
-      &nbsp;·&nbsp; ou responda este e-mail
+      <a href="mailto:${SAC}" style="color:${F_CLARO};text-decoration:underline;">${SAC}</a>
+      &nbsp;·&nbsp; <span style="color:${F_CLARO};">ou responda este e-mail</span>
     </p>
 
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 16px;">

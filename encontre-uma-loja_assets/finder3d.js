@@ -48,7 +48,30 @@
   function shareText(s) {
     return "A Fórmula — " + s.nome +
       (s.endereco ? "\n" + s.endereco : "") +
-      (waLink(s) ? "\nWhatsApp: " + waLink(s) : "");
+      (waDisplay(s) ? "\nWhatsApp: " + waDisplay(s) + " — " + waLink(s) : "") +
+      (s.lat && s.lng ? "\nComo chegar: " + mapsLink(s) : "");
+  }
+  /* número exibível (primeiro da lista, sem sobras) */
+  function waDisplay(s) {
+    var raw = s.celular || s.telefone;
+    if (!raw) return null;
+    return String(raw).split("|")[0].trim();
+  }
+  /* título do card: nome + sigla do estado (sem duplicar quando o nome já traz) */
+  function cardTitle(s) {
+    if (!s.estado || new RegExp("\\b" + s.estado + "\\b").test(s.nome || "")) return s.nome;
+    return s.nome + " - " + s.estado;
+  }
+  var WA_ICON = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.297-.497.1-.198.05-.371-.025-.52-.074-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>';
+  /* linha de WhatsApp (ícone + número) no lugar da antiga cidade · UF */
+  function phoneLine(s) {
+    var num = waDisplay(s), wa = waLink(s);
+    if (!num) return s.cidade ? '<p class="railcard__loc">' + s.cidade + (s.estado ? " · " + s.estado : "") + "</p>" : "";
+    var inner = WA_ICON + num;
+    return '<p class="railcard__loc">' +
+      (wa
+        ? '<a class="railcard__wanum" href="' + wa + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">' + inner + "</a>"
+        : '<span class="railcard__wanum">' + inner + "</span>") + "</p>";
   }
   var shareBtn = function (s) {
     return '<button type="button" class="railcard__share" title="Compartilhar unidade" aria-label="Compartilhar unidade" onclick="event.stopPropagation();window.__afShare(' + s.id + ',this)">' +
@@ -58,7 +81,9 @@
     var s = STORES.filter(function (x) { return x.id === id; })[0];
     if (!s) return;
     var txt = shareText(s);
-    if (navigator.share) { navigator.share({ title: "A Fórmula — " + s.nome, text: txt }).catch(function () {}); return; }
+    /* desktop: copiar direto (feedback "Copiado ✓") — share nativo só no mobile */
+    var mobile = /Android|iPhone|iPad|iPod|Mobi/i.test(navigator.userAgent || "");
+    if (mobile && navigator.share) { navigator.share({ title: "A Fórmula — " + s.nome, text: txt }).catch(function () {}); return; }
     function done() { if (!btn) return; btn.classList.add("is-copied"); setTimeout(function () { btn.classList.remove("is-copied"); }, 1900); }
     if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(txt).then(done, done); }
     else { var t = document.createElement("textarea"); t.value = txt; document.body.appendChild(t); t.select(); try { document.execCommand("copy"); } catch (_) {} document.body.removeChild(t); done(); }
@@ -232,12 +257,14 @@
     return new maplibregl.Popup({ offset: 22, closeButton: true, className: "af-pop", maxWidth: "290px" })
       .setLngLat([s.lng, s.lat])
       .setHTML(
-        '<div class="af-pop__in"><strong>' + s.nome + "</strong>" +
-        '<span class="af-pop__loc">' + (s.cidade || "") + (s.estado ? " · " + s.estado : "") + (dist != null ? " — " + fmtDist(dist) : "") + "</span>" +
+        '<div class="af-pop__in"><strong>' + cardTitle(s) + "</strong>" +
+        '<span class="af-pop__loc">' + (s.cidade || "") + (dist != null ? " — " + fmtDist(dist) : "") + "</span>" +
+        phoneLine(s) +
         (s.endereco ? "<p>" + s.endereco + "</p>" : "") +
         '<div class="af-pop__acts">' +
         (isSoon(s)
-          ? '<span class="railcard__soon">Em breve</span>'
+          ? '<span class="railcard__soon">Em breve</span>' +
+            (wa ? '<a class="wa" href="' + wa + '" target="_blank" rel="noopener">WhatsApp</a>' : "")
           : '<a href="' + mapsLink(s) + '" target="_blank" rel="noopener">Como chegar</a>' +
             (wa ? '<a class="wa" href="' + wa + '" target="_blank" rel="noopener">WhatsApp</a>' : "") +
             shareBtn(s)) + "</div></div>"
@@ -271,13 +298,14 @@
     el.setAttribute("data-id", s.id);
     if (dist != null) el.setAttribute("data-dist", dist);
     el.innerHTML =
-      '<div class="railcard__top"><h3>' + s.nome + "</h3>" +
+      '<div class="railcard__top"><h3>' + cardTitle(s) + "</h3>" +
       (dist != null ? '<span class="railcard__dist">' + fmtDist(dist) + "</span>" : "") + "</div>" +
-      '<p class="railcard__loc">' + (s.cidade || "") + (s.estado ? " · " + s.estado : "") + "</p>" +
+      phoneLine(s) +
       (s.endereco ? '<p class="railcard__addr">' + s.endereco + "</p>" : "") +
       '<div class="railcard__acts">' +
       (isSoon(s)
-        ? '<span class="railcard__soon">Em breve</span>'
+        ? '<span class="railcard__soon">Em breve</span>' +
+          (wa ? '<a class="wa" href="' + wa + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">WhatsApp</a>' : "")
         : '<a href="' + mapsLink(s) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">Como chegar</a>' +
           (wa ? '<a class="wa" href="' + wa + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">WhatsApp</a>' : "") +
           shareBtn(s)) +
