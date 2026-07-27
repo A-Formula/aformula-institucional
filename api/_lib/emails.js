@@ -86,16 +86,27 @@ function layout(bodyHtml, opts) {
 }
 
 // ── Rodapé ───────────────────────────────────────────────────────────────────
-// Dados reais do rodapé do site (razão social, CNPJ, endereço, as 4 redes). Fundo teal profundo
-// da paleta "oceano" — dá personalidade e separa o rodapé do corpo sem precisar de borda.
-// Ícones: PNG com o glifo já compositado no fundo do rodapé. Cliente de e-mail não renderiza SVG,
-// não carrega webfont e não aplica background-image — ícone em e-mail é imagem, ponto.
+// Dados reais do rodapé do site: razão social, CNPJ, endereço e as 4 redes. Nada inventado.
+// Fundo teal profundo (paleta "oceano" do site) e a FOLHA da marca como único elemento gráfico.
+//
+// Por que rede social é LINK DE TEXTO e não ícone: ícone de marca em e-mail tem que ser imagem
+// (cliente de e-mail não renderiza SVG nem carrega webfont), e reproduzir Instagram/Facebook/
+// YouTube/LinkedIn à mão sai amador — um "f" em Arial não é a marca do Facebook. Texto é
+// impecável em qualquer cliente, escala em qualquer densidade de tela e não distorce.
+//
+// Estrutura de rótulo + valor (NAVEGUE / SIGA / FALE) em vez de um monte de link solto: dá
+// hierarquia de leitura em vez de uma sopa de links separados por ponto.
 const FOOT_BG = "#063e47";
+const F_CLARO = "#cfe9e9";   // texto principal do rodapé
+const F_ROTULO = "#7aa5ac";  // rótulos em caixa alta
+const F_LEGAL = "#9dbfc4";   // bloco legal — precisa ser legível, não decorativo
+const F_LINHA = "#0f5763";   // divisor
+
 const REDES = [
-  ["instagram", "https://www.instagram.com/aformulafarmacia/", "Instagram"],
-  ["facebook", "https://www.facebook.com/aformulafarmacia", "Facebook"],
-  ["youtube", "https://www.youtube.com/@aformulafarmacia6374", "YouTube"],
-  ["linkedin", "https://www.linkedin.com/company/aformulafarmacia/", "LinkedIn"],
+  ["Instagram", "https://www.instagram.com/aformulafarmacia/"],
+  ["Facebook", "https://www.facebook.com/aformulafarmacia"],
+  ["YouTube", "https://www.youtube.com/@aformulafarmacia6374"],
+  ["LinkedIn", "https://www.linkedin.com/company/aformulafarmacia/"],
 ];
 const LINKS_RODAPE = [
   ["Encontre uma loja", `${SITE}/encontre-uma-loja`],
@@ -103,49 +114,60 @@ const LINKS_RODAPE = [
   ["Blog", `${SITE}/blog`],
   ["Área do prescritor", AREA_URL],
   ["Seja um franqueado", "https://franquia.aformulabr.com.br/seja-um-franqueado/"],
-  ["LGPD", `${SITE}/lgpd`],
+  // Rótulo "Privacidade" e não "LGPD": o link tem de existir (a lei exige acesso facilitado à
+  // informação sobre o tratamento dos dados), mas sigla de lei ninguém clica.
+  ["Privacidade", `${SITE}/lgpd`],
 ];
 
 function rodape(unsub) {
-  const link = (t, h) =>
-    `<a href="${h}" style="color:#bfe6e2;text-decoration:none;white-space:nowrap;">${t}</a>`;
-  const ico = ([n, href, nome]) =>
-    `<a href="${href}" style="text-decoration:none;display:inline-block;padding:0 5px;">
-       <img src="${IMG}/email-ico-${n}.png" width="32" height="32" alt="${nome}"
-         style="display:block;border:0;width:32px;height:32px;"></a>`;
+  const link = (t, h, cor) =>
+    `<a href="${h}" style="color:${cor || F_CLARO};text-decoration:none;white-space:nowrap;">${t}</a>`;
+  const pontos = `<span style="color:#3f6f78;"> &nbsp;·&nbsp; </span>`;
+  // Navegação em DUAS COLUNAS em vez de uma corrida de links separados por ponto: a corrida
+  // quebrava linha depois de um separador e deixava um "·" pendurado no fim da linha.
+  const colunas = (itens) => {
+    const meio = Math.ceil(itens.length / 2);
+    const col = (lista) => lista.map(([t, h]) =>
+      `<div style="margin:0 0 3px;">${link(t, h)}</div>`).join("");
+    return `<table role="presentation" cellpadding="0" cellspacing="0"><tr>
+      <td valign="top" style="padding-right:26px;font-size:13px;line-height:1.9;">${col(itens.slice(0, meio))}</td>
+      <td valign="top" style="font-size:13px;line-height:1.9;">${col(itens.slice(meio))}</td>
+    </tr></table>`;
+  };
+  // Rótulo à esquerda, conteúdo à direita. Tabela porque é a única coluna que sobrevive ao Outlook.
+  const linha = (rotulo, conteudo, ultimo) => `
+    <tr>
+      <td valign="top" style="padding:0 16px ${ultimo ? "0" : "14px"} 0;color:${F_ROTULO};font-size:10px;
+        letter-spacing:1.6px;text-transform:uppercase;line-height:2;white-space:nowrap;">${rotulo}</td>
+      <td valign="top" style="padding:0 0 ${ultimo ? "0" : "14px"};color:${F_CLARO};font-size:13px;line-height:2;">
+        ${conteudo}</td>
+    </tr>`;
 
-  return `<tr><td style="padding:30px 32px 26px;background:${FOOT_BG};color:#9dc4c9;font-size:12px;line-height:1.7;">
+  return `<tr><td style="padding:30px 32px 26px;background:${FOOT_BG};">
 
-    <p style="margin:0 0 22px;color:#ffffff;font-size:15px;line-height:1.5;font-weight:bold;">
+    <img src="${IMG}/email-folha.png" width="44" height="38" alt=""
+      style="display:block;border:0;width:44px;height:auto;margin:0 0 14px;">
+
+    <p style="margin:0 0 26px;color:#ffffff;font-size:16px;line-height:1.45;font-weight:bold;max-width:420px;">
       Há 37 anos transformando manipulação em ciência, cuidado e inovação.</p>
 
-    <p style="margin:0 0 20px;font-size:13px;line-height:2;">
-      ${LINKS_RODAPE.map(([t, h]) => link(t, h)).join(`<span style="color:#3d6b74;"> &nbsp;·&nbsp; </span>`)}
-    </p>
-
-    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 22px;"><tr>
-      <td style="padding-right:14px;color:#7fa8ae;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;">Siga</td>
-      <td>${REDES.map(ico).join("")}</td>
-    </tr></table>
-
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 18px;">
-      <tr><td style="height:1px;background:#0d5561;line-height:1px;font-size:0;">&nbsp;</td></tr>
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+      ${linha("Navegue", colunas(LINKS_RODAPE))}
+      ${linha("Siga", REDES.map(([t, h]) => link(t, h)).join(pontos))}
+      ${linha("Fale", `${link(SAC, `mailto:${SAC}`, "#ffffff")} &nbsp;·&nbsp; ou responda este e-mail`, true)}
     </table>
 
-    <p style="margin:0 0 10px;color:#bfe6e2;font-size:12px;">
-      Dúvida ou reclamação? Fale com o
-      <a href="mailto:${SAC}" style="color:#ffffff;text-decoration:underline;">${SAC}</a>
-      — ou responda este e-mail, que chega numa caixa monitorada por gente.
-    </p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 16px;">
+      <tr><td style="height:1px;background:${F_LINHA};line-height:1px;font-size:0;">&nbsp;</td></tr>
+    </table>
 
-    <p style="margin:0;color:#93b8bd;font-size:11px;line-height:1.75;">
+    <p style="margin:0;color:${F_LEGAL};font-size:11px;line-height:1.8;">
       Você recebeu este e-mail porque se cadastrou em
-      <a href="${SITE}" style="color:#bfe6e2;">aformulabr.com.br</a>.
-      Enviado por ${SENDER}.${unsub ? `
-      <a href="${unsub}" style="color:#bfe6e2;text-decoration:underline;">Descadastrar</a>.` : ""}<br>
-      A FÓRMULA SERVIÇOS E FRANCHISE LTDA — CNPJ 10.760.350/0001-00<br>
-      Rua Tabapuã, 627 — Itaim Bibi, São Paulo/SP<br>
-      © A Fórmula 2026 · farmácia de manipulação em 87 cidades
+      ${link("aformulabr.com.br", SITE, "#cfe9e9")}.${unsub ? `
+      <a href="${unsub}" style="color:#cfe9e9;text-decoration:underline;">Não quero mais receber</a>.` : ""}<br>
+      <strong style="color:${F_CLARO};font-weight:normal;">A Fórmula Serviços e Franchise Ltda</strong>
+      &nbsp;·&nbsp; CNPJ 10.760.350/0001-00<br>
+      Rua Tabapuã, 627 — Itaim Bibi, São Paulo/SP &nbsp;·&nbsp; © 2026
     </p>
   </td></tr>`;
 }
