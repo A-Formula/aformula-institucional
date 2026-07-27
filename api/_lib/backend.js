@@ -52,6 +52,14 @@ function mailFrom() {
   return process.env.NOTIFY_FROM ||
     (process.env.SMTP_USER ? `Site A Fórmula <${process.env.SMTP_USER}>` : "Site A Fórmula <onboarding@resend.dev>");
 }
+// Remetente das réguas de MARKETING. Faixa separada do transacional de propósito: reputação de
+// e-mail é por domínio, então marketing sai de um subdomínio dedicado (ex.:
+// "A Fórmula <ola@envio.aformulabr.com.br>"). Se a régua um dia tomar reclamação, o domínio que
+// carrega o e-mail corporativo e o link de acesso do prescritor não vai junto.
+// Sem MAIL_FROM_MARKETING configurado, cai no remetente normal — nada quebra.
+function mailFromMarketing() {
+  return process.env.MAIL_FROM_MARKETING || mailFrom();
+}
 // Caixas que RECEBEM as respostas. O From é no_reply@, então sem Reply-To toda resposta do
 // público morre — e vários e-mails da régua pedem resposta explicitamente (P4/P5/P6/N1/N2).
 // Duas caixas de propósito: sac@ é quem atende, webmaster@ é o operador vigiando SE estão
@@ -61,26 +69,20 @@ function mailReplyTo() {
   return process.env.MAIL_REPLY_TO ||
     "sac@aformulabr.com.br, webmaster@aformulabrasil.com.br";
 }
-// Envia um e-mail avulso (texto + HTML opcional). Retorna true/false, nunca lança — o chamador decide o que fazer.
-// replyTo: sobrescreve a caixa de resposta (ex.: e-mail do farmacêutico nas réguas de prescritor).
-// Passar null desliga o Reply-To (notificação interna não precisa).
-// headers: cabeçalhos extra — usado pelo List-Unsubscribe das réguas de marketing, que o Gmail
-// exige de quem manda em volume (senão a reputação do domínio cai).
-async function sendMail(to, subject, text, html, replyTo, headers) {
-  const from = mailFrom();
-  const rt = replyTo === null ? null : (replyTo || mailReplyTo());
-  const hdr = headers && Object.keys(headers).length ? headers : null;
-  const t = mailer();
-  if (t) {
-    try {
-      await t.sendMail({
-        from, to, subject, text,
-        ...(html ? { html } : {}), ...(rt ? { replyTo: rt } : {}), ...(hdr ? { headers: hdr } : {}),
-      });
-      return true;
-    }
-    catch (e) { console.error("[sendMail] SMTP falhou:", e && e.message); /* cai pro Resend abaixo */ }
-  }
+// ── Envio ────────────────────────────────────────────────────────────────────
+// DUAS FAIXAS, de propósito:
+//   sendMail() → TRANSACIONAL. SMTP do Workspace primeiro (é o remetente que o cliente já
+//                conhece), Resend como rede de segurança. Aqui entra o link de senha do
+//                prescritor, a confirmação de cadastro e as notificações internas.
+//   sendBulk() → MARKETING (as réguas). Resend PRIMEIRO, com o remetente do subdomínio de envio.
+//                Motivo: reputação de e-mail é por domínio. Marketing saindo de subdomínio próprio
+//                protege o domínio corporativo, e é o Resend que dá webhook de abertura/clique/
+//                bounce — sem isso as metas da régua são imensuráveis.
+// Enquanto MAIL_FROM_MARKETING não existir, sendBulk se comporta igual ao sendMail: nada quebra
+// antes de o domínio estar verificado.
+
+// Monta e dispara pelo Resend. Devolve false (sem lançar) pro chamador decidir o fallback.
+async function viaResend({ from, to, subject, text, html, replyTo, headers }) {
   const key = process.env.RESEND_API_KEY;
   if (!key) return false;
   try {
@@ -91,13 +93,51 @@ async function sendMail(to, subject, text, html, replyTo, headers) {
         from, to: [to], subject, text,
         ...(html ? { html } : {}),
         // Resend quer LISTA quando há mais de um endereço; nodemailer aceita a string com vírgula.
-        ...(rt ? { reply_to: String(rt).split(",").map((s) => s.trim()).filter(Boolean) } : {}),
-        ...(hdr ? { headers: hdr } : {}),
+        ...(replyTo ? { reply_to: String(replyTo).split(",").map((s) => s.trim()).filter(Boolean) } : {}),
+        ...(headers ? { headers } : {}),
       }),
     });
+    if (!r.ok) console.error("[resend] recusou:", r.status, await r.text().catch(() => ""));
     return r.ok;
-  } catch (e) { console.error("[sendMail] Resend falhou:", e && e.message); return false; }
+  } catch (e) { console.error("[resend] falhou:", e && e.message); return false; }
 }
+
+// Monta e dispara pelo SMTP. Mesmo contrato do viaResend.
+async function viaSmtp({ from, to, subject, text, html, replyTo, headers }) {
+  const t = mailer();
+  if (!t) return false;
+  try {
+    await t.sendMail({
+      from, to, subject, text,
+      ...(html ? { html } : {}), ...(replyTo ? { replyTo } : {}), ...(headers ? { headers } : {}),
+    });
+    return true;
+  } catch (e) { console.error("[smtp] falhou:", e && e.message); return false; }
+}
+
+// TRANSACIONAL. replyTo null desliga a caixa de resposta; headers alimenta o List-Unsubscribe.
+async function sendMail(to, subject, text, html, replyTo, headers) {
+  const msg = {
+    from: mailFrom(), to, subject, text, html,
+    replyTo: replyTo === null ? null : (replyTo || mailReplyTo()),
+    headers: headers && Object.keys(headers).length ? headers : null,
+  };
+  return (await viaSmtp(msg)) || (await viaResend(msg));
+}
+
+// MARKETING. Mesma assinatura do sendMail — só invertem a ordem dos transportes e o remetente.
+async function sendBulk(to, subject, text, html, replyTo, headers) {
+  const msg = {
+    from: mailFromMarketing(), to, subject, text, html,
+    replyTo: replyTo === null ? null : (replyTo || mailReplyTo()),
+    headers: headers && Object.keys(headers).length ? headers : null,
+  };
+  if (await viaResend(msg)) return true;
+  // Fallback pro SMTP: mas com o remetente transacional, porque o From de marketing pode não
+  // estar autorizado no SPF do Workspace — mandar assim falharia autenticação em vez de entregar.
+  return viaSmtp({ ...msg, from: mailFrom() });
+}
+
 async function notify(subject, text) {
   // Notificação interna: sem Reply-To, pra responder ao lead continuar sendo ato deliberado.
   return sendMail(await notifyTo(), subject, text, null, null);
@@ -209,6 +249,6 @@ async function verifyAdmin(req) {
 }
 
 module.exports = {
-  getDb, notify, sendMail, addToMailing, guard, isEmail, isBlockedEmail, verifyCaptcha, verifyAdmin,
+  getDb, notify, sendMail, sendBulk, addToMailing, guard, isEmail, isBlockedEmail, verifyCaptcha, verifyAdmin,
   BLOCKED_EMAIL_DOMAINS, FieldValue: admin.firestore.FieldValue, admin,
 };

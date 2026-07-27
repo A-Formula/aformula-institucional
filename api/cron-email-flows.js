@@ -7,7 +7,7 @@
 // Por que os offsets são em DIAS e o cron é diário: o plano é Hobby (1 execução/dia) e a régua
 // inteira é medida em dias (T+1, T+3, T+7…). Um cron diário entrega a régua como especificada;
 // hora exata não é requisito de nenhum e-mail.
-const { getDb, sendMail, verifyAdmin, FieldValue } = require("./_lib/backend");
+const { getDb, sendMail, sendBulk, verifyAdmin, FieldValue } = require("./_lib/backend");
 const { FLOWS, CONSENT_MODEL, unsubUrl } = require("./_lib/flows");
 
 const LOTE = 200;              // teto por execução — protege o limite de tempo da função
@@ -114,7 +114,10 @@ module.exports = async (req, res) => {
       continue;
     }
 
-    const ok = await sendMail(job.email, msg.subject, msg.text, msg.html || undefined, replyTo, headers)
+    // Marketing sai pela faixa de volume (Resend + subdomínio de envio); serviço e transacional
+    // saem pelo remetente que o cliente já conhece. Ver as duas faixas em _lib/backend.js.
+    const enviar = job.classe === "marketing" ? sendBulk : sendMail;
+    const ok = await enviar(job.email, msg.subject, msg.text, msg.html || undefined, replyTo, headers)
       .catch(() => false);
     if (ok) {
       r.enviados++; vistos.add(job.email);

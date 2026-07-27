@@ -92,10 +92,14 @@ const backendPath = require.resolve(path.join(RAIZ, "api/_lib/backend.js"));
 const backend = require(backendPath);
 const db = fakeDb();
 backend.getDb = () => db;
-backend.sendMail = async (to, subject, text, html, replyTo, headers) => {
-  enviados.push({ to, subject, temHtml: Boolean(html), replyTo, headers });
+// Captura as DUAS faixas: transacional (sendMail) e marketing (sendBulk). Registrar a faixa
+// usada é parte do teste — marketing indo pelo transacional é justamente o defeito a evitar.
+const capturar = (faixa) => async (to, subject, text, html, replyTo, headers) => {
+  enviados.push({ to, subject, faixa, temHtml: Boolean(html), replyTo, headers });
   return true;
 };
+backend.sendMail = capturar("transacional");
+backend.sendBulk = capturar("marketing");
 backend.verifyAdmin = async () => "teste@admin";
 backend.FieldValue = { serverTimestamp: () => new Date() };
 require.cache[backendPath].exports = backend;
@@ -148,6 +152,8 @@ function envelhecer(dias) {
   r = await rodarCron();
   const assuntos = enviados.map((e) => e.subject);
   ok(assuntos.includes("Recebemos sua dúvida"), "CB1 (serviço) enviado sem opt-in — é resposta ao pedido dele");
+  ok(enviados.find((e) => e.subject === "Recebemos sua dúvida")?.faixa === "transacional",
+    "CB1 (serviço) saiu pelo remetente que o cliente conhece, não pela faixa de marketing");
   ok(!assuntos.includes("A dose de prateleira não serve"), "CB2 (marketing) BLOQUEADO por falta de opt-in");
   ok(r.pulados >= 3, `os 3 de marketing do CB foram pulados (pulados: ${r.pulados})`);
 
@@ -164,6 +170,7 @@ function envelhecer(dias) {
   const p3 = enviados.find((e) => e.to === "marina@ex.com");
   ok(Boolean(p3), "P3 saiu por legítimo interesse (B2B), sem caixinha marcada");
   ok(Boolean(p3 && p3.headers && p3.headers["List-Unsubscribe"]), "marketing carrega List-Unsubscribe (exigência do Gmail)");
+  ok(p3 && p3.faixa === "marketing", "P3 saiu pela faixa de MARKETING (Resend + subdomínio), não pela transacional");
 
   console.log("\n=== 7. Descadastro derruba tudo ===");
   db._store.newsletter["ana@ex.com"] = { email: "ana@ex.com", consent: false, unsubscribed: true };
