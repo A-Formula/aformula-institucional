@@ -71,8 +71,8 @@ function compose({ h1, subject, pre, hero, blocks, psText, email, classe }) {
     // CTA repetido no fim: em e-mail longo, quem rolou até aqui já decidiu e não vai voltar.
     + (repetirCta ? btn(cta.cta.href, cta.cta.label) : "")
     + ps(boldHtml(psText))
-    + unsubHtml(unsub),
-    { hero }
+    ,
+    { hero, unsub }
   );
   return { subject: subject || h1, text, html };
 }

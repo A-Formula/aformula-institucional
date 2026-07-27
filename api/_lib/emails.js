@@ -78,18 +78,76 @@ function layout(bodyHtml, opts) {
           ${bodyHtml}
         </td></tr>
 
-        <tr><td style="padding:20px 32px 26px;background:#f7fafa;border-top:1px solid #e8f0f0;color:#748a8a;font-size:12px;line-height:1.6;">
-          Enviado por <strong>${SENDER}</strong> — e você pode responder: as respostas chegam
-          numa caixa monitorada por gente.<br>
-          Atendimento <a href="mailto:${SAC}" style="color:${TEAL};">${SAC}</a> ·
-          <a href="https://www.instagram.com/aformulafarmacia" style="color:${TEAL};">@aformulafarmacia</a> ·
-          <a href="${SITE}/encontre-uma-loja" style="color:${TEAL};">encontre sua unidade</a><br>
-          <strong style="color:#5b7276;">A Fórmula</strong> — farmácia de manipulação em 87 cidades.
-        </td></tr>
+        ${rodape(o.unsub)}
       </table>
     </td></tr>
   </table>
 </body></html>`;
+}
+
+// ── Rodapé ───────────────────────────────────────────────────────────────────
+// Dados reais do rodapé do site (razão social, CNPJ, endereço, as 4 redes). Fundo teal profundo
+// da paleta "oceano" — dá personalidade e separa o rodapé do corpo sem precisar de borda.
+// Ícones: PNG com o glifo já compositado no fundo do rodapé. Cliente de e-mail não renderiza SVG,
+// não carrega webfont e não aplica background-image — ícone em e-mail é imagem, ponto.
+const FOOT_BG = "#063e47";
+const REDES = [
+  ["instagram", "https://www.instagram.com/aformulafarmacia/", "Instagram"],
+  ["facebook", "https://www.facebook.com/aformulafarmacia", "Facebook"],
+  ["youtube", "https://www.youtube.com/@aformulafarmacia6374", "YouTube"],
+  ["linkedin", "https://www.linkedin.com/company/aformulafarmacia/", "LinkedIn"],
+];
+const LINKS_RODAPE = [
+  ["Encontre uma loja", `${SITE}/encontre-uma-loja`],
+  ["Manipule sua receita", `${SITE}/receita`],
+  ["Blog", `${SITE}/blog`],
+  ["Área do prescritor", AREA_URL],
+  ["Seja um franqueado", "https://franquia.aformulabr.com.br/seja-um-franqueado/"],
+  ["LGPD", `${SITE}/lgpd`],
+];
+
+function rodape(unsub) {
+  const link = (t, h) =>
+    `<a href="${h}" style="color:#bfe6e2;text-decoration:none;white-space:nowrap;">${t}</a>`;
+  const ico = ([n, href, nome]) =>
+    `<a href="${href}" style="text-decoration:none;display:inline-block;padding:0 5px;">
+       <img src="${IMG}/email-ico-${n}.png" width="32" height="32" alt="${nome}"
+         style="display:block;border:0;width:32px;height:32px;"></a>`;
+
+  return `<tr><td style="padding:30px 32px 26px;background:${FOOT_BG};color:#9dc4c9;font-size:12px;line-height:1.7;">
+
+    <p style="margin:0 0 22px;color:#ffffff;font-size:15px;line-height:1.5;font-weight:bold;">
+      Há 37 anos transformando manipulação em ciência, cuidado e inovação.</p>
+
+    <p style="margin:0 0 20px;font-size:13px;line-height:2;">
+      ${LINKS_RODAPE.map(([t, h]) => link(t, h)).join(`<span style="color:#3d6b74;"> &nbsp;·&nbsp; </span>`)}
+    </p>
+
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 22px;"><tr>
+      <td style="padding-right:14px;color:#7fa8ae;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;">Siga</td>
+      <td>${REDES.map(ico).join("")}</td>
+    </tr></table>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 18px;">
+      <tr><td style="height:1px;background:#0d5561;line-height:1px;font-size:0;">&nbsp;</td></tr>
+    </table>
+
+    <p style="margin:0 0 10px;color:#bfe6e2;font-size:12px;">
+      Dúvida ou reclamação? Fale com o
+      <a href="mailto:${SAC}" style="color:#ffffff;text-decoration:underline;">${SAC}</a>
+      — ou responda este e-mail, que chega numa caixa monitorada por gente.
+    </p>
+
+    <p style="margin:0;color:#93b8bd;font-size:11px;line-height:1.75;">
+      Você recebeu este e-mail porque se cadastrou em
+      <a href="${SITE}" style="color:#bfe6e2;">aformulabr.com.br</a>.
+      Enviado por ${SENDER}.${unsub ? `
+      <a href="${unsub}" style="color:#bfe6e2;text-decoration:underline;">Descadastrar</a>.` : ""}<br>
+      A FÓRMULA SERVIÇOS E FRANCHISE LTDA — CNPJ 10.760.350/0001-00<br>
+      Rua Tabapuã, 627 — Itaim Bibi, São Paulo/SP<br>
+      © A Fórmula 2026 · farmácia de manipulação em 87 cidades
+    </p>
+  </td></tr>`;
 }
 
 // Botão de CTA único (a régua proíbe CTA concorrente no mesmo e-mail).
@@ -177,7 +235,7 @@ function welcomeNewsletter(email) {
     ${addContactHtml}
     ${ps(`Tem uma dúvida de saúde que você nunca conseguiu resposta direta? Responde este e-mail.
       Eu levo pro farmacêutico e a resposta pode virar a próxima edição — sem citar seu nome.`)}
-    ${unsubHtml(unsub)}`, { hero: "boasvindas" });
+`, { hero: "boasvindas", unsub });
   return { subject, text, html, unsub };
 }
 
