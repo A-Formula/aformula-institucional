@@ -1,6 +1,8 @@
 // POST /api/trabalhe-conosco — mini-currículo do "Trabalhe conosco" (triagem de talentos)
 // Body: { nome, email, telefone?, cidade, cep?, formacao, experiencia, area?, linkedin?, marketing?, website? (honeypot) }
 const { getDb, notify, guard, isEmail, addToMailing, FieldValue } = require("./_lib/backend");
+const { FLOWS } = require("./_lib/flows");
+const { enqueueFlow } = require("./_lib/queue");
 
 module.exports = async (req, res) => {
   const body = guard(req, res);
@@ -36,6 +38,14 @@ module.exports = async (req, res) => {
   }
 
   if (marketing) await addToMailing(email, "trabalhe-conosco").catch(() => {});
+
+  // Régua T (RH, nunca produto). T1 é serviço — responde ao que a pessoa fez — e T2/T3 exigem
+  // o opt-in de marketing, que aqui é o mesmo checkbox do formulário.
+  await enqueueFlow(db, {
+    flow: "T", steps: FLOWS.T, email,
+    dados: { nome, email, cidade, area: area || null },
+    startAt: new Date(),
+  }).catch((e) => console.error("[trabalhe-conosco] enqueue falhou:", e && e.message));
 
   await notify(
     `[Trabalhe conosco] ${nome} — ${cidade}`,

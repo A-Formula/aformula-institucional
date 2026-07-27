@@ -23,6 +23,12 @@ service cloud.firestore {
     match /newsletter/{doc}       { allow read: if isAdmin(); allow create: if false; }
     match /prescriber_blocked_attempts/{doc} { allow read: if isAdmin(); allow write: if false; }
 
+    // Réguas de e-mail: fila e log de execução. Escrita só pelo admin SDK (API/cron, que ignora
+    // rules). Leitura de admin é só pra o painel poder mostrar a fila — publicar estas duas linhas
+    // é OPCIONAL: sem elas as réguas funcionam igual, o painel só não consegue exibir o status.
+    match /email_jobs/{doc}       { allow read: if isAdmin(); allow write: if false; }
+    match /email_runs/{doc}       { allow read: if isAdmin(); allow write: if false; }
+
     // Área do prescritor (F4): aprovado = existe prescriber_access/{email} (criado na aprovação).
     function isApprovedPrescriber() {
       return request.auth != null

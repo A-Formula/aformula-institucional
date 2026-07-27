@@ -2,6 +2,8 @@
 // Body: { email, source?, website? (honeypot) }
 const { getDb, guard, isEmail, sendMail, FieldValue } = require("./_lib/backend");
 const { welcomeNewsletter } = require("./_lib/emails");
+const { FLOWS } = require("./_lib/flows");
+const { enqueueFlow } = require("./_lib/queue");
 
 module.exports = async (req, res) => {
   const body = guard(req, res);
@@ -33,6 +35,11 @@ module.exports = async (req, res) => {
     const m = welcomeNewsletter();
     await sendMail(email, m.subject, m.text, m.html)
       .catch((e) => console.error("[newsletter] boas-vindas falhou:", e && e.message));
+
+    // Ciclo semanal (N2 valor → N3 valor → N4 valor → N5 comercial), a partir de 7 dias.
+    // Só na primeira inscrição: re-inscrever não reinicia a régua nem duplica (a fila é idempotente).
+    await enqueueFlow(db, { flow: "N", steps: FLOWS.N, email, dados: { email }, startAt: new Date() })
+      .catch((e) => console.error("[newsletter] enqueue falhou:", e && e.message));
   }
 
   return res.status(200).json({ ok: true });

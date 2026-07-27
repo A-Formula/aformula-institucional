@@ -7,6 +7,8 @@
 const crypto = require("crypto");
 const { getDb, verifyAdmin, sendMail, admin, FieldValue } = require("./_lib/backend");
 const { approvalPrescriber } = require("./_lib/emails");
+const { FLOWS } = require("./_lib/flows");
+const { enqueueFlow, cancelFlow } = require("./_lib/queue");
 
 const AREA_URL = "https://www.aformulabr.com.br/area-do-prescritor";
 
@@ -44,6 +46,9 @@ module.exports = async (req, res) => {
       // Invalida os ID tokens já emitidos — sem isso, um prescritor logado seguiria válido por até 1h.
       await admin.auth().revokeRefreshTokens(u.uid);
     } catch (_) { /* usuário nunca criado — ok */ }
+    // Recusado não recebe P3–P6. Sem isto, quem foi reprovado continuaria recebendo conteúdo
+    // técnico da Área do Prescritor por 21 dias.
+    await cancelFlow(db, { flow: "P", email: p.email, motivo: "cadastro-recusado" }).catch(() => {});
     return res.status(200).json({ ok: true, status: "rejected" });
   }
 
@@ -80,6 +85,17 @@ module.exports = async (req, res) => {
   const emailSent = await sendApprovalEmail(p.email, p.nome, resetLink, {
     conselho: p.conselho, conselhoNumero: p.conselhoNumero, uf: p.uf,
   }).catch(() => false);
+
+  // Régua P (P3 a P6) conta da APROVAÇÃO, não do cadastro: antes de ter acesso, nada do conteúdo
+  // técnico faz sentido. P4 é pulado automaticamente se o cadastro não trouxe especialidade.
+  await enqueueFlow(db, {
+    flow: "P", steps: FLOWS.P, email: p.email,
+    dados: {
+      nome: p.nome, email: p.email, conselho: p.conselho, conselhoNumero: p.conselhoNumero,
+      uf: p.uf, especialidade: p.especialidade || null, cidade: p.cidade || null,
+    },
+    startAt: new Date(),
+  }).catch((e) => console.error("[decide] enqueue falhou:", e && e.message));
 
   return res.status(200).json({ ok: true, status: "approved", emailSent, resetLink });
 };

@@ -1,6 +1,8 @@
 // POST /api/contato — substitui o mailto: do contato.html
 // Body: { nome, telefone?, email, assunto, mensagem, website? (honeypot) }
 const { getDb, notify, guard, isEmail, addToMailing, FieldValue } = require("./_lib/backend");
+const { FLOWS, fluxoPorAssunto } = require("./_lib/flows");
+const { enqueueFlow } = require("./_lib/queue");
 
 const ASSUNTOS = [
   "Dúvida sobre manipulação", "Acompanhamento de pedido", "Área do prescritor",
@@ -38,6 +40,19 @@ module.exports = async (req, res) => {
 
   // opt-in de marketing → entra na base de mailing (best-effort, não derruba o contato)
   if (marketing) await addToMailing(email, "contato").catch(() => {});
+
+  // Régua de e-mail. O `assunto` é lista fechada, então o roteamento é determinístico; dentro de
+  // "Dúvida sobre manipulação"/"Outro assunto" a triagem CA×CB lê a mensagem (na dúvida → CB,
+  // que nunca promete nada). Três assuntos não têm régua e retornam null de propósito:
+  // acompanhamento de pedido (é atendimento), franqueado (régua não existe) e imprensa (manual).
+  const fluxo = fluxoPorAssunto(assunto, mensagem);
+  if (fluxo && FLOWS[fluxo]) {
+    await enqueueFlow(db, {
+      flow: fluxo, steps: FLOWS[fluxo], email,
+      dados: { nome, email, mensagem, assunto, cep, cidade: null },
+      startAt: new Date(),
+    }).catch((e) => console.error("[contato] enqueue falhou:", e && e.message));
+  }
 
   await notify(
     `[Contato site] ${assunto}`,

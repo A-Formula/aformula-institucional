@@ -52,21 +52,31 @@ function mailFrom() {
   return process.env.NOTIFY_FROM ||
     (process.env.SMTP_USER ? `Site A Fórmula <${process.env.SMTP_USER}>` : "Site A Fórmula <onboarding@resend.dev>");
 }
-// Caixa que RECEBE as respostas. O From é no_reply@, então sem Reply-To toda resposta do
+// Caixas que RECEBEM as respostas. O From é no_reply@, então sem Reply-To toda resposta do
 // público morre — e vários e-mails da régua pedem resposta explicitamente (P4/P5/P6/N1/N2).
+// Duas caixas de propósito: sac@ é quem atende, webmaster@ é o operador vigiando SE estão
+// respondendo. Pra tirar o webmaster depois, basta setar MAIL_REPLY_TO na Vercel com só o sac@
+// — sem deploy. Reply-To aceita lista (RFC 5322 §3.6.2); o cliente do leitor põe as duas no "Para".
 function mailReplyTo() {
-  return process.env.MAIL_REPLY_TO || "sac@aformulabr.com.br";
+  return process.env.MAIL_REPLY_TO ||
+    "sac@aformulabr.com.br, webmaster@aformulabrasil.com.br";
 }
 // Envia um e-mail avulso (texto + HTML opcional). Retorna true/false, nunca lança — o chamador decide o que fazer.
 // replyTo: sobrescreve a caixa de resposta (ex.: e-mail do farmacêutico nas réguas de prescritor).
 // Passar null desliga o Reply-To (notificação interna não precisa).
-async function sendMail(to, subject, text, html, replyTo) {
+// headers: cabeçalhos extra — usado pelo List-Unsubscribe das réguas de marketing, que o Gmail
+// exige de quem manda em volume (senão a reputação do domínio cai).
+async function sendMail(to, subject, text, html, replyTo, headers) {
   const from = mailFrom();
   const rt = replyTo === null ? null : (replyTo || mailReplyTo());
+  const hdr = headers && Object.keys(headers).length ? headers : null;
   const t = mailer();
   if (t) {
     try {
-      await t.sendMail({ from, to, subject, text, ...(html ? { html } : {}), ...(rt ? { replyTo: rt } : {}) });
+      await t.sendMail({
+        from, to, subject, text,
+        ...(html ? { html } : {}), ...(rt ? { replyTo: rt } : {}), ...(hdr ? { headers: hdr } : {}),
+      });
       return true;
     }
     catch (e) { console.error("[sendMail] SMTP falhou:", e && e.message); /* cai pro Resend abaixo */ }
@@ -79,7 +89,10 @@ async function sendMail(to, subject, text, html, replyTo) {
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         from, to: [to], subject, text,
-        ...(html ? { html } : {}), ...(rt ? { reply_to: rt } : {}),
+        ...(html ? { html } : {}),
+        // Resend quer LISTA quando há mais de um endereço; nodemailer aceita a string com vírgula.
+        ...(rt ? { reply_to: String(rt).split(",").map((s) => s.trim()).filter(Boolean) } : {}),
+        ...(hdr ? { headers: hdr } : {}),
       }),
     });
     return r.ok;

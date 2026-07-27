@@ -236,4 +236,9 @@ function approvalPrescriber(nome, resetLink, dados) {
   return { subject, text, html };
 }
 
-module.exports = { welcomeNewsletter, welcomePrescriber, approvalPrescriber };
+module.exports = {
+  welcomeNewsletter, welcomePrescriber, approvalPrescriber,
+  // Reaproveitados por _lib/flows.js (os 18 e-mails das réguas) — casca e voz únicas.
+  layout, btn, ps, esc, firstName, assinaturaText, assinaturaHtml, addContactHtml,
+  SENDER, SAC, SITE, AREA_URL, TEAL, DARK,
+};
