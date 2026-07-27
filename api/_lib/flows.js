@@ -33,9 +33,14 @@ const boldHtml = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
 // `pre` é o preheader: o texto que o Gmail mostra ao lado do assunto. Ele COMPLEMENTA o assunto,
 // nunca repete — é a segunda chance de ganhar a abertura, e ficar vazio faz o cliente de e-mail
 // pescar a primeira frase do corpo ("Olá, Maria."), que desperdiça o espaço.
-function compose({ h1, subject, pre, blocks, psText, email, classe }) {
+function compose({ h1, subject, pre, hero, blocks, psText, email, classe }) {
   const unsub = classe === "marketing" ? unsubUrl(email) : "";
   const cta = blocks.find((b) => b.cta);
+  // Repetir o CTA no fim só faz sentido se ainda houver conteúdo DEPOIS dele — senão saem dois
+  // botões idênticos colados, que é o que acontecia antes desta checagem.
+  const iCta = blocks.findIndex((b) => b.cta);
+  const temConteudoDepois = iCta >= 0 && blocks.slice(iCta + 1).some((b) => b.p || b.ul || b.ol);
+  const repetirCta = Boolean(cta) && temConteudoDepois && blocks.filter((b) => b.p).length >= 5;
 
   const text = blocks.map((b) => {
     if (b.p) return boldText(b.p);
@@ -64,9 +69,10 @@ function compose({ h1, subject, pre, blocks, psText, email, classe }) {
       return "";
     }).join("")
     // CTA repetido no fim: em e-mail longo, quem rolou até aqui já decidiu e não vai voltar.
-    + (cta && blocks.filter((b) => b.p).length >= 5 ? btn(cta.cta.href, cta.cta.label) : "")
+    + (repetirCta ? btn(cta.cta.href, cta.cta.label) : "")
     + ps(boldHtml(psText))
-    + unsubHtml(unsub)
+    + unsubHtml(unsub),
+    { hero }
   );
   return { subject: subject || h1, text, html };
 }
@@ -88,6 +94,7 @@ function CA1(d) {
   return compose({
     email: d.email, classe: "servico",
     h1: "Já está na mão do farmacêutico",
+    hero: "receita",
     pre: "Pra fechar o orçamento falta só a foto da receita.",
     blocks: [
       { p: `Olá, ${firstName(d.nome)}.` },
@@ -130,6 +137,7 @@ function CA3(d) {
   return compose({
     email: d.email, classe: "servico",
     h1: "Prefere resolver no balcão?",
+    hero: "unidade",
     pre: "São 87 cidades e nenhuma delas exige agendamento.",
     blocks: [
       { p: `Olá, ${firstName(d.nome)}.` },
@@ -178,6 +186,7 @@ function CB2(d) {
   return compose({
     email: d.email, classe: "marketing",
     h1: "A dose de prateleira não serve",
+    hero: "formula",
     pre: "Por que o mesmo comprimido serve pra um e não pro outro.",
     blocks: [
       { p: `Olá, ${firstName(d.nome)}.` },
@@ -200,6 +209,7 @@ function CB3(d) {
   return compose({
     email: d.email, classe: "marketing",
     h1: "Dá pra falar com quem manipula?",
+    hero: "formula",
     pre: "Em farmácia, sim. Em plataforma de pedido, não existe nem quem chamar.",
     blocks: [
       { p: `Olá, ${firstName(d.nome)}.` },
@@ -253,6 +263,7 @@ function P3(d) {
   return compose({
     email: d.email, classe: "marketing",
     h1: "De onde vem o ativo que você prescreve",
+    hero: "formula",
     pre: "Qualificação de fornecedor, laudo por lote e rastreabilidade.",
     blocks: [
       { p: `Dr(a). ${firstName(d.nome)},` },
@@ -295,6 +306,7 @@ function P5(d) {
   return compose({
     email: d.email, classe: "marketing",
     h1: "O que o seu paciente encontra aqui",
+    hero: "unidade",
     pre: "Da receita à retirada — e as unidades da sua cidade.",
     blocks: [
       { p: `Dr(a). ${firstName(d.nome)},` },
@@ -359,6 +371,7 @@ function T2(d) {
   return compose({
     email: d.email, classe: "marketing",
     h1: "Como é o dia numa unidade",
+    hero: "unidade",
     pre: "Metade do serviço não acontece no balcão.",
     blocks: [
       { p: `Olá, ${firstName(d.nome)}.` },
@@ -404,6 +417,7 @@ function N2(d) {
   return compose({
     email: d.email, classe: "marketing",
     h1: "O que mais perguntam no balcão",
+    hero: "boasvindas",
     pre: "Três dúvidas que aparecem toda semana, respondidas por quem tem CRF.",
     blocks: [
       { p: `Toda semana as mesmas perguntas chegam no balcão. Parecem básicas, mas quase ninguém responde direito na internet — porque na internet a resposta é pra todo mundo, e essas dependem do caso.` },
@@ -420,6 +434,7 @@ function N3(d) {
   return compose({
     email: d.email, classe: "marketing",
     h1: "Por que 5 comprimidos virariam 1",
+    hero: "formula",
     pre: "O que a manipulação resolve e a farmácia comum não.",
     blocks: [
       { p: `Tem gente que toma cinco cápsulas de manhã.` },
@@ -441,6 +456,7 @@ function N4(d) {
   return compose({
     email: d.email, classe: "marketing",
     h1: "Tem uma unidade perto de você?",
+    hero: "unidade",
     pre: "87 cidades. Veja o que a mais próxima manipula.",
     blocks: [
       { p: `Manipulado tem fama de coisa de capital. Muita gente descobre tarde que tem uma farmácia de manipulação a dez minutos de casa.` },
@@ -461,6 +477,7 @@ function N5(d) {
   return compose({
     email: d.email, classe: "marketing",
     h1: "Tem receita parada em casa?",
+    hero: "receita",
     pre: "Manda a foto: o farmacêutico confere se ainda vale.",
     blocks: [
       { p: `Existe uma gaveta em quase toda casa com uma receita dentro.` },

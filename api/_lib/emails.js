@@ -37,28 +37,54 @@ const unsubHtml = (url) => url
      <a href="${url}" style="color:#9aabab;text-decoration:underline;">Descadastrar</a>.</p>` : "";
 const unsubText = (url) => url ? `\n\n---\nNão quer mais receber? ${url}` : "";
 
-// Casca comum: card branco 600px, faixa teal com o wordmark em texto (sem imagens —
-// imagem quebrada em cliente de e-mail piora spam score).
-function layout(bodyHtml) {
+// Imagens do e-mail. PNG e JPG de propósito: o WebP do site não renderiza no Outlook.
+// URL absoluta e no domínio oficial — caminho relativo não existe dentro de cliente de e-mail.
+const IMG = `${SITE}/assets`;
+const HEROS = {
+  boasvindas: { src: `${IMG}/email-hero-boasvindas.jpg`, alt: "Chá, cápsulas e eucalipto sobre bancada de mármore" },
+  formula:    { src: `${IMG}/email-hero-formula.jpg`,    alt: "Cápsulas manipuladas e vidraria de laboratório" },
+  receita:    { src: `${IMG}/email-hero-receita.jpg`,    alt: "Cápsulas, água e frutas cítricas sobre mármore" },
+  unidade:    { src: `${IMG}/email-hero-unidade.jpg`,    alt: "Prateleiras de uma unidade A Fórmula" },
+};
+
+// Casca comum: card branco 600px, logo real no topo, banner opcional.
+// Regras de e-mail que o código respeita: tabela em vez de flex/grid, largura em atributo além do
+// CSS, `display:block` na imagem (senão o Outlook deixa um vão embaixo) e ALT descritivo —
+// metade dos clientes bloqueia imagem por padrão, e o e-mail tem que funcionar assim.
+function layout(bodyHtml, opts) {
+  const o = opts || {};
+  const hero = o.hero && HEROS[o.hero] ? HEROS[o.hero] : null;
   return `<!doctype html>
-<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
-<body style="margin:0;padding:0;background:#f2f5f5;font-family:Arial,Helvetica,sans-serif;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f2f5f5;padding:24px 12px;">
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">
+<meta name="color-scheme" content="light only"><meta name="supported-color-schemes" content="light only"></head>
+<body style="margin:0;padding:0;background:#eef2f2;font-family:Arial,Helvetica,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef2f2;padding:24px 12px;">
     <tr><td align="center">
-      <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e3eaea;">
-        <tr><td style="background:${TEAL};padding:22px 32px;">
-          <span style="color:#ffffff;font-size:22px;font-weight:bold;letter-spacing:.5px;">a fórmula</span>
-          <span style="color:#bfe6e2;font-size:12px;letter-spacing:2px;text-transform:uppercase;padding-left:10px;">Farmácia de Manipulação</span>
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:14px;overflow:hidden;border:1px solid #e0e8e8;">
+
+        <tr><td style="padding:26px 32px 20px;background:#ffffff;">
+          <img src="${IMG}/email-logo.png" width="168" height="43" alt="A Fórmula — Farmácia de Manipulação"
+            style="display:block;border:0;outline:none;text-decoration:none;width:168px;height:auto;
+            color:${TEAL};font-size:20px;font-weight:bold;">
         </td></tr>
-        <tr><td style="padding:32px;color:${DARK};font-size:15px;line-height:1.6;">
+        <tr><td style="height:3px;background:${TEAL};line-height:3px;font-size:0;">&nbsp;</td></tr>
+
+        ${hero ? `<tr><td style="padding:0;">
+          <img src="${hero.src}" width="600" height="250" alt="${esc(hero.alt)}"
+            style="display:block;border:0;width:100%;max-width:600px;height:auto;">
+        </td></tr>` : ""}
+
+        <tr><td style="padding:32px;color:${DARK};font-size:15px;line-height:1.65;">
           ${bodyHtml}
         </td></tr>
-        <tr><td style="padding:18px 32px 26px;border-top:1px solid #edf2f2;color:#7a8c8c;font-size:12px;line-height:1.6;">
-          Este e-mail foi enviado por <strong>${SENDER}</strong>. Você pode responder — as respostas
-          chegam numa caixa monitorada por gente.<br>
-          Atendimento: <a href="mailto:${SAC}" style="color:${TEAL};">${SAC}</a> ·
-          <a href="https://www.instagram.com/aformulafarmacia" style="color:${TEAL};">@aformulafarmacia</a><br>
-          A Fórmula — farmácia de manipulação em 87 cidades.
+
+        <tr><td style="padding:20px 32px 26px;background:#f7fafa;border-top:1px solid #e8f0f0;color:#748a8a;font-size:12px;line-height:1.6;">
+          Enviado por <strong>${SENDER}</strong> — e você pode responder: as respostas chegam
+          numa caixa monitorada por gente.<br>
+          Atendimento <a href="mailto:${SAC}" style="color:${TEAL};">${SAC}</a> ·
+          <a href="https://www.instagram.com/aformulafarmacia" style="color:${TEAL};">@aformulafarmacia</a> ·
+          <a href="${SITE}/encontre-uma-loja" style="color:${TEAL};">encontre sua unidade</a><br>
+          <strong style="color:#5b7276;">A Fórmula</strong> — farmácia de manipulação em 87 cidades.
         </td></tr>
       </table>
     </td></tr>
@@ -91,46 +117,67 @@ const ps = (t) => `<p style="margin:22px 0 0;padding-top:16px;border-top:1px sol
 
 // ── N1 · Boas-vindas da NEWSLETTER ──
 // A coleção guarda só {email, source, consent} → esta régua NÃO tem primeiro nome disponível.
-// O tema é coletado por RESPOSTA, não por link: não existe centro de preferências ainda, e pedir
-// resposta funciona hoje (o Reply-To já está configurado em _lib/backend.js).
+// 🔴 Decisão do operador 2026-07-27: SEM pedir escolha de tema. Quem se inscreveu já autorizou;
+// pedir de novo é fricção, e "responda com o tema" gera trabalho manual que ninguém faz.
+// O e-mail agora faz três coisas e para: confirma, combina a frequência e oferece o único
+// próximo passo que converte — falar com a unidade mais perto.
 function welcomeNewsletter(email) {
-  const subject = "Escolhe o que você quer receber";
-  const temas = "saúde e bem-estar, pele e cabelo, performance e suplementação, e pet";
+  const subject = "Bem-vindo à A Fórmula";
+  const pre = "Uma edição por semana. E o WhatsApp da unidade mais perto de você.";
+  const lojas = `${SITE}/encontre-uma-loja`;
   // O PS promete que o link de saída está no pé de todas — então tem que estar no pé desta também.
   const unsub = email ? unsubUrl(email) : "";
   const text =
-    `Olá!\n\n` +
-    `Sua inscrição na newsletter da A Fórmula está confirmada.\n\n` +
-    `Antes de mais nada, uma pergunta — porque mandar tudo pra todo mundo é o jeito mais rápido ` +
-    `de virar spam: sobre o que você quer receber?\n\n` +
-    `São quatro temas: ${temas}.\n\n` +
-    `RESPONDE ESTE E-MAIL COM O TEMA QUE TE INTERESSA (uma palavra basta) e eu mando só aquilo.\n\n` +
-    `Combinado de frequência, pra não ter surpresa: uma edição por semana, sempre no mesmo dia. ` +
-    `Nada de e-mail diário, nada de promoção disfarçada de conteúdo.\n\n` +
-    `Quem escreve é o time de farmacêuticos da A Fórmula. O que você lê aqui passa por alguém ` +
-    `com CRF antes de sair.\n\n` +
+    `Olá!
+
+` +
+    `Sua inscrição está confirmada. Bem-vindo.
+
+` +
+    `O combinado, pra você não ter surpresa: uma edição por semana, sempre no mesmo dia. ` +
+    `Nada de e-mail diário e nada de promoção disfarçada de conteúdo.
+
+` +
+    `O que vem: o que a gente aprende no balcão. Por que a mesma dose serve pra um e não pro ` +
+    `outro, o que dá e o que não dá pra manipular, o que perguntar pro seu médico. Escrito por ` +
+    `quem tem CRF, sem alarmismo e sem promessa de milagre.
+
+` +
+    `E se você já precisa de alguma fórmula manipulada, não precisa esperar a próxima edição: ` +
+    `a unidade mais perto de você atende no WhatsApp.
+
+` +
+    `>> ENCONTRAR MINHA UNIDADE:
+   ${lojas}
+
+` +
     `Um pedido prático: adicione ${SENDER} aos seus contatos, ou arraste este e-mail pra caixa ` +
-    `Principal. É o que impede que o próximo caia em promoções.\n\n` +
-    `PS: Se não responder, tudo bem — você recebe a edição geral. E o link pra sair está no pé ` +
-    `de todas, sem ressentimento.` + unsubText(unsub) + `\n\n` +
+    `Principal. É o que impede que o próximo caia em promoções.
+
+` +
+    `PS: Tem uma dúvida de saúde que você nunca conseguiu resposta direta? Responde este e-mail. ` +
+    `Eu levo pro farmacêutico e a resposta pode virar a próxima edição — sem citar seu nome.` +
+    unsubText(unsub) + `
+
+` +
     `A Fórmula — farmácia de manipulação em 87 cidades.`;
   const html = layout(`
-    <h1 style="margin:0 0 14px;font-size:21px;color:${DARK};">Escolhe o que você quer receber</h1>
-    <p style="margin:0 0 14px;">Olá!</p>
-    <p style="margin:0 0 14px;">Sua inscrição na newsletter da <strong>A Fórmula</strong> está confirmada.</p>
-    <p style="margin:0 0 14px;">Antes de mais nada, uma pergunta — porque mandar tudo pra todo mundo
-      é o jeito mais rápido de virar spam: sobre o que você quer receber?</p>
-    <p style="margin:0 0 14px;">São quatro temas: ${temas}.</p>
-    <p style="margin:0 0 14px;"><strong>Responde este e-mail com o tema que te interessa</strong>
-      — uma palavra basta — e eu mando só aquilo.</p>
-    <p style="margin:0 0 14px;">Combinado de frequência, pra não ter surpresa: uma edição por semana,
-      sempre no mesmo dia. Nada de e-mail diário, nada de promoção disfarçada de conteúdo.</p>
-    <p style="margin:0 0 14px;">Quem escreve é o time de farmacêuticos da A Fórmula. O que você lê
-      aqui passa por alguém com CRF antes de sair.</p>
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;">${esc(pre)}</div>
+    <h1 style="margin:0 0 14px;font-size:22px;line-height:1.3;color:${DARK};">Bem-vindo à A Fórmula</h1>
+    <p style="margin:0 0 14px;">Sua inscrição está confirmada.</p>
+    <p style="margin:0 0 14px;">O combinado, pra você não ter surpresa: <strong>uma edição por
+      semana</strong>, sempre no mesmo dia. Nada de e-mail diário e nada de promoção disfarçada
+      de conteúdo.</p>
+    <p style="margin:0 0 14px;">O que vem é o que a gente aprende no balcão: por que a mesma dose
+      serve pra um e não pro outro, o que dá e o que não dá pra manipular, o que perguntar pro seu
+      médico. Escrito por quem tem CRF — sem alarmismo e sem promessa de milagre.</p>
+    <p style="margin:0 0 14px;">E se você já precisa de alguma fórmula manipulada, não precisa
+      esperar a próxima edição: a unidade mais perto de você atende no WhatsApp.</p>
+    ${btn(lojas, "Encontrar minha unidade")}
     ${addContactHtml}
-    ${ps(`Se não responder, tudo bem — você recebe a edição geral. E o link pra sair está no pé de
-      todas, sem ressentimento.`)}
-    ${unsubHtml(unsub)}`);
+    ${ps(`Tem uma dúvida de saúde que você nunca conseguiu resposta direta? Responde este e-mail.
+      Eu levo pro farmacêutico e a resposta pode virar a próxima edição — sem citar seu nome.`)}
+    ${unsubHtml(unsub)}`, { hero: "boasvindas" });
   return { subject, text, html, unsub };
 }
 
@@ -208,7 +255,8 @@ function welcomePrescriber(nome, dados) {
       realmente não pode perder.</p>
     ${assinaturaHtml()}
     ${ps(`Passou de três dias úteis e nada chegou? Responde este e-mail que eu verifico na hora.
-      Quase sempre é divergência de grafia entre o nome do cadastro e o do ${esc(conselho)}.`)}`);
+      Quase sempre é divergência de grafia entre o nome do cadastro e o do ${esc(conselho)}.`)}`,
+    { hero: "formula" });
   return { subject, text, html };
 }
 
@@ -256,7 +304,8 @@ function approvalPrescriber(nome, resetLink, dados) {
     </ul>
     ${assinaturaHtml()}
     ${ps(`O telefone que está lá dentro não é 0800. É o ramal do farmacêutico. Se precisar discutir
-      a viabilidade de uma fórmula antes de prescrever, é pra lá que se liga.`)}`);
+      a viabilidade de uma fórmula antes de prescrever, é pra lá que se liga.`)}`,
+    { hero: "formula" });
   return { subject, text, html };
 }
 
