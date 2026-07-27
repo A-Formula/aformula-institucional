@@ -16,6 +16,27 @@ const DARK = "#052c32";
 const esc = (s) => String(s || "").replace(/[&<>"']/g, (c) =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
+// ── Descadastro ──
+// Mora aqui, e não em flows.js, porque este arquivo é o de baixo na hierarquia: flows.js importa
+// emails.js, então colocar do outro lado criaria require circular.
+// Token = HMAC do e-mail → link não adivinhável e ninguém descadastra terceiro.
+function unsubToken(email) {
+  const secret = process.env.UNSUB_SECRET || process.env.RESEND_API_KEY || "";
+  if (!secret) return "";
+  return require("crypto").createHmac("sha256", secret)
+    .update(String(email).toLowerCase()).digest("hex").slice(0, 32);
+}
+function unsubUrl(email) {
+  const t = unsubToken(email);
+  if (!t) return "";
+  return `${SITE}/api/descadastro?e=${encodeURIComponent(String(email).toLowerCase())}&t=${t}`;
+}
+// Rodapé de saída, em HTML e texto. Usado por todo e-mail de lista.
+const unsubHtml = (url) => url
+  ? `<p style="margin:18px 0 0;font-size:12px;color:#9aabab;">Não quer mais receber estes e-mails?
+     <a href="${url}" style="color:#9aabab;text-decoration:underline;">Descadastrar</a>.</p>` : "";
+const unsubText = (url) => url ? `\n\n---\nNão quer mais receber? ${url}` : "";
+
 // Casca comum: card branco 600px, faixa teal com o wordmark em texto (sem imagens —
 // imagem quebrada em cliente de e-mail piora spam score).
 function layout(bodyHtml) {
@@ -72,9 +93,11 @@ const ps = (t) => `<p style="margin:22px 0 0;padding-top:16px;border-top:1px sol
 // A coleção guarda só {email, source, consent} → esta régua NÃO tem primeiro nome disponível.
 // O tema é coletado por RESPOSTA, não por link: não existe centro de preferências ainda, e pedir
 // resposta funciona hoje (o Reply-To já está configurado em _lib/backend.js).
-function welcomeNewsletter() {
+function welcomeNewsletter(email) {
   const subject = "Escolhe o que você quer receber";
   const temas = "saúde e bem-estar, pele e cabelo, performance e suplementação, e pet";
+  // O PS promete que o link de saída está no pé de todas — então tem que estar no pé desta também.
+  const unsub = email ? unsubUrl(email) : "";
   const text =
     `Olá!\n\n` +
     `Sua inscrição na newsletter da A Fórmula está confirmada.\n\n` +
@@ -89,7 +112,7 @@ function welcomeNewsletter() {
     `Um pedido prático: adicione ${SENDER} aos seus contatos, ou arraste este e-mail pra caixa ` +
     `Principal. É o que impede que o próximo caia em promoções.\n\n` +
     `PS: Se não responder, tudo bem — você recebe a edição geral. E o link pra sair está no pé ` +
-    `de todas, sem ressentimento.\n\n` +
+    `de todas, sem ressentimento.` + unsubText(unsub) + `\n\n` +
     `A Fórmula — farmácia de manipulação em 87 cidades.`;
   const html = layout(`
     <h1 style="margin:0 0 14px;font-size:21px;color:${DARK};">Escolhe o que você quer receber</h1>
@@ -106,8 +129,9 @@ function welcomeNewsletter() {
       aqui passa por alguém com CRF antes de sair.</p>
     ${addContactHtml}
     ${ps(`Se não responder, tudo bem — você recebe a edição geral. E o link pra sair está no pé de
-      todas, sem ressentimento.`)}`);
-  return { subject, text, html };
+      todas, sem ressentimento.`)}
+    ${unsubHtml(unsub)}`);
+  return { subject, text, html, unsub };
 }
 
 // Primeiro nome pra saudação, pulando títulos (Dr., Dra., Prof.…) que muitos prescritores põem no início.
@@ -240,5 +264,6 @@ module.exports = {
   welcomeNewsletter, welcomePrescriber, approvalPrescriber,
   // Reaproveitados por _lib/flows.js (os 18 e-mails das réguas) — casca e voz únicas.
   layout, btn, ps, esc, firstName, assinaturaText, assinaturaHtml, addContactHtml,
+  unsubToken, unsubUrl, unsubHtml, unsubText,
   SENDER, SAC, SITE, AREA_URL, TEAL, DARK,
 };

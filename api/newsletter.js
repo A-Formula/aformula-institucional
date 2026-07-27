@@ -32,8 +32,12 @@ module.exports = async (req, res) => {
   // Boas-vindas só na PRIMEIRA inscrição (re-subscribe não reenvia). Best effort:
   // falha de e-mail não derruba a inscrição (o Firestore já é a fonte de verdade).
   if (isNew) {
-    const m = welcomeNewsletter();
-    await sendMail(email, m.subject, m.text, m.html)
+    // Recebe o e-mail pra montar o link de descadastro — o PS deste e-mail promete que ele existe.
+    const m = welcomeNewsletter(email);
+    const headers = m.unsub
+      ? { "List-Unsubscribe": `<${m.unsub}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" }
+      : undefined;
+    await sendMail(email, m.subject, m.text, m.html, undefined, headers)
       .catch((e) => console.error("[newsletter] boas-vindas falhou:", e && e.message));
 
     // Ciclo semanal (N2 valor → N3 valor → N4 valor → N5 comercial), a partir de 7 dias.

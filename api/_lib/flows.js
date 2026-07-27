@@ -10,28 +10,15 @@
 // WhatsApp dela (76 das 87 unidades têm celular). Isso também elimina a variável {LINK_WHATSAPP},
 // que não existia em lugar nenhum — não há um WhatsApp único da rede.
 // A régua P é a exceção: prescritor vai pra Área do Prescritor, não pro balcão.
-const crypto = require("crypto");
+// Todo e-mail de classe "marketing" carrega link de saída — exigência de LGPD e o que separa
+// régua de spam. unsubToken/unsubUrl moram em emails.js pra evitar require circular.
 const {
   layout, btn, ps, esc, firstName, assinaturaText, assinaturaHtml,
-  SENDER, SITE, AREA_URL, TEAL, DARK,
+  unsubToken, unsubUrl, unsubHtml, unsubText,
+  SITE, AREA_URL, DARK,
 } = require("./emails");
 
 const LOJAS_URL = `${SITE}/encontre-uma-loja`;
-
-// ── Descadastro ──────────────────────────────────────────────────────────────
-// Todo e-mail de classe "marketing" carrega link de saída — exigência de LGPD e o que separa
-// régua de spam. Token = HMAC do e-mail, então o link não é adivinhável nem enumerável.
-function unsubToken(email) {
-  const secret = process.env.UNSUB_SECRET || process.env.RESEND_API_KEY || "";
-  if (!secret) return "";
-  return crypto.createHmac("sha256", secret)
-    .update(String(email).toLowerCase()).digest("hex").slice(0, 32);
-}
-function unsubUrl(email) {
-  const t = unsubToken(email);
-  if (!t) return "";
-  return `${SITE}/api/descadastro?e=${encodeURIComponent(String(email).toLowerCase())}&t=${t}`;
-}
 
 // ── Composição ───────────────────────────────────────────────────────────────
 // Um e-mail é uma lista de blocos. O mesmo array gera texto puro e HTML, então as duas versões
@@ -59,7 +46,7 @@ function compose({ h1, subject, pre, blocks, psText, email, classe }) {
     return "";
   }).filter(Boolean).join("\n\n")
     + `\n\nPS: ${boldText(psText)}`
-    + (unsub ? `\n\n---\nNão quer mais receber? ${unsub}` : "")
+    + unsubText(unsub)
     + `\n\nA Fórmula — farmácia de manipulação em 87 cidades.`;
 
   const html = layout(
@@ -79,9 +66,7 @@ function compose({ h1, subject, pre, blocks, psText, email, classe }) {
     // CTA repetido no fim: em e-mail longo, quem rolou até aqui já decidiu e não vai voltar.
     + (cta && blocks.filter((b) => b.p).length >= 5 ? btn(cta.cta.href, cta.cta.label) : "")
     + ps(boldHtml(psText))
-    + (unsub ? `<p style="margin:18px 0 0;font-size:12px;color:#9aabab;">
-        Não quer mais receber estes e-mails?
-        <a href="${unsub}" style="color:#9aabab;text-decoration:underline;">Descadastrar</a>.</p>` : "")
+    + unsubHtml(unsub)
   );
   return { subject: subject || h1, text, html };
 }
@@ -337,7 +322,7 @@ function P6(d) {
     `Equipe A Fórmula\n` +
     `Farmacêutico responsável — A Fórmula${d.cidade ? ` ${d.cidade}` : ""}\n\n` +
     `PS: Se for mais fácil no WhatsApp, é só dizer que a gente te chama.` +
-    (unsubUrl(d.email) ? `\n\n---\nNão quer mais receber: ${unsubUrl(d.email)}` : "");
+    unsubText(unsubUrl(d.email));
   return { subject, text, html: "" }; // html vazio de propósito → sendMail manda só texto
 }
 
