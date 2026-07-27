@@ -96,7 +96,11 @@ function layout(bodyHtml, opts) {
 // cliente que achata PNG transparente contra BRANCO faria o glifo branco desaparecer.
 const FOOT_BG = "#063e47";
 const F_CLARO = "#cfe9e9";
-const F_LEGAL = "#9dbfc4";   // bloco legal — legível, não decorativo
+// Bloco legal em BRANCO, e com a cor declarada em CADA span. Texto solto dentro de <p> é onde
+// alguns clientes (Gmail no app, Outlook) aplicam a cor padrão deles e ignoram a herança do
+// elemento pai — foi o que aconteceu: no meu preview aparecia claro, na caixa do operador saiu
+// escuro sobre escuro. Cor herdada em e-mail não é confiável; declarar em cada nó é.
+const F_LEGAL = "#ffffff";
 const F_LINHA = "#0f5763";
 
 const REDES = [
@@ -127,13 +131,13 @@ function rodape(unsub) {
       <tr><td style="height:1px;background:${F_LINHA};line-height:1px;font-size:0;">&nbsp;</td></tr>
     </table>
 
-    <p style="margin:0;color:${F_LEGAL};font-size:11px;line-height:1.8;">
-      Você recebeu este e-mail porque se cadastrou em
-      <a href="${SITE}" style="color:#cfe9e9;text-decoration:none;">aformulabr.com.br</a>.${unsub ? `
-      <a href="${unsub}" style="color:#cfe9e9;text-decoration:underline;">Não quero mais receber</a>.` : ""}
-      <a href="${SITE}/lgpd" style="color:#cfe9e9;text-decoration:none;">Privacidade</a>.<br>
-      A Fórmula Serviços e Franchise Ltda &nbsp;·&nbsp; CNPJ 10.760.350/0001-00<br>
-      Rua Tabapuã, 627 — Itaim Bibi, São Paulo/SP &nbsp;·&nbsp; © 2026
+    <p style="margin:0;color:${F_LEGAL};font-size:12px;line-height:1.8;">
+      <span style="color:${F_LEGAL};">Você recebeu este e-mail porque se cadastrou em</span>
+      <a href="${SITE}" style="color:${F_LEGAL};text-decoration:none;">aformulabr.com.br</a><span style="color:${F_LEGAL};">.</span>${unsub ? `
+      <a href="${unsub}" style="color:${F_LEGAL};text-decoration:underline;">Não quero mais receber</a><span style="color:${F_LEGAL};">.</span>` : ""}
+      <a href="${SITE}/lgpd" style="color:${F_LEGAL};text-decoration:none;">Privacidade</a><span style="color:${F_LEGAL};">.</span><br>
+      <span style="color:${F_LEGAL};">A Fórmula Serviços e Franchise Ltda &nbsp;·&nbsp; CNPJ 10.760.350/0001-00</span><br>
+      <span style="color:${F_LEGAL};">Rua Tabapuã, 627 — Itaim Bibi, São Paulo/SP &nbsp;·&nbsp; © 2026</span>
     </p>
   </td></tr>`;
 }
