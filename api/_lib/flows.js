@@ -590,6 +590,20 @@ function fluxoPorAssunto(assunto, mensagem) {
 // está registrado como pendência no doc da régua. Pra exigir opt-in também no P, trocar aqui.
 const CONSENT_MODEL = { CA: "optin", CB: "optin", P: "optout", T: "optin", N: "optin" };
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// INTERRUPTOR GERAL — pausa por padrão (28/07/2026, a pedido do operador)
+//
+// As réguas subiram em 27/07 ANTES da revisão do operador, e o domínio ainda envia sem SPF/DKIM
+// do Google. Enquanto os dois não se resolvem, nada de régua sai.
+//
+// Fail-safe DELIBERADO: desligado é o default. Só liga com `EMAIL_FLOWS_ON=1` na env da Vercel.
+// Se fosse `EMAIL_FLOWS_OFF`, esquecer de configurar a env = régua ligada — e o modo de falha
+// caro aqui é enviar sem querer, não deixar de enviar.
+//
+// O que a pausa NÃO cobre, de propósito: `approvalPrescriber` (P2), que carrega o link de acesso
+// do prescritor aprovado. É credencial, não régua — matá-lo quebraria o onboarding.
+const flowsAtivas = () => /^(1|true|on)$/i.test(String(process.env.EMAIL_FLOWS_ON || ""));
+
 module.exports = {
-  FLOWS, CONSENT_MODEL, fluxoPorAssunto, triarContato, unsubToken, unsubUrl, LOJAS_URL,
+  FLOWS, CONSENT_MODEL, fluxoPorAssunto, triarContato, unsubToken, unsubUrl, LOJAS_URL, flowsAtivas,
 };

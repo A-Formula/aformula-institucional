@@ -3,7 +3,7 @@
   "buildCommand": "node scripts/build-site.mjs",
   "outputDirectory": ".",
   "cleanUrls": true,
-  "crons": [
+  "_crons_pausado_2026-07-28": [
     { "path": "/api/cron-email-flows", "schedule": "0 13 * * *" }
   ],
   "redirects": [

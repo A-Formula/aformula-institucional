@@ -8,7 +8,7 @@
 // inteira é medida em dias (T+1, T+3, T+7…). Um cron diário entrega a régua como especificada;
 // hora exata não é requisito de nenhum e-mail.
 const { getDb, sendMail, sendBulk, verifyAdmin, FieldValue } = require("./_lib/backend");
-const { FLOWS, CONSENT_MODEL, unsubUrl } = require("./_lib/flows");
+const { FLOWS, CONSENT_MODEL, unsubUrl, flowsAtivas } = require("./_lib/flows");
 
 const LOTE = 200;              // teto por execução — protege o limite de tempo da função
 const MAX_TENTATIVAS = 3;
@@ -54,7 +54,14 @@ module.exports = async (req, res) => {
   const admin = autorizado(req) ? "cron" : await verifyAdmin(req);
   if (!admin) return res.status(403).json({ ok: false, error: "not-authorized" });
 
+  // Interruptor geral (flows.js). Roda antes de tudo: a fila fica intacta em `pending` e volta a
+  // andar quando religar. `?dry=1` continua liberado — é como inspecionar sem enviar.
   const dry = String(req.query && req.query.dry || "") === "1";
+  if (!flowsAtivas() && !dry) {
+    console.log("[cron-email-flows] pausado — EMAIL_FLOWS_ON não está ligado");
+    return res.status(200).json({ ok: true, paused: true, enviados: 0 });
+  }
+
   const db = getDb();
   if (!db) return res.status(503).json({ ok: false, error: "backend-offline" });
 

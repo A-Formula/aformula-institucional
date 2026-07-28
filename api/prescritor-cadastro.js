@@ -4,6 +4,7 @@
 // Env extra: GOOGLE_SHEET_ID (planilha compartilhada com o e-mail da service account)
 const { getDb, notify, sendMail, guard, isEmail, isBlockedEmail, verifyCaptcha, FieldValue } = require("./_lib/backend");
 const { welcomePrescriber } = require("./_lib/emails");
+const { flowsAtivas } = require("./_lib/flows");
 const { JWT } = require("google-auth-library");
 
 function validCNPJ(v) {
@@ -105,9 +106,16 @@ module.exports = async (req, res) => {
 
   // Boas-vindas ao próprio prescritor (confirma recebimento + pede p/ adicionar o remetente aos
   // contatos, pra que o e-mail de APROVAÇÃO com o link de senha não caia no spam). Best effort.
-  const wm = welcomePrescriber(nome, { conselho, conselhoNumero, uf });
-  await sendMail(email, wm.subject, wm.text, wm.html, process.env.REPLY_TO_PRESCRITOR)
-    .catch((e) => console.error("[cadastro] boas-vindas falhou:", e && e.message));
+  // ⚠️ Pausado pelo interruptor geral (flows.js). Efeito colateral aceito pelo operador em 28/07:
+  // sem este e-mail o prescritor não é convidado a salvar o remetente nos contatos, então o e-mail
+  // de APROVAÇÃO (P2, que segue saindo — carrega o link de senha) tem mais chance de cair no spam.
+  if (flowsAtivas()) {
+    const wm = welcomePrescriber(nome, { conselho, conselhoNumero, uf });
+    await sendMail(email, wm.subject, wm.text, wm.html, process.env.REPLY_TO_PRESCRITOR)
+      .catch((e) => console.error("[cadastro] boas-vindas falhou:", e && e.message));
+  } else {
+    console.log("[cadastro] réguas pausadas — P1 não enviado:", email);
+  }
 
   return res.status(200).json({ ok: true });
 };

@@ -5,6 +5,7 @@
 // reenfileirar o mesmo passo pro mesmo lead não duplica, e nenhum reenvio acontece por acidente
 // (é o modo de falha mais caro de régua de e-mail — o cliente recebe o mesmo e-mail 3×).
 const { FieldValue } = require("./backend");
+const { flowsAtivas } = require("./flows");
 
 // Firestore proíbe "/" em doc id; e-mail não tem, mas normalizo o resto por segurança.
 const jobId = (flow, step, email) =>
@@ -17,6 +18,9 @@ const DIA_MS = 24 * 60 * 60 * 1000;
 // um lugar só onde consentimento, supressão e log acontecem.
 async function enqueueFlow(db, { flow, steps, email, dados, startAt }) {
   if (!db || !email || !steps || !steps.length) return 0;
+  // Interruptor geral (flows.js). Nem enfileira: fila vazia hoje = nenhuma dívida de envio pra
+  // quando religar. O que já está `pending` continua parado pelo gate do cron.
+  if (!flowsAtivas()) { console.log("[queue] réguas pausadas — enqueue ignorado:", flow, email); return 0; }
   const base = startAt instanceof Date ? startAt.getTime() : Date.now();
   let n = 0;
   for (const s of steps) {

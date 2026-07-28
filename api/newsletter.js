@@ -2,7 +2,7 @@
 // Body: { email, source?, website? (honeypot) }
 const { getDb, guard, isEmail, sendMail, FieldValue } = require("./_lib/backend");
 const { welcomeNewsletter } = require("./_lib/emails");
-const { FLOWS } = require("./_lib/flows");
+const { FLOWS, flowsAtivas } = require("./_lib/flows");
 const { enqueueFlow } = require("./_lib/queue");
 
 module.exports = async (req, res) => {
@@ -37,8 +37,13 @@ module.exports = async (req, res) => {
     const headers = m.unsub
       ? { "List-Unsubscribe": `<${m.unsub}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" }
       : undefined;
-    await sendMail(email, m.subject, m.text, m.html, undefined, headers)
-      .catch((e) => console.error("[newsletter] boas-vindas falhou:", e && e.message));
+    // Interruptor geral (flows.js): a inscrição é gravada normalmente, só o e-mail não sai.
+    if (flowsAtivas()) {
+      await sendMail(email, m.subject, m.text, m.html, undefined, headers)
+        .catch((e) => console.error("[newsletter] boas-vindas falhou:", e && e.message));
+    } else {
+      console.log("[newsletter] réguas pausadas — N1 não enviado:", email);
+    }
 
     // Ciclo semanal (N2 valor → N3 valor → N4 valor → N5 comercial), a partir de 7 dias.
     // Só na primeira inscrição: re-inscrever não reinicia a régua nem duplica (a fila é idempotente).
