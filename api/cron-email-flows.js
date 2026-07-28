@@ -16,14 +16,15 @@ const MAX_TENTATIVAS = 3;
 function autorizado(req) {
   const s = process.env.CRON_SECRET;
   const h = String(req.headers.authorization || "");
-  // Vercel cron manda "Bearer <CRON_SECRET>" quando a env existe.
-  if (s && h === `Bearer ${s}`) return true;
-  // Fallback: a Vercel sobrescreve cabeçalhos `x-vercel-*` que venham de fora, então a presença
-  // deste header significa que a chamada é do cron dela. Sem este fallback, um projeto SEM
-  // CRON_SECRET configurado responderia 403 ao próprio cron e a régua nunca rodaria — falha
-  // silenciosa e difícil de notar. Ainda assim, configurar CRON_SECRET é o certo.
-  if (!s && req.headers["x-vercel-cron"]) return true;
-  return false;
+  // Vercel cron manda "Bearer <CRON_SECRET>" quando a env existe. É a ÚNICA prova de que a
+  // chamada é do cron.
+  //
+  // ⚠️ Não existe fallback por cabeçalho. Havia um (`x-vercel-cron` quando CRON_SECRET não
+  // estava setada) na premissa de que a Vercel sobrescreve cabeçalhos `x-vercel-*` vindos de
+  // fora — ela NÃO sobrescreve: um curl anônimo com esse header passava no gate (verificado em
+  // produção, 2026-07-28). Sem CRON_SECRET, o certo é responder 403 e a régua não rodar: fila
+  // parada é visível, motor de e-mail aberto à internet não é.
+  return !!s && h === `Bearer ${s}`;
 }
 
 // Consentimento. A coleção `newsletter` é o registro único de opt-in do site: os formulários de
@@ -52,7 +53,12 @@ async function jaRecebeuHoje(db, email, vistos) {
 
 module.exports = async (req, res) => {
   const admin = autorizado(req) ? "cron" : await verifyAdmin(req);
-  if (!admin) return res.status(403).json({ ok: false, error: "not-authorized" });
+  if (!admin) {
+    // Falha barulhenta no lugar do fallback inseguro: se o cron da Vercel bater aqui e a env não
+    // existir, o log diz exatamente o que configurar.
+    if (!process.env.CRON_SECRET) console.error("[cron-email-flows] CRON_SECRET não configurada — chamada recusada");
+    return res.status(403).json({ ok: false, error: "not-authorized" });
+  }
 
   // Interruptor geral (flows.js). Roda antes de tudo: a fila fica intacta em `pending` e volta a
   // andar quando religar. `?dry=1` continua liberado — é como inspecionar sem enviar.

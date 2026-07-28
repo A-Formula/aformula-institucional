@@ -159,6 +159,9 @@ const db = firebase.firestore();
 try{ db.settings({ experimentalAutoDetectLongPolling: true, merge: true }); }catch(_){}
 const $ = s => document.querySelector(s);
 const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// href vindo de campo público (o LinkedIn do candidato). esc() impede quebrar o atributo, mas
+// não impede `javascript:` — que executaria NA SESSÃO DO ADMIN ao clicar. Só http(s) passa.
+const escUrl = s => { const v=String(s||'').trim(); return /^https?:\/\//i.test(v) ? esc(v) : ''; };
 const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 function fmtTs(ts){ if(!ts) return '—'; const d=ts.toDate?ts.toDate():new Date(ts); return `${String(d.getDate()).padStart(2,'0')}/${MESES[d.getMonth()]} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
 // Data completa (com ano) p/ exports CSV — evita ambiguidade entre anos.
@@ -473,7 +476,7 @@ async function vCareer(){
     let h='<table><thead><tr><th>Quando</th><th>Candidato</th><th>Cidade</th><th>Área</th><th>Formação</th><th>Experiência</th><th>Mkt</th><th>Status</th><th></th></tr></thead><tbody>';
     list.forEach(m=>{ const stt=(m.status||'new');
       h+=`<tr><td>${fmtTs(m.createdAt)}</td>
-      <td><strong>${esc(m.nome)}</strong><br><span class="hint">${esc(m.email)}${m.telefone?' · '+esc(m.telefone):''}</span>${m.linkedin?`<br><a href="${esc(m.linkedin)}" target="_blank" rel="noopener" class="hint">LinkedIn ↗</a>`:''}</td>
+      <td><strong>${esc(m.nome)}</strong><br><span class="hint">${esc(m.email)}${m.telefone?' · '+esc(m.telefone):''}</span>${escUrl(m.linkedin)?`<br><a href="${escUrl(m.linkedin)}" target="_blank" rel="noopener noreferrer" class="hint">LinkedIn ↗</a>`:(m.linkedin?`<br><span class="hint">LinkedIn: ${esc(m.linkedin)}</span>`:'')}</td>
       <td>${esc(m.cidade||'—')}${m.cep?'<br><span class="hint">CEP '+esc(m.cep)+'</span>':''}</td>
       <td>${esc(m.area||'—')}</td>
       <td style="max-width:200px">${esc(m.formacao||'')}</td>

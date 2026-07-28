@@ -33,7 +33,17 @@ function getDb() {
   const sa = process.env.FIREBASE_SERVICE_ACCOUNT;
   if (!sa) return null;
   if (!admin.apps.length) {
-    admin.initializeApp({ credential: admin.credential.cert(JSON.parse(sa)) });
+    // JSON.parse ECOA O INPUT na mensagem de erro — um SA malformado imprimiria a chave privada
+    // inteira no stack trace do log da Vercel (foi assim que a chave vazou em 2026-07-28).
+    // O catch troca o erro por uma mensagem sem conteúdo do segredo.
+    let cred;
+    try {
+      cred = JSON.parse(sa);
+    } catch (_) {
+      console.error("[backend] FIREBASE_SERVICE_ACCOUNT não é um JSON válido (conteúdo omitido de propósito)");
+      return null;
+    }
+    admin.initializeApp({ credential: admin.credential.cert(cred) });
   }
   return admin.firestore();
 }

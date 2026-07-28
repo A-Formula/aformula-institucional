@@ -1,3 +1,5 @@
 User-agent: *
 Allow: /
-Sitemap: https://aformula-institucional.vercel.app/sitemap.xml
+Disallow: /admin/
+Disallow: /scripts/
+Sitemap: https://www.aformulabr.com.br/sitemap.xml

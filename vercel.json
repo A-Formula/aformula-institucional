@@ -27,6 +27,11 @@
     { "source": "/login", "destination": "/area-do-prescritor", "permanent": true }
   ],
   "rewrites": [
+    { "source": "/scripts/:path*", "destination": "/404" },
+    { "source": "/firestore.rules", "destination": "/404" },
+    { "source": "/firebase.json", "destination": "/404" },
+    { "source": "/README.md", "destination": "/404" },
+    { "source": "/ROADMAP-SEO-MASTERPIECE-2026.md", "destination": "/404" },
     { "source": "/download/:path*", "destination": "/download" },
     { "source": "/rj", "destination": "https://a-formula-br.vercel.app/rj" },
     { "source": "/rj/:path*", "destination": "https://a-formula-br.vercel.app/rj/:path*" },
