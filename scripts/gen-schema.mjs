@@ -46,8 +46,38 @@ const website = {
   '@id': SITE_ID,
   url: `${BASE}/`,
   name: 'A Fórmula',
+  alternateName: ['aformulabr', 'A Fórmula Farmácia de Manipulação'],
   inLanguage: 'pt-BR',
   publisher: { '@id': ORG_ID },
+  // Sitelinks searchbox: alvo real (o filtro do blog lê ?q= — scripts/blog-filter.js.html).
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: { '@type': 'EntryPoint', urlTemplate: `${BASE}/blog?q={search_term_string}` },
+    'query-input': 'required name=search_term_string',
+  },
+};
+
+// ---- Navegação prioritária (rotas de conversão primeiro) ----
+const siteNav = {
+  '@context': CTX,
+  '@type': 'ItemList',
+  name: 'Navegação principal — A Fórmula',
+  itemListElement: [
+    ['Manipule sua receita', '/receita', 'Envie sua receita e receba o orçamento pelo WhatsApp da unidade.'],
+    ['Encontre uma loja', '/encontre-uma-loja', 'Localize a unidade A Fórmula mais próxima por CEP ou localização.'],
+    ['Contato', '/contato', 'Fale com o SAC da A Fórmula.'],
+    ['Seja um franqueado', 'https://franquia.aformulabr.com.br/seja-um-franqueado/', 'Invista em uma franquia A Fórmula.'],
+    ['Área do prescritor', '/area-do-prescritor', 'Suporte técnico e conteúdo científico para prescritores.'],
+    ['A Fórmula Pet', '/pet', 'Manipulação veterinária personalizada.'],
+    ['Sobre nós', '/sobre-nos', 'História, propósito e diferenciais da rede.'],
+    ['Blog', '/blog', 'Saúde, ciência e bem-estar.'],
+  ].map(([name, url, description], i) => ({
+    '@type': 'SiteNavigationElement',
+    position: i + 1,
+    name,
+    description,
+    url: url.startsWith('http') ? url : `${BASE}${url}`,
+  })),
 };
 
 // ---- Pharmacy×N a partir do lojas.json ----
@@ -55,8 +85,16 @@ const lojas = JSON.parse(
   fs.readFileSync(path.join(ROOT, 'encontre-uma-loja_assets/lojas.json'), 'utf-8')
 );
 const clean = v => (v == null || String(v).trim() === '' ? undefined : String(v).trim());
+// lojas.json usa "Cidade | Bairro" no campo cidade (é o NOME da unidade, não a localidade).
+// addressLocality precisa da cidade pura, senão o Google não casa a unidade com a cidade.
+const localidade = v => { const c = clean(v); return c ? clean(c.split('|')[0]) : undefined; };
 const pharmacyItems = lojas.map((l, i) => {
   const tel = clean(l.telefone) || clean(l.celular);
+  // Unidade "(Em Breve)" ainda não atende: declarar streetAddress/CEP seria afirmar ao Google
+  // um endereço que não opera. Fica só cidade/estado (as coords dessas são centro de cidade).
+  // Exceção: se já tem telefone/WhatsApp, ela JÁ vende (parceria com outra loja) → entra completa.
+  // Decisão do operador 2026-07-31.
+  const preAbertura = /\(em breve\)/i.test(String(l.nome || '')) && !tel;
   const item = {
     '@type': 'Pharmacy',
     name: `A Fórmula — ${clean(l.nome) || clean(l.cidade)}`,
@@ -65,13 +103,13 @@ const pharmacyItems = lojas.map((l, i) => {
     url: `${BASE}/encontre-uma-loja#${clean(l.slug) || l.id}`,
     address: {
       '@type': 'PostalAddress',
-      streetAddress: clean(l.endereco),
-      addressLocality: clean(l.cidade),
+      ...(preAbertura ? {} : { streetAddress: clean(l.endereco) }),
+      addressLocality: localidade(l.cidade),
       addressRegion: clean(l.estado),
       addressCountry: 'BR',
     },
   };
-  if (clean(l.cep)) item.address.postalCode = clean(l.cep);
+  if (clean(l.cep) && !preAbertura) item.address.postalCode = clean(l.cep);
   if (tel) item.telephone = tel;
   if (l.lat != null && l.lng != null) item.geo = { '@type': 'GeoCoordinates', latitude: l.lat, longitude: l.lng };
   if (clean(l.email)) item.email = clean(l.email);
@@ -129,17 +167,17 @@ const faqPet = faqPage('pet.html');
 const faqReceita = faqPage('receita.html');
 
 const pages = {
-  'index.html': [{ '@context': CTX, '@graph': [organization, website] }],
-  'sobre-nos.html': [crumb(INICIO, { name: 'Sobre nós', url: `${BASE}/sobre-nos.html` })],
-  'contato.html': [crumb(INICIO, { name: 'Contato', url: `${BASE}/contato.html` })],
+  'index.html': [{ '@context': CTX, '@graph': [organization, website] }, siteNav],
+  'sobre-nos.html': [crumb(INICIO, { name: 'Sobre nós', url: `${BASE}/sobre-nos` })],
+  'contato.html': [crumb(INICIO, { name: 'Contato', url: `${BASE}/contato` })],
   'encontre-uma-loja.html': [
     pharmacyList,
-    crumb(INICIO, { name: 'Encontre uma loja', url: `${BASE}/encontre-uma-loja.html` }),
+    crumb(INICIO, { name: 'Encontre uma loja', url: `${BASE}/encontre-uma-loja` }),
   ],
-  'area-do-prescritor.html': [crumb(INICIO, { name: 'Área do prescritor', url: `${BASE}/area-do-prescritor.html` })],
-  'pet.html': [...(faqPet ? [faqPet] : []), crumb(INICIO, { name: 'A Fórmula Pet', url: `${BASE}/pet.html` })],
-  'receita.html': [...(faqReceita ? [faqReceita] : []), crumb(INICIO, { name: 'Manipule sua receita', url: `${BASE}/receita.html` })],
-  'blog.html': [crumb(INICIO, { name: 'Blog', url: `${BASE}/blog.html` })],
+  'area-do-prescritor.html': [crumb(INICIO, { name: 'Área do prescritor', url: `${BASE}/area-do-prescritor` })],
+  'pet.html': [...(faqPet ? [faqPet] : []), crumb(INICIO, { name: 'A Fórmula Pet', url: `${BASE}/pet` })],
+  'receita.html': [...(faqReceita ? [faqReceita] : []), crumb(INICIO, { name: 'Manipule sua receita', url: `${BASE}/receita` })],
+  'blog.html': [crumb(INICIO, { name: 'Blog', url: `${BASE}/blog` })],
   'lgpd.html': [crumb(INICIO, { name: 'Política de Privacidade e LGPD', url: `${BASE}/lgpd` })],
 };
 

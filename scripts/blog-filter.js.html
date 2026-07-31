@@ -53,8 +53,9 @@ if(search){search.addEventListener("input",function(){q=norm(search.value);page=
 var vt=document.querySelector('a[href="#todos-artigos"]');
 if(vt){vt.addEventListener("click",function(e){e.preventDefault();page=Math.ceil(list().length/PER);render();
  grid.scrollIntoView({behavior:"smooth",block:"start"});});}
-try{var qs=new URLSearchParams(location.search).get("cat");
- if(qs){var b=chips.filter(function(c){return c.getAttribute("data-filter")===qs})[0];if(b)b.click();}}catch(_){ }
+try{var sp=new URLSearchParams(location.search),qs=sp.get("cat"),qq=sp.get("q");
+ if(qs){var b=chips.filter(function(c){return c.getAttribute("data-filter")===qs})[0];if(b)b.click();}
+ if(qq){q=norm(qq);page=1;if(search)search.value=qq;}}catch(_){ }
 var row=document.querySelector("[data-trend-row]");
 var prev=document.querySelector('button[aria-label="Anterior"]'),next=document.querySelector('button[aria-label="Próximo"]');
 function step(){var c=row&&row.firstElementChild;return c?c.getBoundingClientRect().width+22:300;}

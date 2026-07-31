@@ -24,7 +24,18 @@
     { "source": "/manipule-sua-receita", "destination": "/receita", "permanent": true },
     { "source": "/fale-conosco", "destination": "/contato", "permanent": true },
     { "source": "/trabalhe-conosco", "destination": "/contato", "permanent": true },
-    { "source": "/login", "destination": "/area-do-prescritor", "permanent": true }
+    { "source": "/login", "destination": "/area-do-prescritor", "permanent": true },
+    { "source": "/a-formula", "destination": "/sobre-nos", "permanent": true },
+    { "source": "/quem-somos", "destination": "/sobre-nos", "permanent": true },
+    { "source": "/institucional", "destination": "/sobre-nos", "permanent": true },
+    { "source": "/produtos", "destination": "/encontre-uma-loja", "permanent": true },
+    { "source": "/manipulados", "destination": "/receita", "permanent": true },
+    { "source": "/unidade-boa-vista", "destination": "/encontre-uma-loja", "permanent": true },
+    { "source": "/unidade-:slug", "destination": "/encontre-uma-loja", "permanent": true },
+    { "source": "/nossas-lojas", "destination": "/encontre-uma-loja", "permanent": true },
+    { "source": "/lojas", "destination": "/encontre-uma-loja", "permanent": true },
+    { "source": "/unidades", "destination": "/encontre-uma-loja", "permanent": true },
+    { "source": "/onde-estamos", "destination": "/encontre-uma-loja", "permanent": true }
   ],
   "rewrites": [
     { "source": "/scripts/:path*", "destination": "/404" },

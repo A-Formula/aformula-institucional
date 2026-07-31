@@ -75,7 +75,7 @@ gtag('js',new Date());gtag('config','G-3GEYZT8XH5');
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Blog — A Fórmula</title>
-<meta name="description" content="Saúde, bem-estar, suplementação e ciência da manipulação: conteúdo que inspira, direto do time A Fórmula.">
+<meta name="description" content="Saúde, suplementação e ciência da manipulação explicadas pelo time da A Fórmula. Leia em aformulabr.com.br/blog">
 <link rel="icon" href="index_assets/a1.webp">
 
 
@@ -312,13 +312,13 @@ gtag('js',new Date());gtag('config','G-3GEYZT8XH5');
     [data-footer-bar]{flex-direction:column !important;align-items:flex-start !important}
   }
 </style><style id="unpack-reveal-fix">[data-fade]{opacity:1 !important;transform:none !important}.reveal{opacity:1 !important;transform:none !important}[data-reveal]{opacity:1 !important;transform:none !important}[data-photo]{clip-path:inset(0) !important;-webkit-clip-path:inset(0) !important;transform:none !important;opacity:1 !important}[data-faq-item][data-open] [data-faq-a]{max-height:1200px !important;opacity:1 !important;margin-top:14px !important}</style><meta name="theme-color" content="#008896">
-<link rel="canonical" href="https://www.aformulabr.com.br/blog.html">
+<link rel="canonical" href="https://www.aformulabr.com.br/blog">
 <meta property="og:site_name" content="A Fórmula">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="pt_BR">
 <meta property="og:title" content="Blog — A Fórmula">
-<meta property="og:description" content="Saúde, bem-estar, suplementação e ciência da manipulação: conteúdo que inspira, direto do time A Fórmula.">
-<meta property="og:url" content="https://www.aformulabr.com.br/blog.html">
+<meta property="og:description" content="Saúde, suplementação e ciência da manipulação explicadas pelo time da A Fórmula. Leia em aformulabr.com.br/blog">
+<meta property="og:url" content="https://www.aformulabr.com.br/blog">
 <meta property="og:image" content="https://www.aformulabr.com.br/index_assets/a18.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <style id="polish-css">
@@ -373,7 +373,7 @@ button[data-filter].flt-on svg{color:#008896!important;stroke:#008896}
       "@type": "ListItem",
       "position": 2,
       "name": "Blog",
-      "item": "https://www.aformulabr.com.br/blog.html"
+      "item": "https://www.aformulabr.com.br/blog"
     }
   ]
 }
@@ -873,8 +873,9 @@ if(search){search.addEventListener("input",function(){q=norm(search.value);page=
 var vt=document.querySelector('a[href="#todos-artigos"]');
 if(vt){vt.addEventListener("click",function(e){e.preventDefault();page=Math.ceil(list().length/PER);render();
  grid.scrollIntoView({behavior:"smooth",block:"start"});});}
-try{var qs=new URLSearchParams(location.search).get("cat");
- if(qs){var b=chips.filter(function(c){return c.getAttribute("data-filter")===qs})[0];if(b)b.click();}}catch(_){ }
+try{var sp=new URLSearchParams(location.search),qs=sp.get("cat"),qq=sp.get("q");
+ if(qs){var b=chips.filter(function(c){return c.getAttribute("data-filter")===qs})[0];if(b)b.click();}
+ if(qq){q=norm(qq);page=1;if(search)search.value=qq;}}catch(_){ }
 var row=document.querySelector("[data-trend-row]");
 var prev=document.querySelector('button[aria-label="Anterior"]'),next=document.querySelector('button[aria-label="Próximo"]');
 function step(){var c=row&&row.firstElementChild;return c?c.getBoundingClientRect().width+22:300;}

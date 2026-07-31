@@ -49,7 +49,7 @@ const rss = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Blog A Fórmula</title>
-    <link>${BASE}/blog.html</link>
+    <link>${BASE}/blog</link>
     <atom:link href="${BASE}/rss.xml" rel="self" type="application/rss+xml"/>
     <description>Saúde, manipulação, suplementação, beleza e bem-estar — por A Fórmula.</description>
     <language>pt-BR</language>
@@ -61,13 +61,13 @@ fs.writeFileSync(path.join(ROOT, 'rss.xml'), rss);
 // ---- 3) llms.txt ----
 const INST = [
   ['Início', `${BASE}/`, 'Farmácia de manipulação A Fórmula — visão geral da rede.'],
-  ['Sobre nós', `${BASE}/sobre-nos.html`, 'História, propósito e diferenciais da rede.'],
-  ['Manipule sua receita', `${BASE}/receita.html`, 'Como enviar sua receita para manipulação.'],
-  ['Encontre uma loja', `${BASE}/encontre-uma-loja.html`, 'Localizador das unidades A Fórmula por cidade.'],
-  ['Área do prescritor', `${BASE}/area-do-prescritor.html`, 'Espaço para médicos e prescritores.'],
-  ['A Fórmula Pet', `${BASE}/pet.html`, 'Manipulados veterinários para animais.'],
-  ['Contato', `${BASE}/contato.html`, 'Fale com a A Fórmula.'],
-  ['Blog', `${BASE}/blog.html`, 'Artigos sobre saúde, manipulação e bem-estar.'],
+  ['Sobre nós', `${BASE}/sobre-nos`, 'História, propósito e diferenciais da rede.'],
+  ['Manipule sua receita', `${BASE}/receita`, 'Como enviar sua receita para manipulação.'],
+  ['Encontre uma loja', `${BASE}/encontre-uma-loja`, 'Localizador das unidades A Fórmula por cidade.'],
+  ['Área do prescritor', `${BASE}/area-do-prescritor`, 'Espaço para médicos e prescritores.'],
+  ['A Fórmula Pet', `${BASE}/pet`, 'Manipulados veterinários para animais.'],
+  ['Contato', `${BASE}/contato`, 'Fale com a A Fórmula.'],
+  ['Blog', `${BASE}/blog`, 'Artigos sobre saúde, manipulação e bem-estar.'],
 ];
 const llms = `# A Fórmula — Farmácia de Manipulação
 

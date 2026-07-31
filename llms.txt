@@ -4,13 +4,13 @@
 
 ## Páginas principais
 - [Início](https://www.aformulabr.com.br/): Farmácia de manipulação A Fórmula — visão geral da rede.
-- [Sobre nós](https://www.aformulabr.com.br/sobre-nos.html): História, propósito e diferenciais da rede.
-- [Manipule sua receita](https://www.aformulabr.com.br/receita.html): Como enviar sua receita para manipulação.
-- [Encontre uma loja](https://www.aformulabr.com.br/encontre-uma-loja.html): Localizador das unidades A Fórmula por cidade.
-- [Área do prescritor](https://www.aformulabr.com.br/area-do-prescritor.html): Espaço para médicos e prescritores.
-- [A Fórmula Pet](https://www.aformulabr.com.br/pet.html): Manipulados veterinários para animais.
-- [Contato](https://www.aformulabr.com.br/contato.html): Fale com a A Fórmula.
-- [Blog](https://www.aformulabr.com.br/blog.html): Artigos sobre saúde, manipulação e bem-estar.
+- [Sobre nós](https://www.aformulabr.com.br/sobre-nos): História, propósito e diferenciais da rede.
+- [Manipule sua receita](https://www.aformulabr.com.br/receita): Como enviar sua receita para manipulação.
+- [Encontre uma loja](https://www.aformulabr.com.br/encontre-uma-loja): Localizador das unidades A Fórmula por cidade.
+- [Área do prescritor](https://www.aformulabr.com.br/area-do-prescritor): Espaço para médicos e prescritores.
+- [A Fórmula Pet](https://www.aformulabr.com.br/pet): Manipulados veterinários para animais.
+- [Contato](https://www.aformulabr.com.br/contato): Fale com a A Fórmula.
+- [Blog](https://www.aformulabr.com.br/blog): Artigos sobre saúde, manipulação e bem-estar.
 
 ## Blog — artigos recentes
 - [NAD+ e longevidade: o que é e como a manipulação personalizada pode ajudar](https://www.aformulabr.com.br/blog/saude/nad-e-longevidade-o-que-e-e-como-a-manipulacao-personalizada-pode-ajudar): NAD+ é uma das maiores tendências em longevidade de 2026. Entenda o que é, o papel dos precursores NMN e NR e por que a manipulação personalizada faz a diferença.

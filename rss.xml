@@ -2,7 +2,7 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Blog A Fórmula</title>
-    <link>https://www.aformulabr.com.br/blog.html</link>
+    <link>https://www.aformulabr.com.br/blog</link>
     <atom:link href="https://www.aformulabr.com.br/rss.xml" rel="self" type="application/rss+xml"/>
     <description>Saúde, manipulação, suplementação, beleza e bem-estar — por A Fórmula.</description>
     <language>pt-BR</language>
