@@ -3,6 +3,9 @@
   "buildCommand": "node scripts/build-site.mjs",
   "outputDirectory": ".",
   "cleanUrls": true,
+  "crons": [
+    { "path": "/api/cron-email-flows", "schedule": "0 13 * * *" }
+  ],
   "redirects": [
     { "source": "/blog/saude/saiba-a-importancia-da-imunidade", "destination": "/blog/saude/suplementos-para-aumentar-a-imunidade", "permanent": true },
     { "source": "/blog/saude/saiba-a-importancia-da-imunidade/", "destination": "/blog/saude/suplementos-para-aumentar-a-imunidade", "permanent": true },

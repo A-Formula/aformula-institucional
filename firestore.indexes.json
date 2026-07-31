@@ -1,0 +1,22 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "email_jobs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "sendAt", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "email_jobs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "email", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "sentAt", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

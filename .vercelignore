@@ -21,4 +21,5 @@ PEDIDO-ACESSOS-EMPRESA.md
 PLANILHA-ACESSOS-EMPRESA.xlsx
 firebase.json
 firestore.rules
+firestore.indexes.json
 _preview-reguas
