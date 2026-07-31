@@ -54,7 +54,7 @@ const FOOTER_LINKS = { sobrenos: 'Sobre nós', blog: 'Blog', prescritor: 'Área 
 const FOOTER_TEXTS = {
   brand: 'Há 37 anos transformando manipulação em ciência, cuidado e inovação.',
   copyright: '© A Fórmula 2026',
-  legal1: 'A FÓRMULA SERVIÇOS E FRANCHISE LTDA — CNPJ: 10.760.350/0001-00',
+  legal1: 'A FÓRMULA SERVIÇOS E FRANCHISE LTDA — CNPJ: 10.760.350/0002-90',
   legal2: 'Rua Tabapuã, 627 — Itaim Bibi, São Paulo - SP',
 };
 const reEsc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
