@@ -11,3 +11,14 @@ _handoff-*.md
 Telas - Visao Geral (standalone).html
 ACESSOS.md
 CORTE-DOMINIO.md
+# docs e configs internos — o rewrite p/ /404 NAO esconde arquivo estatico
+# existente (rewrites rodam DEPOIS do filesystem no Vercel). O que o build nao
+# usa sai do upload aqui; o que o build usa (scripts/, vercel.json) vira redirect.
+README.md
+ROADMAP-SEO-MASTERPIECE-2026.md
+COMO-PUBLICAR-BLOG.md
+PEDIDO-ACESSOS-EMPRESA.md
+PLANILHA-ACESSOS-EMPRESA.xlsx
+firebase.json
+firestore.rules
+_preview-reguas
