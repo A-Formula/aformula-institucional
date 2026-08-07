@@ -3594,9 +3594,43 @@ a.railcard__wanum:hover{text-decoration:underline}
 </style>
 
 
-<script src="encontre-uma-loja_assets/maplibre-gl.js"></script>
 <script src="index_assets/a28.js"></script>
-<script src="encontre-uma-loja_assets/finder3d.js"></script>
+<!-- MAPA-LAZY: o maplibre-gl.js tem 1 MB e sua inicialização WebGL travava a thread
+     principal por ~6s (medido com Lighthouse mobile em 07/08/2026: TBT 6.050ms, perf 64).
+     Carregamos mapa + finder quando o navegador fica ocioso OU na primeira interação do
+     usuário — o que vier antes.
+     O sufixo .v2 no finder é cache-bust: o vercel.json serve /(.*)_assets/(.*) com
+     Cache-Control immutable de 1 ano, então mudar o conteúdo do arquivo NÃO chega em quem
+     já visitou o site. Alterou o finder? Sobe o número do arquivo junto. -->
+<script id="mapa-lazy">
+(function(){
+  var disparado = false;
+  function carregar(){
+    if (disparado) return; disparado = true;
+    limpar();
+    ['encontre-uma-loja_assets/maplibre-gl.js','encontre-uma-loja_assets/finder3d.v2.js']
+      .reduce(function(p, src){
+        return p.then(function(){
+          return new Promise(function(ok, falha){
+            var s = document.createElement('script');
+            s.src = src; s.async = false; s.onload = ok; s.onerror = falha;
+            document.body.appendChild(s);
+          });
+        });
+      }, Promise.resolve())
+      .catch(function(){
+        var rail = document.getElementById('rail');
+        if (rail) rail.innerHTML = '<p class="mapx__empty">Não foi possível carregar o mapa. Recarregue a página.</p>';
+      });
+  }
+  var eventos = ['pointerdown','touchstart','keydown','wheel','scroll'];
+  function limpar(){ eventos.forEach(function(e){ window.removeEventListener(e, carregar, {capture:true}); }); }
+  eventos.forEach(function(e){ window.addEventListener(e, carregar, {capture:true, passive:true, once:true}); });
+  // Rede de segurança: se ninguém interagir, sobe assim que a thread respirar.
+  if ('requestIdleCallback' in window) requestIdleCallback(carregar, {timeout: 2500});
+  else setTimeout(carregar, 1200);
+})();
+</script>
 
 <script id="rail-nav-js">(function(){
 var rail=document.getElementById('rail');if(!rail)return;

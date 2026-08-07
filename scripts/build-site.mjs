@@ -316,10 +316,19 @@ async function main() {
   const idxPath = path.join(ROOT,'index.html');
   fs.writeFileSync(idxPath, applyAll(applyPageCms(buildIndexHtml(fs.readFileSync(idxPath,'utf8'), posts), PAGES.home, homeCms)));
   if (homeCms) console.log('[build] home regenerado do CMS');
-  // 3) sitemap
-  const urls = posts.map(p=>`<url><loc>${BASE}${p.path}</loc><lastmod>${(p.modifiedAt||p.publishedAt).slice(0,10)}</lastmod></url>`);
+  // 3) sitemap (com extensão de imagem: a capa de cada post entra como <image:image>,
+  //    que é o que habilita o Google Imagens. 126 URLs — muito abaixo do teto de 50k,
+  //    então NÃO se divide em vários sitemaps: seria complexidade sem ganho.)
+  const absUrl = u => /^https?:/i.test(u) ? u : `${BASE}/${String(u).replace(/^\//,'')}`;
+  const xmlEsc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
+  const urls = posts.map(p=>{
+    // Só <image:loc>: o Google removeu o suporte a <image:title>, <image:caption>,
+    // <image:geo_location> e <image:license> (spring-cleaning de sitemaps, 2022).
+    const img = p.cover ? `<image:image><image:loc>${xmlEsc(absUrl(p.cover))}</image:loc></image:image>` : '';
+    return `<url><loc>${BASE}${p.path}</loc><lastmod>${(p.modifiedAt||p.publishedAt).slice(0,10)}</lastmod>${img}</url>`;
+  });
   ['/','/sobre-nos','/blog','/area-do-prescritor','/encontre-uma-loja','/contato','/pet','/receita'].reverse().forEach(pg=>urls.unshift(`<url><loc>${BASE}${pg}</loc></url>`));
-  fs.writeFileSync(path.join(ROOT,'sitemap.xml'), '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+urls.join('\n')+'\n</urlset>');
+  fs.writeFileSync(path.join(ROOT,'sitemap.xml'), '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+urls.join('\n')+'\n</urlset>');
 
   // 4) rss.xml (fresco do Firestore — mesmo formato do scripts/gen-feeds.mjs)
   const rfc822 = iso => { try { return new Date(iso).toUTCString(); } catch { return ''; } };

@@ -89,6 +89,9 @@
     else { var t = document.createElement("textarea"); t.value = txt; document.body.appendChild(t); t.select(); try { document.execCommand("copy"); } catch (_) {} document.body.removeChild(t); done(); }
   };
 
+  /* Raio do cluster de unidades enquadrado junto com a mais próxima (ver rankNearest). */
+  var RAIO_CLUSTER_KM = 2;
+
   /* ---------- mapa ---------- */
   var map = new maplibregl.Map({
     container: mapEl,
@@ -392,8 +395,38 @@
     uel.innerHTML = '<span class="upin__pulse"></span><span class="upin__dot"></span>';
     userMarker = new maplibregl.Marker({ element: uel, anchor: "center" }).setLngLat([lng, lat]).addTo(map);
     if (opts && opts.exact) {
-      /* CEP: voo com zoom contínuo até centralizar o ponto exato */
-      map.flyTo({ center: [lng, lat], zoom: 15.4, pitch: 48, bearing: 0, curve: 1.55, duration: 4600, essential: true });
+      /* CEP: enquadra o ponto do CEP JUNTO com a unidade mais próxima.
+         Antes era flyTo(zoom 15.4) no ponto exato — e o quadro final não tinha loja
+         nenhuma: com a unidade a 3,5 km, o mapa parava numa rua vazia (medido em
+         07/08/2026, CEP 01310-100: 0 lojas visíveis no fim do voo). O maxZoom mantém o
+         nível de rua quando a loja é pertinho; quando é longe, abre o suficiente p/ caber. */
+      var bx = new maplibregl.LngLatBounds().extend([lng, lat]);
+      var maisProxima = ranked[0];
+      var noQuadro = [];
+      if (maisProxima) {
+        /* A mais próxima sempre entra. Depois, até 4 vizinhas — mas só as que estiverem
+           dentro do RAIO_CLUSTER_KM DELA (não do CEP): é o cluster ao redor da loja, não
+           as 5 mais próximas de você. Sem esse corte, uma unidade a 40 km entraria no
+           quadro e obrigaria o mapa a abrir demais, escondendo a rua que interessa.
+
+           Por que 2 km e não 1: medindo as 85 unidades, só 2 têm vizinha a ≤1 km (o par
+           de Brasília, e uma delas é "Em Breve"). A 2 km entram Feira de Santana (1,43) e
+           as 5 de Maceió (1,49–1,89) — 10% da rede, nas cidades onde a pessoa de fato
+           escolhe entre unidades. Medido em 07/08/2026 sobre encontre-uma-loja_assets/lojas.json. */
+        noQuadro.push(maisProxima);
+        for (var k = 1; k < ranked.length && noQuadro.length < 5; k++) {
+          var dCluster = haversine(maisProxima.s.lat, maisProxima.s.lng, ranked[k].s.lat, ranked[k].s.lng);
+          if (dCluster <= RAIO_CLUSTER_KM) noQuadro.push(ranked[k]);
+        }
+        noQuadro.forEach(function (r) { bx.extend([r.s.lng, r.s.lat]); });
+      }
+      var estreito = window.matchMedia && window.matchMedia("(max-width:760px)").matches;
+      map.fitBounds(bx, {
+        padding: estreito
+          ? { top: 90, bottom: 90, left: 40, right: 40 }
+          : { top: 140, bottom: 250, left: 70, right: 70 },
+        maxZoom: 15.4, pitch: 48, bearing: 0, duration: 4600, essential: true
+      });
     } else {
       var b = new maplibregl.LngLatBounds().extend([lng, lat]);
       ranked.slice(0, 4).forEach(function (r) { b.extend([r.s.lng, r.s.lat]); });
@@ -402,6 +435,25 @@
     status(uf
       ? "Mostrando as " + ranked.length + " unidade(s) de " + uf + ", mais próximas de " + label + "."
       : "Mostrando as " + ranked.length + " unidades mais próximas de " + label + ".");
+    revelarLista();
+  }
+
+  /* Mobile (≤760px, onde o rail vira position:relative e cai ABAIXO do mapa): depois de
+     buscar por CEP ou geolocalização, traz a lista pro campo de visão. Sem isso a pessoa
+     digita o CEP, o mapa voa, e o resultado — as lojas e as distâncias — fica fora da tela.
+     No desktop o rail já é overlay sobre o mapa, então não faz nada. */
+  function revelarLista() {
+    if (!window.matchMedia || !window.matchMedia("(max-width:760px)").matches) return;
+    var alvo = (railEl && railEl.closest && railEl.closest(".mapx__railwrap")) || railEl;
+    if (!alvo) return;
+    var suave = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // block:"end" e não "start": o rail é uma faixa horizontal baixa (~190px). Alinhado ao
+    // topo, ele fica espremido sob o header fixo e o resto da tela vira rodapé. Alinhado ao
+    // fim, o mapa continua visível em cima e a lista entra embaixo — leitura de app de mapa.
+    setTimeout(function () {
+      try { alvo.scrollIntoView({ behavior: suave ? "smooth" : "auto", block: "end" }); }
+      catch (_) { alvo.scrollIntoView(); }
+    }, 450);
   }
 
   form.addEventListener("submit", function (e) {

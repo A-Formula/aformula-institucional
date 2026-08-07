@@ -16,7 +16,9 @@ const CTX = 'https://schema.org';
 
 // ---- Entidade oficial (CNPJ 10.760.350/0002-90) ----
 const organization = {
-  '@type': 'Organization',
+  // Multi-tipo: é a entidade jurídica (Organization) E um negócio de saúde (MedicalBusiness).
+  // Sem MedicalBusiness o Google lê a rede como empresa genérica, não como farmácia.
+  '@type': ['Organization', 'MedicalBusiness'],
   '@id': ORG_ID,
   name: 'A Fórmula',
   legalName: 'A FORMULA SERVICOS E FRANCHISE LTDA.',
@@ -40,6 +42,17 @@ const organization = {
     'https://www.linkedin.com/company/aformulafarmacia/',
     'https://www.youtube.com/@aformulafarmacia6374',
   ],
+  alternateName: ['A Fórmula Farmácia de Manipulação', 'A Fórmula Farmácia'],
+  slogan: 'A ciência da personalização',
+  knowsAbout: [
+    'farmácia de manipulação',
+    'medicamentos manipulados',
+    'prescrição magistral',
+    'manipulação veterinária',
+    'dermocosméticos',
+    'suplementação personalizada',
+  ],
+  areaServed: { '@type': 'Country', name: 'Brasil' },
 };
 const website = {
   '@type': 'WebSite',
@@ -49,12 +62,8 @@ const website = {
   alternateName: ['aformulabr', 'A Fórmula Farmácia de Manipulação'],
   inLanguage: 'pt-BR',
   publisher: { '@id': ORG_ID },
-  // Sitelinks searchbox: alvo real (o filtro do blog lê ?q= — scripts/blog-filter.js.html).
-  potentialAction: {
-    '@type': 'SearchAction',
-    target: { '@type': 'EntryPoint', urlTemplate: `${BASE}/blog?q={search_term_string}` },
-    'query-input': 'required name=search_term_string',
-  },
+  // Sem potentialAction/SearchAction: o Google removeu o sitelinks search box da busca em
+  // 21/11/2024 (e o relatório do Search Console junto). A marcação virou peso morto.
 };
 
 // ---- Navegação prioritária (rotas de conversão primeiro) ----
@@ -162,7 +171,13 @@ function faqPage(file) {
   };
 }
 
+// NÃO usar Speakable: é beta, só vale para usuários nos EUA com Google Home em inglês e
+// conteúdo publicado em inglês (docs Google, atualizado 2025-12-10). Em pt-BR, ganho zero.
+
 // ---- Mapa página → blocos JSON-LD ----
+// FAQPage: o rich result foi EXTINTO no Google em 07/05/2026 — a marcação não gera mais
+// nenhuma aparência na busca. Fica só onde há FAQ visível que serve ao visitante
+// (o Google segue lendo a marcação para entender a página, e LLMs extraem Q&A dela).
 const faqPet = faqPage('pet.html');
 const faqReceita = faqPage('receita.html');
 
