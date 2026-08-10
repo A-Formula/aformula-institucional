@@ -831,5 +831,7 @@ auth.onAuthStateChanged(function(user){
 var heroSignup=document.getElementById("pa-hero-signup");
 if(heroSignup)heroSignup.addEventListener("click",function(e){e.preventDefault();renderCadastro();if(card)card.scrollIntoView({behavior:"smooth",block:"center"});});
 wireLogin();
+/* deep link: contato.html manda "Área do prescritor" pra cá já no formulário de cadastro */
+if(location.hash==="#cadastro"){renderCadastro();if(card)setTimeout(function(){card.scrollIntoView({behavior:"smooth",block:"center"});},120);}
 })();</script>
 </body></html>
