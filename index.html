@@ -310,10 +310,22 @@ ol,ul{margin:0;padding:0;list-style:none}
    HERO
    ========================================================= */
 .hero{position:relative;color:var(--ink);padding-top:150px;isolation:isolate}
-.hero__media{position:absolute;inset:0;z-index:-2;overflow:hidden}
-.hero__media img{width:100%;height:100%;object-fit:cover;object-position:72% 24%;
-  transform:scale(1.06);animation:hero-kenburns 18s var(--ease) forwards}
-@keyframes hero-kenburns{to{transform:scale(1)}}
+/* a foto começa logo abaixo do header fixo e opaco (~75px): o que passava por trás dele era
+   faixa perdida — e era ali que o topo da cabeça sumia em janela estreita. O recuo é 68px, ou
+   seja MENOR que o header em TODOS os breakpoints (75px em ≥1024, 67px em 768–1023), de
+   propósito: a foto entra alguns px por baixo dele e nunca sobra linha branca no meio, mesmo
+   com subpixel ou zoom do navegador. */
+.hero__media{position:absolute;inset:60px 0 0 0;z-index:-2;overflow:hidden}
+/* object-position Y=0 = o corte do cover acontece só na BASE, nunca no topo. --hero-sobe puxa
+   a foto pra cima até a cabeça quase encostar no menu: a folga do cover cresce com a largura da
+   tela, então o valor tem que crescer junto (o termo em vw), senão fica colada em monitor
+   pequeno e sobrando em ultrawide. O clamp trava o extremo dos dois lados. A altura extra da
+   imagem é o que impede a subida de abrir vazio no rodapé do hero. */
+.hero__media img{--hero-sobe:min(-29px,calc(27px - 4.86vw));
+  width:100%;height:calc(100% + 40px);object-fit:cover;object-position:72% 0;
+  transform:scale(1.06) translateY(var(--hero-sobe));transform-origin:50% 0;
+  animation:hero-kenburns 18s var(--ease) forwards}
+@keyframes hero-kenburns{to{transform:scale(1) translateY(var(--hero-sobe))}}
 .hero__overlay{position:absolute;inset:0;z-index:-1;
   background:linear-gradient(100deg,rgba(255,255,255,.97) 4%,rgba(255,255,255,.88) 30%,rgba(255,255,255,.55) 54%,rgba(255,255,255,.15) 78%,rgba(255,255,255,0) 92%)}
 /* scrims p/ legibilidade: topo (header) + base (stats) + aprofundamento à esquerda (headline) */

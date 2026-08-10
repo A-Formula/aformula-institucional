@@ -92,12 +92,19 @@
   /* Raio do cluster de unidades enquadrado junto com a mais próxima (ver rankNearest). */
   var RAIO_CLUSTER_KM = 2;
 
+  /* Todas as unidades são no Brasil — o mapa não sai daqui: abre enquadrado no país e
+     nem o zoom-out nem o arrasto mostram o resto do mundo. */
+  var BRASIL_BOUNDS = [[-75.5, -34.5], [-32.0, 6.5]];
+  var BRASIL_CENTER = [-52.5, -14.8];
+  var BRASIL_ZOOM = 3.55;
+
   /* ---------- mapa ---------- */
   var map = new maplibregl.Map({
     container: mapEl,
     style: "https://tiles.openfreemap.org/styles/positron",
-    center: [-30, -10],          // Atlântico — visão de globo
-    zoom: 1.1,
+    bounds: BRASIL_BOUNDS,       // já nasce enquadrado no país, sem passar pelo mundo
+    fitBoundsOptions: { padding: 24 },
+    maxBounds: BRASIL_BOUNDS,
     pitch: 0,
     attributionControl: { compact: true },
     cooperativeGestures: true,
@@ -163,11 +170,29 @@
     } catch (_) {}
   });
 
-  /* voo de abertura: globo → Brasil */
+  /* voo de abertura: aproximação DENTRO do Brasil (não parte mais do globo do mundo).
+     No fim, o zoom do enquadramento vira o piso: afastar não devolve o resto do mundo.
+     O piso é calculado (não fixo) porque depende da altura do mapa — no celular ele é
+     empilhado com ~60svh e o mesmo zoom não caberia. */
+  function padBrasil() {
+    /* padding proporcional: no mobile o mapa é uma faixa e padding fixo de desktop
+       espremia o enquadramento a ponto de devolver o globo inteiro */
+    var c = map.getContainer();
+    var flutua = c.clientWidth > 760; // desktop = painel e trilho sobrepõem o mapa
+    var v = Math.min(80, Math.round(c.clientHeight * 0.08));
+    var h = Math.min(60, Math.round(c.clientWidth * 0.05));
+    return { top: v, bottom: flutua ? Math.min(180, Math.round(c.clientHeight * 0.2)) : v, left: h, right: h };
+  }
+  function travarNoBrasil() {
+    var z = map.getZoom();
+    map.fitBounds(BRASIL_BOUNDS, { padding: padBrasil(), duration: 0, animate: false });
+    map.setMinZoom(Math.min(z, map.getZoom()) - 0.05);
+    map.setZoom(z);
+  }
   function intro() {
     if (introDone) return; introDone = true;
-    map.flyTo({ center: [-52.5, -14.8], zoom: 3.55, pitch: 0, bearing: 0, duration: 4200, essential: true });
-    map.once("moveend", function () { window.__mapReady = true; });
+    map.flyTo({ center: BRASIL_CENTER, zoom: BRASIL_ZOOM, pitch: 0, bearing: 0, duration: 3000, essential: true });
+    map.once("moveend", function () { travarNoBrasil(); window.__mapReady = true; });
   }
   map.on("load", function () { setTimeout(intro, 650); });
   /* o pulso dos pins repinta o mapa continuamente e pode segurar o evento "load" —
@@ -371,7 +396,7 @@
     if (userMarker) { userMarker.remove(); userMarker = null; }
     if (openPopup) { openPopup.remove(); openPopup = null; }
     applyFilter();
-    map.flyTo({ center: [-52.5, -14.8], zoom: 3.55, pitch: 0, bearing: 0, duration: 2400 });
+    map.flyTo({ center: BRASIL_CENTER, zoom: BRASIL_ZOOM, pitch: 0, bearing: 0, duration: 2400 });
   });
 
   /* ---------- mais próximas (CEP ou geolocalização) ---------- */
