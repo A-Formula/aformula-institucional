@@ -1,0 +1,101 @@
+// Resolve CEP → unidade A Fórmula mais próxima, no servidor.
+//
+// Por quê existe: o formulário de contato já fazia isso no navegador pra abrir o WhatsApp
+// (contato.html), mas a RÉGUA de e-mail não tinha essa informação — enfileirava `cidade: null`
+// e o CEP sem uso, então os 6 passos que personalizam por cidade caíam no texto genérico e todo
+// CTA apontava pro localizador. Com o CEP obrigatório (05/08/2026), isto vale pra 100% dos leads.
+//
+// Contrato: NUNCA lança e NUNCA trava o fluxo. Falha de rede/CEP inexistente → devolve null,
+// e quem chama volta ao comportamento antigo (localizador genérico). É melhoria de conversão,
+// não caminho crítico.
+const { SITE } = require("./emails");
+
+const LOJAS_URL = `${SITE}/encontre-uma-loja_assets/lojas.json`;
+const TIMEOUT_MS = 4000;
+
+// Acima disto a "unidade mais próxima" deixa de ser próxima e o e-mail passaria a afirmar algo
+// falso (medido: CEP de Curitiba → Florianópolis, 251 km). Nesses casos vale mais o localizador,
+// onde a pessoa escolhe — inclusive porque a rede manipula e entrega em outra cidade.
+const RAIO_MAX_KM = 150;
+
+const digits = (s) => String(s || "").replace(/\D/g, "");
+
+// O Nominatim responde 403 pra requisição sem User-Agent identificável — no navegador isso passa
+// batido (o browser manda o dele), no servidor não. Sem este header, CEP que precisa do fallback
+// (ex.: 69900000, Rio Branco/AC) devolvia null e o lead perdia a unidade.
+async function get(url) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+  try {
+    const r = await fetch(url, {
+      signal: ctrl.signal,
+      headers: { "User-Agent": "aformulabr-site/1.0 (+https://www.aformulabr.com.br)" },
+    });
+    return r.ok ? await r.json() : null;
+  } catch { return null; } finally { clearTimeout(t); }
+}
+
+// Mesma cadeia do front: awesomeapi (já traz lat/lng) → viacep + nominatim como reserva.
+async function geocode(cep) {
+  const c = digits(cep);
+  if (c.length !== 8) return null;
+  const a = await get(`https://cep.awesomeapi.com.br/json/${c}`);
+  if (a && a.lat && a.lng) return { lat: +a.lat, lng: +a.lng, cidade: a.city || null, uf: a.state || null };
+  const v = await get(`https://viacep.com.br/ws/${c}/json/`);
+  if (!v || v.erro) return null;
+  const q = encodeURIComponent(`${v.logradouro ? v.logradouro + ", " : ""}${v.localidade || ""} ${v.uf || ""} Brasil`);
+  const n = await get(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${q}`);
+  if (!n || !n[0]) return null;
+  return { lat: +n[0].lat, lng: +n[0].lon, cidade: v.localidade || null, uf: v.uf || null };
+}
+
+function haversine(a, b, c, d) {
+  const R = 6371, p = Math.PI / 180, dLat = (c - a) * p, dLon = (d - b) * p;
+  const x = Math.sin(dLat / 2) ** 2 + Math.cos(a * p) * Math.cos(c * p) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
+}
+
+// wa.me exige DDI. Os números do lojas.json vêm como "(11) 99999-9999" → 10 ou 11 dígitos.
+function waUrl(loja) {
+  let n = digits(loja.celular || loja.telefone);
+  if (!n) return null;
+  if (n.length <= 11) n = `55${n}`;
+  return `https://wa.me/${n}`;
+}
+
+/**
+ * @returns {Promise<null|{nome,cidade,estado,waUrl,distanciaKm}>}
+ *   null = não deu pra resolver (CEP ruim, rede, ou nenhuma unidade com telefone).
+ */
+async function resolverUnidade(cep) {
+  try {
+    const loc = await geocode(cep);
+    if (!loc) return null;
+    const lista = await get(LOJAS_URL);
+    if (!Array.isArray(lista)) return null;
+    // "em breve" = unidade anunciada que ainda não atende; mandar lead pra lá é furo.
+    const geo = lista.filter((s) => s.lat && s.lng && !/em breve/i.test(s.nome || "") && waUrl(s));
+    if (!geo.length) return null;
+    let melhor = null;
+    for (const s of geo) {
+      const d = haversine(loc.lat, loc.lng, s.lat, s.lng);
+      if (!melhor || d < melhor.d) melhor = { s, d };
+    }
+    if (melhor.d > RAIO_MAX_KM) {
+      console.log(`[unidade] mais próxima a ${Math.round(melhor.d)}km (> ${RAIO_MAX_KM}) — usando localizador`);
+      return null;
+    }
+    return {
+      nome: melhor.s.nome || null,
+      cidade: melhor.s.cidade || loc.cidade || null,
+      estado: melhor.s.estado || loc.uf || null,
+      waUrl: waUrl(melhor.s),
+      distanciaKm: Math.round(melhor.d),
+    };
+  } catch (e) {
+    console.error("[unidade] falhou:", e && e.message);
+    return null;
+  }
+}
+
+module.exports = { resolverUnidade, cidadeDoCep: async (cep) => (await geocode(cep))?.cidade || null };

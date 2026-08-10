@@ -20,6 +20,18 @@ const {
 
 const LOJAS_URL = `${SITE}/encontre-uma-loja`;
 
+// CTA de unidade. Com o CEP obrigatório no formulário (05/08/2026), `api/_lib/unidade.js` resolve
+// a farmácia mais próxima no momento do enqueue e grava `waUrl`/`unidade` em `dados` — então o
+// botão pode ir DIRETO pro WhatsApp dela, um passo a menos que o localizador.
+// O rótulo muda junto de propósito: prometer "ver a unidade mais perto de mim" e abrir o WhatsApp
+// é bait. Sem `waUrl` (réguas P/T/N, que não coletam CEP) nada muda — cai no localizador.
+function ctaLoja(d, label, opts) {
+  if (!d || !d.waUrl) return { cta: { href: LOJAS_URL, label } };
+  const quem = d.unidade ? ` — A Fórmula ${d.unidade}` : "";
+  const base = opts && opts.receita ? "Enviar a receita no WhatsApp" : "Falar no WhatsApp";
+  return { cta: { href: d.waUrl, label: base + quem } };
+}
+
 // ── Composição ───────────────────────────────────────────────────────────────
 // Um e-mail é uma lista de blocos. O mesmo array gera texto puro e HTML, então as duas versões
 // nunca divergem — divergir é como e-mail vira "vi o texto, cadê o botão".
@@ -101,8 +113,10 @@ function CA1(d) {
       ...(r ? [{ p: `Você escreveu pra gente: "${r}"` }] : []),
       { p: `Isso já está com a nossa equipe. Pra fechar o orçamento, o farmacêutico precisa ver a receita — é ela que diz a dose, a forma e a quantidade. Sem esse papel, qualquer número que eu te desse seria chute.` },
       { p: `Então o próximo passo é um só: mandar a foto.` },
-      { cta: { href: LOJAS_URL, label: "Enviar a receita no WhatsApp" } },
-      { p: `O link abre o localizador: escolhe a unidade mais perto de você e fala direto com ela no WhatsApp. Uma foto tirada do celular resolve — não precisa escanear, não precisa estar reta. Precisa dar pra ler.` },
+      ctaLoja(d, "Enviar a receita no WhatsApp", { receita: true }),
+      { p: d.waUrl
+        ? `O botão abre a conversa da unidade${d.unidade ? ` ${d.unidade}` : ""} no WhatsApp — a mais perto do CEP que você informou. Uma foto tirada do celular resolve: não precisa escanear, não precisa estar reta. Precisa dar pra ler.`
+        : `O link abre o localizador: escolhe a unidade mais perto de você e fala direto com ela no WhatsApp. Uma foto tirada do celular resolve — não precisa escanear, não precisa estar reta. Precisa dar pra ler.` },
       { p: `Quem confere é o farmacêutico responsável da unidade, a mesma pessoa que vai assinar a fórmula. Se você quiser falar com ele antes de decidir qualquer coisa, é só pedir.` },
       { sig: true },
     ],
@@ -126,7 +140,7 @@ function CA2(d) {
         `não precisa escanear nem imprimir;`,
         `amassada serve, desde que dê pra ler o ativo, a dose e a assinatura de quem prescreveu.`,
       ] },
-      { cta: { href: LOJAS_URL, label: "Mandar a foto agora" } },
+      ctaLoja(d, "Mandar a foto agora", { receita: true }),
       { p: `Perdeu a receita? Quem prescreveu quase sempre reemite por mensagem, sem nova consulta. Está vencida? Aí precisa de uma nova — receita de manipulado tem prazo, e a gente não manipula fora dele.` },
     ],
     psText: `Não sabe se a sua ainda vale? Manda assim mesmo. O farmacêutico confere a validade e te responde. Leva um minuto e evita você ir até a unidade à toa.`,
@@ -143,8 +157,10 @@ function CA3(d) {
       { p: `Olá, ${firstName(d.nome)}.` },
       { p: `Mandar foto por mensagem é o caminho mais rápido pra maioria das pessoas.` },
       { p: `Mas tem gente que prefere entregar a receita na mão de alguém, ouvir a resposta olhando pra pessoa e sair de lá com o prazo anotado. Se você é assim, não tem problema nenhum: é só chegar.` },
-      { p: `São 87 cidades — o localizador acha a mais próxima de você, com endereço, telefone e mapa.` },
-      { cta: { href: LOJAS_URL, label: "Ver a unidade mais perto de mim" } },
+      { p: d.unidade
+        ? `Pelo CEP que você informou, a mais perto de você é a **A Fórmula ${d.unidade}**${d.cidade ? ` (${d.cidade})` : ""}. Endereço, telefone e mapa estão no localizador — e são 87 cidades, se preferir outra.`
+        : `São 87 cidades — o localizador acha a mais próxima de você, com endereço, telefone e mapa.` },
+      { cta: { href: LOJAS_URL, label: d.unidade ? `Ver o endereço da unidade ${d.unidade}` : "Ver a unidade mais perto de mim" } },
       { p: `Leve a receita. O farmacêutico confere na hora e você já sai sabendo o valor e o prazo. Não precisa agendar.` },
       { p: `Este é o último e-mail sobre este orçamento — não vou insistir. Se resolver mais pra frente, é só responder aqui: seu pedido fica registrado.` },
     ],
@@ -175,8 +191,8 @@ function CB1(d) {
         `conferir uma receita que você já tenha e orçar.`,
       ] },
       { p: `Isso é conversa de farmacêutico, e ela não custa nada.` },
-      { cta: { href: LOJAS_URL, label: "Falar com o farmacêutico" } },
-      { p: `Quem responde é o farmacêutico responsável da unidade. Não é chat, não é robô, não é atendimento lendo script.` },
+      ctaLoja(d, "Falar com o farmacêutico"),
+      { p: `Quem responde é o farmacêutico responsável da unidade${d.unidade ? ` — a ${d.unidade}, a mais perto do seu CEP` : ""}. Não é chat, não é robô, não é atendimento lendo script.` },
     ],
     psText: `Se você já tem receita e só quer saber o preço, responde este e-mail com a foto dela. Isso resolve hoje, sem conversa nenhuma.`,
   });
@@ -199,7 +215,7 @@ function CB2(d) {
         `Alguém toma cinco cápsulas de manhã que poderiam ser uma só, quando a receita permite associar.`,
       ] },
       { p: `Repare: nenhum dos três é sobre doença. São casos de **dose e de formato**. É exatamente aí que a manipulação entra.` },
-      { cta: { href: LOJAS_URL, label: "Falar com a unidade mais perto de mim" } },
+      ctaLoja(d, "Falar com a unidade mais perto de mim"),
     ],
     psText: `Nada disso é diagnóstico nem recomendação. É o mapa do que dá pra fazer quando existe uma receita que permita — e só.`,
   });
@@ -224,7 +240,7 @@ function CB3(d) {
         `acompanha o lote que virou o seu pote;`,
         `responde se alguma coisa sair diferente do esperado.`,
       ] },
-      { cta: { href: LOJAS_URL, label: "Falar com o farmacêutico da minha unidade" } },
+      ctaLoja(d, "Falar com o farmacêutico da minha unidade"),
     ],
     psText: `Guarda essa pergunta pra qualquer farmácia de manipulação que você for usar, inclusive a nossa: "eu consigo falar com o farmacêutico responsável?". Se a resposta demorar, você já ficou sabendo bastante.`,
   });
@@ -247,7 +263,7 @@ function CB4(d) {
         `quanto tempo leva e como funciona a retirada.`,
       ] },
       { p: `O que **não** cabe: diagnóstico e indicação de tratamento. Isso é do médico, e a gente não passa por cima disso — nem quando o cliente pede.` },
-      { cta: { href: LOJAS_URL, label: "Falar com a minha unidade" } },
+      ctaLoja(d, "Falar com a minha unidade"),
     ],
     psText: `Este é o último e-mail desta sequência. Se quiser continuar por perto sem compromisso, a newsletter sai uma vez por semana e não exige receita, só curiosidade.`,
   });
@@ -570,7 +586,8 @@ function triarContato(mensagem, assunto) {
 // determinístico — e três assuntos deliberadamente NÃO entram em régua nenhuma.
 function fluxoPorAssunto(assunto, mensagem) {
   switch (String(assunto || "").trim()) {
-    case "Dúvida sobre manipulação":
+    case "Orçamento":                 // 10/08/2026: assunto novo, e é o caso-mãe da régua CA/CB
+    case "Dúvida sobre manipulação":  // — o CA1 existe justamente pra pedir a receita e orçar
     case "Outro assunto":
       return triarContato(mensagem, assunto);
     case "Trabalhe conosco": return "T";

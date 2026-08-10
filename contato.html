@@ -934,6 +934,12 @@ ol,ul{margin:0;padding:0;list-style:none}
 .contact__card a:hover{color:var(--brand,#008896)}
 .contact__big{font-size:18px!important;font-weight:700!important;color:var(--teal-850,#06343a)!important}
 .contact__cta{display:inline-flex;align-items:center;gap:8px;margin-top:6px;font-weight:700;color:var(--brand,#008896)!important}
+/* orçamento = motivo nº1 de contato → card em destaque, no topo do aside */
+.contact__card--destaque{background:var(--brand,#008896);border-color:var(--brand,#008896);color:#fff}
+.contact__card--destaque h3,.contact__card--destaque p{color:#fff}
+.contact__card--destaque h3{opacity:.85}
+.contact__card--destaque .contact__cta{color:#fff!important;border-bottom:2px solid rgba(255,255,255,.5);padding-bottom:2px}
+.contact__card--destaque .contact__cta:hover{border-bottom-color:#fff}
 .contact__social{display:flex;gap:12px;margin-top:6px}
 .contact__social a{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--line,#dbe6e6);display:inline-flex;
   align-items:center;justify-content:center;color:var(--teal-800,#0a3f45);transition:background .2s,color .2s,border-color .2s}
@@ -1033,13 +1039,13 @@ ol,ul{margin:0;padding:0;list-style:none}
       </div>
       <div class="field-row">
         <div class="field"><label for="c-email">E-mail</label><input id="c-email" name="email" type="email" required placeholder="voce@email.com"></div>
-        <div class="field"><label for="c-cep">CEP <span class="field-opt">(opcional)</span></label><input id="c-cep" name="cep" inputmode="numeric" maxlength="9" placeholder="00000-000"><span class="field-hint">Para dúvidas de manipulação, indicamos a unidade mais próxima.</span></div>
+        <div class="field"><label for="c-cep">CEP</label><input id="c-cep" name="cep" inputmode="numeric" maxlength="9" required placeholder="00000-000"><span class="field-hint">É por ele que direcionamos você para a unidade mais próxima.</span></div>
       </div>
       <div class="field"><label for="c-assunto">Assunto</label>
         <select id="c-assunto" name="assunto" required>
           <option value="">Selecione um assunto</option>
+          <option>Orçamento</option>
           <option>Dúvida sobre manipulação</option>
-          <option>Acompanhamento de pedido</option>
           <option>Área do prescritor</option>
           <option>Seja um franqueado</option>
           <option>Trabalhe conosco</option>
@@ -1069,6 +1075,11 @@ ol,ul{margin:0;padding:0;list-style:none}
     </form>
 
     <aside class="contact__aside">
+      <div class="contact__card contact__card--destaque reveal">
+        <h3>Orçamento</h3>
+        <p>Quer saber o preço da sua fórmula? Informe seu CEP e a gente conecta você por WhatsApp com a unidade mais próxima, que faz o orçamento na hora.</p>
+        <a class="contact__cta" href="#c-assunto" id="cta-orcamento">Pedir orçamento →</a>
+      </div>
       <div class="contact__card reveal">
         <h3>Atendimento</h3>
         <p><a class="contact__big" href="mailto:sac@aformulabr.com.br">sac@aformulabr.com.br</a></p>
@@ -1102,6 +1113,16 @@ ol,ul{margin:0;padding:0;list-style:none}
   var msg=document.getElementById("contactMsg");
   var career=document.getElementById("careerForm");
   var FRANQUIA="https://franquia.aformulabr.com.br/seja-um-franqueado/";
+  /* assuntos que vão pra unidade mais próxima → valor = abertura da mensagem no WhatsApp.
+     Nestes o CEP é OBRIGATÓRIO: é ele que define qual unidade atende. */
+  var VIA_UNIDADE={
+    "Orçamento":"Gostaria de um orçamento",
+    "Dúvida sobre manipulação":"Tenho uma dúvida sobre manipulação",
+    "Outro assunto":"Tenho uma dúvida"
+  };
+  /* origem do lead — a unidade precisa saber que a pessoa veio do site, não de indicação/anúncio */
+  var ORIGEM="Vim pelo site da A Fórmula.";
+  var PRESCRITOR="area-do-prescritor.html#cadastro";
   function val(id){var e=document.getElementById(id);return e?(e.value||"").trim():"";}
   function mark(id,ok){var e=document.getElementById(id);if(e)e.closest(".field").classList.toggle("invalid",!ok);}
   function digits(s){return (s||"").replace(/\D/g,"");}
@@ -1120,11 +1141,15 @@ ol,ul{margin:0;padding:0;list-style:none}
       });
     }).catch(function(){return null;});
   }
+  /* a unidade mais próxima precisa ser ATENDÍVEL: "em breve" não abriu ainda e loja sem
+     número não tem WhatsApp — nos dois casos o lead morreria. Pula pra próxima válida. */
   function nearest(cep){
     return geocode(cep).then(function(loc){
       if(!loc)return null;
       return fetch("encontre-uma-loja_assets/lojas.json").then(function(r){return r.json();}).then(function(list){
-        var geo=(list||[]).filter(function(s){return s.lat&&s.lng&&!/em breve/i.test(s.nome||"");});
+        var geo=(list||[]).filter(function(s){
+          return s.lat&&s.lng&&!/em breve/i.test(s.nome||"")&&!!waLink(s);
+        });
         if(!geo.length)return null;
         geo.forEach(function(s){s._d=haversine(loc.lat,loc.lng,s.lat,s.lng);});
         geo.sort(function(a,b){return a._d-b._d;});
@@ -1142,17 +1167,27 @@ ol,ul{margin:0;padding:0;list-style:none}
       career.scrollIntoView({behavior:"smooth",block:"start"});
       return;
     }
+    if(assunto==="Área do prescritor"){
+      set(msg,"ok","Mensagem recebida com sucesso! Levando você para a criação da conta de prescritor…");
+      setTimeout(function(){window.location.href=PRESCRITOR;},1200);
+      return;
+    }
     if(assunto==="Seja um franqueado"){
       set(msg,"ok","Mensagem recebida com sucesso! Abrindo a área de franquias…");
       setTimeout(function(){window.open(FRANQUIA,"_blank","noopener");},900);
       return;
     }
-    if(assunto==="Dúvida sobre manipulação"&&digits(cep).length===8){
+    if(VIA_UNIDADE[assunto]){
+      if(digits(cep).length!==8){
+        set(msg,"ok","Mensagem recebida com sucesso! Veja no mapa a unidade mais próxima para falar direto com ela.");
+        setTimeout(function(){window.location.href="encontre-uma-loja.html";},1400);
+        return;
+      }
       set(msg,"ok","Mensagem recebida! Procurando a unidade mais próxima…");
       nearest(cep).then(function(s){
         var w=s&&waLink(s);
         if(w){
-          var texto="Olá! "+(ident.nome?"Aqui é "+ident.nome+". ":"")+"Tenho uma dúvida sobre manipulação:\n\n"+(ident.mensagem||"");
+          var texto="Olá! "+ORIGEM+" "+(ident.nome?"Aqui é "+ident.nome+". ":"")+VIA_UNIDADE[assunto]+":\n\n"+(ident.mensagem||"");
           w+="?text="+encodeURIComponent(texto);
           set(msg,"ok","Unidade mais próxima: "+s.nome+" ("+s.cidade+"/"+s.estado+") — abrindo o WhatsApp…");window.open(w,"_blank","noopener");
         }
@@ -1168,8 +1203,12 @@ ol,ul{margin:0;padding:0;list-style:none}
     var nome=val("c-nome"),email=val("c-email"),assunto=val("c-assunto"),mensagem=val("c-msg"),tel=val("c-tel"),cep=val("c-cep");
     var marketing=!!(document.getElementById("c-marketing")||{}).checked;
     var okEmail=/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email);
-    mark("c-nome",!!nome);mark("c-email",okEmail);mark("c-assunto",!!assunto);mark("c-msg",!!mensagem);
+    /* CEP obrigatório em TODO assunto — é a chave do lead (qual unidade atende, qual cidade
+       personaliza a régua) e /api/contato o exige, então relaxar aqui daria 400 silencioso. */
+    var okCep=digits(cep).length===8;
+    mark("c-nome",!!nome);mark("c-email",okEmail);mark("c-assunto",!!assunto);mark("c-msg",!!mensagem);mark("c-cep",okCep);
     if(!nome||!okEmail||!assunto||!mensagem){set(msg,"err","Preencha os campos destacados (nome, e-mail válido, assunto e mensagem).");return;}
+    if(!okCep){set(msg,"err","Informe um CEP válido (8 dígitos) — é por ele que encontramos a unidade que vai te atender.");return;}
     var btn=f.querySelector('button[type="submit"]');
     if(btn)btn.disabled=true;
     set(msg,"ok","Enviando…");
@@ -1181,6 +1220,17 @@ ol,ul{margin:0;padding:0;list-style:none}
     if(btn)btn.disabled=false;
     route(assunto,cep,{nome:nome,email:email,telefone:tel,mensagem:mensagem});
     if(assunto!=="Trabalhe conosco")f.reset();
+  });
+
+  var selAssunto=document.getElementById("c-assunto");
+
+  /* card de destaque → já deixa o formulário pronto pro orçamento */
+  var ctaOrc=document.getElementById("cta-orcamento");
+  if(ctaOrc)ctaOrc.addEventListener("click",function(e){
+    e.preventDefault();
+    if(selAssunto)selAssunto.value="Orçamento";
+    f.scrollIntoView({behavior:"smooth",block:"start"});
+    var alvo=document.getElementById("c-nome");if(alvo)setTimeout(function(){alvo.focus();},450);
   });
 
   /* ---- envio do mini-currículo (Trabalhe conosco) ---- */

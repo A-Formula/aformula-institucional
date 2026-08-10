@@ -60,9 +60,54 @@ module.exports = async (req, res) => {
     return res.status(403).json({ ok: false, error: "not-authorized" });
   }
 
+  const dry = String(req.query && req.query.dry || "") === "1";
+
+  // ── Ação pontual: ?reagendar=1 ───────────────────────────────────────────────
+  // A régua ficou parada de 30/07 a 05/08/2026 com a fila enfileirando. Drenar assim entregaria
+  // um "boas-vindas" 6 dias atrasado e atropelaria os passos seguintes. Isto reancora cada
+  // sequência PENDENTE em hoje, preservando os offsets originais (T+0, T+1, T+3…).
+  // Roda ANTES do interruptor de propósito: consertar a fila é justamente o que se faz com a
+  // régua desligada. Combine com ?dry=1 pra ver o que mudaria sem escrever nada.
+  if (String(req.query && req.query.reagendar || "") === "1") {
+    const dbR = getDb();
+    if (!dbR) return res.status(503).json({ ok: false, error: "backend-offline" });
+    const DIA_MS = 86400000, base = Date.now();
+    const snapR = await dbR.collection("email_jobs").where("status", "==", "pending").limit(500).get();
+    const grupos = new Map();
+    for (const doc of snapR.docs) {
+      const j = doc.data();
+      const k = `${j.flow}|${j.email}`;
+      if (!grupos.has(k)) grupos.set(k, []);
+      grupos.get(k).push({ ref: doc.ref, job: j });
+    }
+    const out = { ok: true, reagendar: true, dry, grupos: 0, jobs: 0, ignorados: 0, detalhe: [] };
+    for (const [k, itens] of grupos) {
+      // Só mexe em sequência que já venceu. Job legitimamente agendado pro futuro fica em paz.
+      const venceu = itens.some((i) => i.job.sendAt && i.job.sendAt.toDate().getTime() <= base);
+      if (!venceu) { out.ignorados += itens.length; continue; }
+      out.grupos++;
+      // Âncora = o MENOR offset ainda pendente, não zero. Quem está no meio da régua (ex.: já
+      // recebeu N1 e só falta N2 em diante) tem o próximo e-mail hoje e o resto mantém o
+      // espaçamento original. Ancorar em zero daria 7 dias extras de silêncio a essa pessoa.
+      const offsets = itens
+        .map((i) => (FLOWS[i.job.flow] || []).find((s) => s.step === i.job.step))
+        .filter(Boolean).map((s) => s.offset);
+      const ancora = base - Math.min(...offsets) * DIA_MS;
+      for (const { ref, job } of itens) {
+        const passo = (FLOWS[job.flow] || []).find((s) => s.step === job.step);
+        if (!passo) { out.ignorados++; continue; }
+        const novo = new Date(ancora + passo.offset * DIA_MS);
+        if (!dry) await ref.update({ sendAt: novo, rescheduledAt: FieldValue.serverTimestamp() });
+        out.jobs++;
+        out.detalhe.push(`${job.step} ${job.email}: ${job.sendAt ? job.sendAt.toDate().toISOString().slice(0,10) : "?"} → ${novo.toISOString().slice(0,10)}`);
+      }
+    }
+    console.log(`[cron-email-flows] reagendar${dry ? " (dry)" : ""}: ${out.jobs} jobs em ${out.grupos} sequências`);
+    return res.status(200).json(out);
+  }
+
   // Interruptor geral (flows.js). Roda antes de tudo: a fila fica intacta em `pending` e volta a
   // andar quando religar. `?dry=1` continua liberado — é como inspecionar sem enviar.
-  const dry = String(req.query && req.query.dry || "") === "1";
   if (!flowsAtivas() && !dry) {
     console.log("[cron-email-flows] pausado — EMAIL_FLOWS_ON não está ligado");
     return res.status(200).json({ ok: true, paused: true, enviados: 0 });

@@ -3,9 +3,13 @@
 const { getDb, notify, guard, isEmail, addToMailing, FieldValue } = require("./_lib/backend");
 const { FLOWS, fluxoPorAssunto } = require("./_lib/flows");
 const { enqueueFlow } = require("./_lib/queue");
+const { resolverUnidade } = require("./_lib/unidade");
 
+// "Acompanhamento de pedido" saiu do formulário (virou "Orçamento", 10/08/2026) mas continua
+// aceito aqui: a lista é validação de entrada, e rejeitar o assunto antigo só quebraria quem
+// tiver a página velha em cache.
 const ASSUNTOS = [
-  "Dúvida sobre manipulação", "Acompanhamento de pedido", "Área do prescritor",
+  "Orçamento", "Dúvida sobre manipulação", "Acompanhamento de pedido", "Área do prescritor",
   "Seja um franqueado", "Trabalhe conosco", "Imprensa / parcerias", "Outro assunto",
 ];
 
@@ -21,7 +25,10 @@ module.exports = async (req, res) => {
   const cep = String(body.cep || "").replace(/\D/g, "").slice(0, 8) || null;
   const marketing = body.marketing === true;
 
-  if (!nome || !isEmail(email) || !ASSUNTOS.includes(assunto) || !mensagem) {
+  // CEP é obrigatório em TODOS os assuntos (decisão do operador 05/08/2026): é a chave de
+  // filtro do lead e de qual unidade atende. Registro sem CEP fura o filtro, então barra aqui
+  // também — o formulário já valida, isto cobre bot/bypass.
+  if (!nome || !isEmail(email) || !ASSUNTOS.includes(assunto) || !mensagem || !cep || cep.length !== 8) {
     return res.status(400).json({ ok: false, error: "validation" });
   }
 
@@ -47,9 +54,17 @@ module.exports = async (req, res) => {
   // acompanhamento de pedido (é atendimento), franqueado (régua não existe) e imprensa (manual).
   const fluxo = fluxoPorAssunto(assunto, mensagem);
   if (fluxo && FLOWS[fluxo]) {
+    // Resolve a unidade mais próxima pelo CEP (best-effort). Alimenta o CTA direto no WhatsApp
+    // dela e a personalização por cidade dos e-mails. null → régua cai no localizador genérico.
+    const unidade = await resolverUnidade(cep);
     await enqueueFlow(db, {
       flow: fluxo, steps: FLOWS[fluxo], email,
-      dados: { nome, email, mensagem, assunto, cep, cidade: null },
+      dados: {
+        nome, email, mensagem, assunto, cep,
+        cidade: unidade ? unidade.cidade : null,
+        unidade: unidade ? unidade.nome : null,
+        waUrl: unidade ? unidade.waUrl : null,
+      },
       startAt: new Date(),
     }).catch((e) => console.error("[contato] enqueue falhou:", e && e.message));
   }
