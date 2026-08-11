@@ -168,6 +168,82 @@
         });
       }
     } catch (_) {}
+    /* máscara de oceano nos flancos — mata a costa da África no quadro.
+       O BRASIL_BOUNDS é quase quadrado (aspect 1.004), então em tela horizontal o fitBounds
+       é limitado pela ALTURA e sobra longitude: 16,7° de cada lado em 16:9, 30° em 21:9.
+       A África começa a 14,5° da borda leste do bounds — logo invade a partir de 16:9.
+       Alargar o bounds piora; maxBounds não ajuda (limita arrasto, não o enquadramento); e
+       dar zoom até a largura mandar cortaria 56% da altura do país. Resta pintar a sobra.
+       Leste = a própria borda do bounds (-32,0): cobre a África inteira e ainda deixa
+       Fernando de Noronha (-32,4) no mapa — -33 apagaria a ilha.
+       Oeste = -85, NÃO a borda do bounds: a costa noroeste do Peru vai até -81,3, fora do
+       bounds, e mascarar em -75,5 pintaria terra peruana de água. Assim os vizinhos ficam
+       todos visíveis e só somem Galápagos e mar aberto. */
+    try {
+      var MASK_LAT = [-60, 85];
+      var MASK_LON = [-85, BRASIL_BOUNDS[1][0]];
+      /* Teto norte: em contêiner ALTO (mobile) a sobra é de latitude, não de longitude, e
+         entravam Cuba, Jamaica e Rep. Dominicana (lat 18-23) — no desktop largo era Bahamas
+         e Barbados. 13 fica 0,5° acima da costa da Colômbia, então Caracas (10,5), Bogotá,
+         Trinidad e Panamá continuam no mapa. Ao sul não há teto: Argentina e Chile são
+         vizinhos legítimos e o quadro do país já os inclui. */
+      var TETO_NORTE = 13;
+      var retangulo = function (lonA, lonB, latA, latB) {
+        /* vértices a cada 5°: fill de vão largo com 4 cantos deforma na projeção globo */
+        var r = [], s = 5, x, y;
+        for (x = lonA; x < lonB; x += s) r.push([x, latA]);
+        for (y = latA; y < latB; y += s) r.push([lonB, y]);
+        for (x = lonB; x > lonA; x -= s) r.push([x, latB]);
+        for (y = latB; y > latA; y -= s) r.push([lonA, y]);
+        r.push([lonA, latA]);
+        return r;
+      };
+      map.addSource("af-fora-do-quadro", {
+        type: "geojson",
+        data: {
+          type: "Feature", properties: {},
+          geometry: {
+            type: "MultiPolygon",
+            coordinates: [
+              [retangulo(MASK_LON[1], 60, MASK_LAT[0], MASK_LAT[1])],   // leste: África
+              [retangulo(-180, MASK_LON[0], MASK_LAT[0], MASK_LAT[1])], // oeste: Pacífico e Galápagos
+              [retangulo(MASK_LON[0], MASK_LON[1], TETO_NORTE, MASK_LAT[1])] // norte: Caribe
+            ]
+          }
+        }
+      });
+      /* entra aqui, antes dos pins (adicionados no load das lojas), pra cobrir os rótulos
+         de país da África sem nunca passar por cima das unidades */
+      map.addLayer({
+        id: "af-mascara-oceano", type: "fill", source: "af-fora-do-quadro",
+        /* opacidade 0.999 de propósito: fill 100% opaco vai pra passada "opaque" e os
+           rótulos (passada translucent, sem depth test) atravessam por cima — os nomes dos
+           países africanos ficavam visíveis sobre a máscara. Abaixo de 1 o fill entra na
+           mesma passada dos símbolos, onde a ordem do estilo é respeitada. */
+        paint: { "fill-color": "#a7dade", "fill-opacity": 0.999 }
+      });
+      /* ...e os RÓTULOS ainda passavam por cima da máscara: o MapLibre desenha símbolo sem
+         depth test, então "Nigeria", "Gabon" e "Gulf of Guinea" apareciam flutuando na água
+         mesmo com a África coberta. Filtrar por `within` na janela é o que de fato resolve.
+         Só nas layers de PONTO (país/estado/cidade/aeroporto/nome de água): as de linha
+         (rodovia, curso de água) cruzam a borda da janela e `within` as apagaria inteiras. */
+      var JANELA_BR = {
+        type: "Polygon",
+        coordinates: [[
+          [MASK_LON[0], MASK_LAT[0]], [MASK_LON[1], MASK_LAT[0]],
+          [MASK_LON[1], TETO_NORTE], [MASK_LON[0], TETO_NORTE],
+          [MASK_LON[0], MASK_LAT[0]]
+        ]]
+      };
+      map.getStyle().layers.forEach(function (l) {
+        if (l.type !== "symbol") return;
+        if (!/^(label_|water_name|airport)/.test(l.id)) return;
+        try {
+          var f = map.getFilter(l.id);
+          map.setFilter(l.id, f ? ["all", f, ["within", JANELA_BR]] : ["within", JANELA_BR]);
+        } catch (_) {}
+      });
+    } catch (_) {}
   });
 
   /* voo de abertura: aproximação DENTRO do Brasil (não parte mais do globo do mundo).
@@ -183,15 +259,26 @@
     var h = Math.min(60, Math.round(c.clientWidth * 0.05));
     return { top: v, bottom: flutua ? Math.min(180, Math.round(c.clientHeight * 0.2)) : v, left: h, right: h };
   }
+  /* Câmera do país NESTE contêiner. Substitui o BRASIL_ZOOM fixo, que era largo demais em
+     desktop: 3,55 abria de lon -128 a +20,5 — Cuba e Bahamas no quadro, o Brasil em ~20% da
+     tela e os pins do Nordeste empilhados. O zoom certo depende da largura E da altura, então
+     tem que ser calculado (~4,15 em 1920x1080, ~4,55 em 3440x1440, mais fechado no mobile).
+     ⚠️ Antes daqui o fit era calculado e logo descartado por um `setZoom(z)` que restaurava o
+     zoom largo — o fit só servia pra derivar o piso. Agora ele é o enquadramento de verdade. */
+  function camBrasil() {
+    var cam = null;
+    try { cam = map.cameraForBounds(BRASIL_BOUNDS, { padding: padBrasil() }); } catch (_) {}
+    return cam && isFinite(cam.zoom) ? cam : { center: BRASIL_CENTER, zoom: BRASIL_ZOOM };
+  }
   function travarNoBrasil() {
-    var z = map.getZoom();
-    map.fitBounds(BRASIL_BOUNDS, { padding: padBrasil(), duration: 0, animate: false });
-    map.setMinZoom(Math.min(z, map.getZoom()) - 0.05);
-    map.setZoom(z);
+    var cam = camBrasil();
+    map.jumpTo({ center: cam.center, zoom: cam.zoom });
+    map.setMinZoom(cam.zoom - 0.05); // o enquadramento vira o piso: afastar não devolve o mundo
   }
   function intro() {
     if (introDone) return; introDone = true;
-    map.flyTo({ center: BRASIL_CENTER, zoom: BRASIL_ZOOM, pitch: 0, bearing: 0, duration: 3000, essential: true });
+    var cam = camBrasil();
+    map.flyTo({ center: cam.center, zoom: cam.zoom, pitch: 0, bearing: 0, duration: 3000, essential: true });
     map.once("moveend", function () { travarNoBrasil(); window.__mapReady = true; });
   }
   map.on("load", function () { setTimeout(intro, 650); });
@@ -396,7 +483,10 @@
     if (userMarker) { userMarker.remove(); userMarker = null; }
     if (openPopup) { openPopup.remove(); openPopup = null; }
     applyFilter();
-    map.flyTo({ center: BRASIL_CENTER, zoom: BRASIL_ZOOM, pitch: 0, bearing: 0, duration: 2400 });
+    /* volta pro MESMO enquadramento da abertura — com o zoom fixo, "Limpar" devolvia o quadro
+       largo mesmo depois de a abertura ter sido corrigida */
+    var cam = camBrasil();
+    map.flyTo({ center: cam.center, zoom: cam.zoom, pitch: 0, bearing: 0, duration: 2400 });
   });
 
   /* ---------- mais próximas (CEP ou geolocalização) ---------- */
