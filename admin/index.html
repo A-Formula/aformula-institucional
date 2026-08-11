@@ -500,9 +500,11 @@ async function loadCounts(){
    mais de 150 km (demanda descoberta); __none__ = CEP não resolvido (backfill pendente ou CEP
    inválido). Sem esses dois, um lead somem da soma sem o operador perceber. */
 const F_FORA='__fora__', F_NONE='__none__';
-// Unidade que EFETIVAMENTE recebe o lead. Fora do raio não conta como receptora: o e-mail manda
-// essa pessoa pro localizador, não pra loja — creditar a loja inflaria o ranking dela.
-const unidadeDe = m => (m.unidade && !m.foraDeRaio) ? m.unidade : null;
+// Unidade que EFETIVAMENTE recebe o lead. `rotaUnidade` (gravado desde 11/08/2026) manda, porque
+// é quem a notificação interna mandou atender — inclui o lead fora de raio roteado pra loja
+// própria. Sem ela, cai na regra antiga: dentro do raio conta, fora não (fora ia pro localizador,
+// então creditar a loja inflaria o ranking dela).
+const unidadeDe = m => m.rotaUnidade || ((m.unidade && !m.foraDeRaio) ? m.unidade : null);
 const ufDe = m => m.cepUf || ufDoCep(m.cep) || null;
 // '' (não 'sem localização') quando o CEP não diz nada: quem chama omite a linha em vez de
 // escrever uma ausência. Lead antigo sem CEP é normal — o formulário só passou a exigir em 05/08.
@@ -881,8 +883,16 @@ async function vInbox(){
     let h='<table><thead><tr><th>Quando</th><th>Nome</th><th>Contato</th><th>Origem / unidade</th><th>Assunto</th><th>Mensagem</th><th>Mkt</th><th>Status</th><th></th></tr></thead><tbody>';
     list.forEach(m=>{ const stt=(m.status||'new');
       const un=unidadeDe(m);
+      // `distanciaKm` é a distância até a MAIS PRÓXIMA. Só pode ser exibida junto de uma unidade
+      // quando é ela mesma — escrever "Brooklin, a 251 km do CEP" seria falso, porque os 251 km
+      // são até Florianópolis. Por isso a legenda muda conforme o motivo da rota.
+      const legenda = m.rotaMotivo==='propria'
+          ? 'loja própria — nenhuma unidade em 150 km'
+          : m.rotaMotivo==='repetido'
+            ? `a ${m.distanciaKm} km · 3ª ocorrência deste e-mail`
+            : (m.distanciaKm!=null ? `a ${m.distanciaKm} km do CEP` : '');
       const cel = un
-        ? `<strong>${esc(un)}</strong>${m.distanciaKm!=null?`<br><span class="hint">a ${m.distanciaKm} km do CEP</span>`:''}`
+        ? `<strong>${esc(un)}</strong>${legenda?`<br><span class="hint">${esc(legenda)}</span>`:''}`
         : m.foraDeRaio
           ? `<span class="tag pending">sem loja em 150 km</span>${m.unidade?`<br><span class="hint">+ próxima: ${esc(m.unidade)}, ${m.distanciaKm} km</span>`:''}`
           : `<span class="hint">—</span>`;   // sem CEP ou CEP que não resolve: neutro, não é pendência
@@ -917,9 +927,9 @@ async function vInbox(){
   $('#if-clear').addEventListener('click',()=>{['#if-status','#if-assunto','#if-unidade','#if-uf','#if-mkt','#if-q'].forEach(s=>$(s).value='');apply();});
   $('#i-csv').addEventListener('click',()=>{
     // Colunas de geo vêm juntas na planilha: é o que permite tabela dinâmica por loja/estado no Excel.
-    const rows=[['data','nome','email','telefone','cep','cidade_do_cep','uf','unidade_que_atende','unidade_mais_proxima','unidade_cidade','unidade_uf','distancia_km','sem_loja_em_150km','assunto','mensagem','marketing','status']];
+    const rows=[['data','nome','email','telefone','cep','cidade_do_cep','uf','unidade_que_atende','motivo_da_rota','unidade_mais_proxima','unidade_cidade','unidade_uf','distancia_km','sem_loja_em_150km','assunto','mensagem','marketing','status']];
     current.forEach(m=>rows.push([fmtTsCSV(m.createdAt),m.nome,m.email,m.telefone||'',m.cep||'',
-      m.cepCidade||'',ufDe(m)||'',unidadeDe(m)||'',m.unidade||'',m.unidadeCidade||'',m.unidadeUf||'',
+      m.cepCidade||'',ufDe(m)||'',unidadeDe(m)||'',m.rotaMotivo||'',m.unidade||'',m.unidadeCidade||'',m.unidadeUf||'',
       m.distanciaKm!=null?m.distanciaKm:'',m.foraDeRaio===true?'sim':(m.foraDeRaio===false?'não':''),
       m.assunto,m.mensagem,m.marketing?'sim':'não',(m.status||'new')==='done'?'resolvido':'novo']));
     const csv='﻿'+rows.map(r=>r.map(c=>`"${csvSafe(c).replace(/"/g,'""')}"`).join(';')).join('\r\n');

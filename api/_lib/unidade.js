@@ -158,7 +158,36 @@ async function resolverUnidade(cep, analise) {
   };
 }
 
+// Loja PRÓPRIA da empresa (não franquia). Recebe o lead que não tem nenhuma unidade num raio de
+// 150 km, em vez de esse lead se perder no localizador genérico. Decisão do operador 11/08/2026.
+const LOJA_PROPRIA = "Brooklin";
+
+/**
+ * Busca uma unidade pelo nome, com o mesmo crivo do cálculo de proximidade: precisa ter WhatsApp
+ * e não pode estar "em breve" — mandar lead pra loja que ainda não abriu é pior que não mandar.
+ * @returns {Promise<null|{nome,cidade,estado,waUrl}>}
+ */
+async function lojaPorNome(nome) {
+  try {
+    const lista = await get(LOJAS_URL);
+    if (!Array.isArray(lista)) return null;
+    const alvo = String(nome || "").trim().toLowerCase();
+    const s = lista.find(
+      (x) => String(x.nome || "").trim().toLowerCase() === alvo &&
+             !/em breve/i.test(x.nome || "") && waUrl(x)
+    );
+    if (!s) {
+      console.error(`[unidade] loja "${nome}" não encontrada, sem WhatsApp ou "em breve" — sem roteamento`);
+      return null;
+    }
+    return { nome: s.nome, cidade: s.cidade || null, estado: s.estado || null, waUrl: waUrl(s) };
+  } catch (e) {
+    console.error("[unidade] lojaPorNome falhou:", e && e.message);
+    return null;
+  }
+}
+
 module.exports = {
-  resolverUnidade, analisarCep, ufDoCep,
+  resolverUnidade, analisarCep, ufDoCep, lojaPorNome, LOJA_PROPRIA,
   cidadeDoCep: async (cep) => (await geocode(cep))?.cidade || null,
 };
