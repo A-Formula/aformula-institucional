@@ -69,9 +69,14 @@
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   @media(max-width:1100px){.grid2{grid-template-columns:1fr}}
   @media(max-width:760px){#app{grid-template-columns:1fr}aside{flex-direction:row;flex-wrap:wrap;max-height:none}main{max-height:none}
-    /* No celular a tabela rola dentro do próprio bloco em vez de comprimir as colunas — quem
-       rola horizontalmente é ela, nunca a página. */
-    #rows{overflow-x:auto}#rows table{min-width:720px}}
+    #rows table{min-width:720px}}
+  /* Quem rola horizontalmente é a TABELA, nunca o painel. Sem largura mínima aqui: antes esta
+     regra só valia abaixo de 760px, e entre 761 e ~1150px a tabela empurrava o <main> (que tem
+     overflow:auto) — o conteúdo ia pra fora da tela sem nada indicar que havia mais à direita.
+     Zoom do Windows a 125% num 1366 cai exatamente nessa faixa. Medido: 207px escondidos a 900px. */
+  #rows{overflow-x:auto}
+  /* E-mail ou palavra longa sem espaço não pode esticar a coluna indefinidamente. */
+  #rows td{overflow-wrap:anywhere}
   textarea.fld{min-height:120px;resize:vertical;line-height:1.6}
   textarea.code{min-height:340px;font-family:ui-monospace,Consolas,monospace;font-size:13px}
   .row{display:flex;gap:12px;flex-wrap:wrap}.row>*{flex:1;min-width:180px}
@@ -93,15 +98,23 @@
 
   /* herói: o número que o painel lidera, os secundários na mesma faixa (economiza uma linha
      inteira de cartões) e a evolução no tempo logo abaixo — tudo num só cartão. */
-  .hero{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px 10px}
-  .hero-top{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:4px}
+  .hero{background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px 16px 10px}
+  /* Três faixas empilhadas em vez de um flex com 5 filhos e margin-left:auto: título+controle,
+     números, gráfico. O flex amontoava em tela média e a ordem de leitura ficava imprevisível. */
+  .hero-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+  .hero-head h3{margin:0;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--teal-700)}
+  .hero-head .seg{margin-left:auto}
+  /* grade regular: as colunas alinham por baixo e não dançam conforme o texto do rótulo */
+  /* max-content, não fr: com fr as quatro colunas esticavam pela largura toda e os números ficavam
+     órfãos, longe uns dos outros. Agrupados à esquerda eles se leem como um conjunto. */
+  .hero-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 18px;align-items:end;margin-bottom:10px}
+  @media(min-width:720px){.hero-stats{grid-template-columns:repeat(4,minmax(0,max-content));
+    gap:12px 44px;justify-content:start}}
   /* figuras proporcionais (sem tabular-nums): em corpo grande, dígitos de largura fixa afrouxam o número */
-  .hero .n{font-size:40px;font-weight:800;color:var(--teal-d);line-height:.95;letter-spacing:-.02em}
+  .hero .n{font-size:38px;font-weight:800;color:var(--teal-d);line-height:.95;letter-spacing:-.02em}
   .hero .l{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--teal-700);font-weight:700;margin-top:3px}
-  .hero .mini{display:flex;gap:22px;flex-wrap:wrap;margin-left:auto;align-items:flex-end}
-  .hero .mini>div{min-width:96px}
-  .hero .mini .mn{font-size:19px;font-weight:800;color:var(--teal-d);line-height:1.1}
-  .hero .mini .ml{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut);font-weight:700;margin-top:1px}
+  .hero .mn{font-size:19px;font-weight:800;color:var(--teal-d);line-height:1.15}
+  .hero .ml{font-size:10.5px;color:var(--mut);font-weight:600;margin-top:2px;line-height:1.35}
   .chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;
         border-radius:999px;padding:2px 9px;background:#eef4f4;color:var(--teal-700)}
   .chip.up{background:#e0f4ea;color:#08774c} .chip.down{background:#fbe6e2;color:#a3301f}
@@ -132,8 +145,12 @@
      Bolha, não estado pintado: lead se concentra em cidade, e pintar o estado faria o Amazonas
      (1,5 mi de km²) gritar mais alto que São Paulo com um décimo dos leads. Raio ∝ √volume,
      porque quem lê compara ÁREA — raio ∝ volume exageraria o maior em quadrado. */
+  /* Container query, não media query: o que decide se mapa e ranking ficam lado a lado é a largura
+     do CARTÃO, não a da tela. Com @media o cartão ficava estreito exatamente quando a grade virava
+     2 colunas (≥1024px) e o mapa desabava pra 121px. Padrão = empilhado, então navegador sem
+     suporte cai no layout legível. */
   .mapwrap{display:grid;grid-template-columns:1fr;gap:12px;align-items:start}
-  @media(min-width:640px){.mapwrap{grid-template-columns:minmax(0,1fr) minmax(150px,190px)}}
+  @container (min-width:430px){.mapwrap{grid-template-columns:minmax(0,1fr) 170px}}
   /* O contorno do Brasil é quase quadrado (1000×1051): sem teto de altura, largura cheia viraria
      800px de mapa e o dashboard dobra de tamanho. aspect-ratio mantém a proporção; o max-height
      entra na frente em tela larga e o SVG se encaixa centralizado. */
@@ -154,8 +171,9 @@
      lado do mapa abria um vão de ~400px DENTRO dele; espaço entre cartões incomoda menos. */
   .panels{display:grid;grid-template-columns:1fr;gap:12px;align-items:start}
   @media(min-width:1024px){.panels{grid-template-columns:1fr 1fr}.span2{grid-column:1/-1}}
+  .pcol{display:flex;flex-direction:column;gap:12px;min-width:0}
   .panel{background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px 15px;
-         display:flex;flex-direction:column}
+         display:flex;flex-direction:column;min-width:0;container-type:inline-size}
   .panel h3{margin:0;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--teal-700);
             display:flex;align-items:center;gap:6px}
   .panel h3 .cnt{margin-left:auto;letter-spacing:0;text-transform:none;font-size:11.5px;color:var(--mut);font-weight:600}
@@ -761,35 +779,39 @@ async function vInbox(){
     // cartões separados numa linha própria — hierarquia igual e uma faixa de altura desperdiçada.
     $('#dash').innerHTML=`
       <div class="hero">
-        <div class="hero-top">
+        <div class="hero-head">
+          <h3>Volume de leads</h3>
+          <div class="seg">${[['dia','Dia'],['semana','Semana'],['mes','Mês']].map(([k,l])=>
+            `<button data-per="${k}" class="${periodo===k?'on':''}">${l}</button>`).join('')}</div>
+        </div>
+        <div class="hero-stats">
           <div><div class="n">${list.length}</div><div class="l">leads no filtro</div></div>
-          <div class="mini">
-            ${mini(delta===null?'<span class="chip">sem base</span>'
-                    :`<span class="chip ${delta>=0?'up':'down'}">${delta>=0?'▲':'▼'} ${delta>=0?'+':''}${delta}%</span>`,
-                   delta===null?'30 dias · sem comparação':`${j30} em 30d · ${j60} nos 30 anteriores`)}
-            ${mini(list.length?Math.round(optin*100/list.length)+'%':'—',`aceitam marketing · ${optin}`)}
-            ${mini(fora.length,fora.length?`sem loja em 150 km · ${porPraca.length} praça(s)`:'sem loja em 150 km')}
-            <div style="min-width:auto"><div class="seg">${
-              [['dia','Dia'],['semana','Semana'],['mes','Mês']].map(([k,l])=>
-                `<button data-per="${k}" class="${periodo===k?'on':''}">${l}</button>`).join('')}</div></div>
-          </div>
+          ${mini(delta===null?'<span class="chip">sem base</span>'
+                  :`<span class="chip ${delta>=0?'up':'down'}">${delta>=0?'▲':'▼'} ${delta>=0?'+':''}${delta}%</span>`,
+                 delta===null?'30 dias · sem comparação':`${j30} em 30 dias<br>contra ${j60} nos 30 anteriores`)}
+          ${mini(list.length?Math.round(optin*100/list.length)+'%':'—',`aceitam marketing<br>${optin} na base de e-mail`)}
+          ${mini(fora.length,fora.length?`sem loja em 150 km<br>${porPraca.length} praça(s) descoberta(s)`:'sem loja em 150 km<br>rede cobre a demanda ✓')}
         </div>
         ${areaChart(serie(list))}
       </div>
       <div class="panels">
         <div class="panel"><h3>Mapa de leads <span class="cnt">${porUf.length} UF(s) · ${cidadesN(list)} cidade(s)</span></h3>
-          <p class="ph">Cada bolha é uma cidade; o tamanho é o volume de leads. Clique numa bolha ou numa barra para filtrar o estado.</p>
+          <p class="ph">Cada bolha é uma cidade; o tamanho é o volume. Clique numa bolha ou numa barra para filtrar o estado.</p>
           <div class="mapwrap">
             <div id="mapa"><p class="mapnote">Carregando mapa…</p></div>
             <div>${bars(porUf,list.length,'if-uf',$('#if-uf').value,'uf')}</div>
           </div></div>
-        <div class="panel"><h3>Unidades que recebem os leads <span class="cnt">${porUnidade.length} unidade(s)</span></h3>
-          <p class="ph">${cobertos} com loja em até 150 km${semUnid?` · ${semUnid} sem localização`:''}. Clique para filtrar.</p>
-          ${bars(porUnidade,list.length,'if-unidade',$('#if-unidade').value)}</div>
-        <div class="panel"><h3>Motivo do contato <span class="cnt">${porAssunto.length} assunto(s)</span></h3>
-          <p class="ph">Assunto escolhido no formulário. Clique para filtrar.</p>
-          ${bars(porAssunto,list.length,'if-assunto',$('#if-assunto').value)}</div>
-        <div class="panel warn"><h3>⚠ Demanda sem loja perto ${fora.length?`<span class="cnt">${fora.length} lead(s)</span>`:''}</h3>
+        <!-- coluna com dois cartões curtos empilhados: juntos alcançam a altura do mapa, em vez de
+             deixar um cartão baixo sozinho ao lado dele e um rombo de 200px embaixo -->
+        <div class="pcol">
+          <div class="panel"><h3>Unidades que recebem os leads <span class="cnt">${porUnidade.length} unidade(s)</span></h3>
+            <p class="ph">${cobertos} com loja em até 150 km${semUnid?` · ${semUnid} sem localização`:''}. Clique para filtrar.</p>
+            ${bars(porUnidade,list.length,'if-unidade',$('#if-unidade').value)}</div>
+          <div class="panel"><h3>Motivo do contato <span class="cnt">${porAssunto.length} assunto(s)</span></h3>
+            <p class="ph">Assunto escolhido no formulário. Clique para filtrar.</p>
+            ${bars(porAssunto,list.length,'if-assunto',$('#if-assunto').value)}</div>
+        </div>
+        <div class="panel warn span2"><h3>⚠ Demanda sem loja perto ${fora.length?`<span class="cnt">${fora.length} lead(s)</span>`:''}</h3>
           <p class="ph">${fora.length
             ? `A mais de 150 km da unidade mais próxima — foram pro localizador, não pra uma loja. É o mapa de expansão.`
             : 'Nenhum lead fora do raio de 150 km. A rede cobre toda a demanda que chegou.'}</p>
