@@ -135,5 +135,13 @@ module.exports = async (req, res) => {
     `\nAceita marketing: ${marketing ? "sim" : "não"}\n\n${mensagem}`
   ).catch((e) => console.error("[contato] notify falhou:", e && e.message));
 
-  return res.status(200).json({ ok: true });
+  // Devolve a rota pra PÁGINA obedecer. Sem isto o contato.html calculava a unidade por conta
+  // própria — ignorando o raio de 150 km e o freio anti-teste — e abria o WhatsApp de outra loja,
+  // divergindo do que o painel e a notificação diziam. Uma decisão, um lugar.
+  return res.status(200).json({
+    ok: true,
+    rota: rota
+      ? { nome: rota.nome, cidade: rota.cidade, estado: rota.estado, waUrl: rota.waUrl, motivo: rotaMotivo }
+      : null,
+  });
 };
