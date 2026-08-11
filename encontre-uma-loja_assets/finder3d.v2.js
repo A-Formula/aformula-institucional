@@ -226,6 +226,17 @@
             var f = map.getFilter(l.id);
             map.setFilter(l.id, f ? ["all", f, ["within", BR_POLY]] : ["within", BR_POLY]);
           } catch (_) {}
+          /* rótulo em português: o positron cai em `name_en` no fallback, e era por isso que
+             o país aparecia como "Brazil" no meio do mapa. As tiles têm `name:pt` ("Brasil"),
+             só não era a primeira escolha. Cidade brasileira já vinha certa por não ter
+             name_en — o país tinha. Mantém o ramo de escrita não-latina intacto. */
+          try {
+            map.setLayoutProperty(l.id, "text-field", [
+              "case", ["has", "name:nonlatin"],
+              ["concat", ["get", "name:latin"], "\n", ["get", "name:nonlatin"]],
+              ["coalesce", ["get", "name:pt"], ["get", "name"], ["get", "name:latin"], ["get", "name_en"]]
+            ]);
+          } catch (_) {}
         });
       })
       .catch(function () { /* sem máscara o mapa ainda funciona: degrada, não quebra */ });
@@ -242,7 +253,32 @@
     var flutua = c.clientWidth > 760; // desktop = painel e trilho sobrepõem o mapa
     var v = Math.min(80, Math.round(c.clientHeight * 0.08));
     var h = Math.min(60, Math.round(c.clientWidth * 0.05));
-    return { top: v, bottom: flutua ? Math.min(180, Math.round(c.clientHeight * 0.2)) : v, left: h, right: h };
+    var pad = { top: v, bottom: flutua ? Math.min(180, Math.round(c.clientHeight * 0.2)) : v, left: h, right: h };
+    if (!flutua) return pad; // mobile empilha: nada sobrepõe, nada a reservar
+    /* ⚠️ Conhecido e DELIBERADO: o trilho de unidades mede 256px e o 20% reserva 172, então a
+       ponta do Rio Grande do Sul fica ~60px atrás dos cards (medido em 1440; é assim desde
+       antes de 11/08, não é regressão). Reservar a altura real do trilho foi testado e
+       rejeitado: derruba o país de 546px pra 419px de largura (-23%) mesmo cedendo o topo
+       ocioso. Esconder a ponta do Chuí custa menos que encolher o país inteiro. */
+    /* 🔴 Reservar à ESQUERDA o que o painel REALMENTE ocupa, medido no DOM — não um palpite.
+       O `min(60px, 5%)` era chute: o .mapx__panel tem 400px e sua borda direita fica a 443px
+       do mapa, então em 1440 o Acre e Cruzeiro do Sul ficavam ATRÁS do painel (em 1920 o país
+       escapava por poucos px — o defeito só aparecia na janela menor). Medir em vez de fixar
+       também sobrevive a mudança de CSS no painel.
+       ⚠️ Só a esquerda. Eu também tentei reservar a altura real do trilho (256px em vez dos
+       172px que o 20% dá) e foi um erro medido: a ponta sul JÁ estava livre dele (555 contra
+       604 em 1440), e a reserva extra derrubou o zoom de 3,41 pra 2,85 — o país encolheu 1,5×
+       pra resolver um problema que não existia. O 20% da altura fica como está. */
+    var box = c.getBoundingClientRect();
+    var painel = document.querySelector(".mapx__panel");
+    if (painel) {
+      var p = painel.getBoundingClientRect();
+      if (p.width) pad.left = Math.max(pad.left, Math.round(p.right - box.left) + 16);
+    }
+    /* teto de 45%: padding que engole o contêiner faz o cameraForBounds devolver zoom
+       absurdo (ou NaN) e o mapa volta pro globo. */
+    pad.left = Math.min(pad.left, Math.round(c.clientWidth * 0.45));
+    return pad;
   }
   /* Câmera do país NESTE contêiner. Substitui o BRASIL_ZOOM fixo, que era largo demais em
      desktop: 3,55 abria de lon -128 a +20,5 — Cuba e Bahamas no quadro, o Brasil em ~20% da
@@ -270,6 +306,31 @@
   /* o pulso dos pins repinta o mapa continuamente e pode segurar o evento "load" —
      fallback garante o voo de abertura mesmo assim */
   setTimeout(intro, 3000);
+
+  /* Redimensionar / girar o aparelho: a câmera do país e o piso de zoom saem do contêiner,
+     e antes disto eram calculados uma única vez no load. Medido em 11/08: girando de
+     390x844 pra paisagem o zoom ficava em 2,535 quando o contêiner pedia 2,986 — o país
+     continuava inteiro no quadro, mas frouxo, e o piso seguia preso ao valor do retrato.
+     ⚠️ Só re-enquadra quem AINDA está na vista de país: se a pessoa deu zoom numa unidade,
+     mexer na câmera seria arrancá-la de onde ela está — nesse caso corrige só o piso, e
+     apenas pra baixo, pra ninguém ficar travado acima do que o novo contêiner precisa. */
+  var reajuste;
+  function aoRedimensionar() {
+    if (!introDone) return;
+    clearTimeout(reajuste);
+    reajuste = setTimeout(function () {
+      var cam = camBrasil();
+      if (!isFinite(cam.zoom)) return;
+      if (map.getZoom() <= map.getMinZoom() + 0.35) {
+        map.jumpTo({ center: cam.center, zoom: cam.zoom });
+        map.setMinZoom(cam.zoom - 0.05);
+      } else {
+        map.setMinZoom(Math.min(map.getMinZoom(), cam.zoom - 0.05));
+      }
+    }, 220); // debounce: arrastar a borda da janela dispara resize a cada frame
+  }
+  window.addEventListener("resize", aoRedimensionar);
+  window.addEventListener("orientationchange", aoRedimensionar);
 
   /* ---------- pins (WebGL circle layers — projetam perfeito no globo e no 3D) ---------- */
   var styleReady = false, pinsReady = false;
