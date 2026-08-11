@@ -168,82 +168,67 @@
         });
       }
     } catch (_) {}
-    /* máscara de oceano nos flancos — mata a costa da África no quadro.
-       O BRASIL_BOUNDS é quase quadrado (aspect 1.004), então em tela horizontal o fitBounds
-       é limitado pela ALTURA e sobra longitude: 16,7° de cada lado em 16:9, 30° em 21:9.
-       A África começa a 14,5° da borda leste do bounds — logo invade a partir de 16:9.
-       Alargar o bounds piora; maxBounds não ajuda (limita arrasto, não o enquadramento); e
-       dar zoom até a largura mandar cortaria 56% da altura do país. Resta pintar a sobra.
-       Leste = a própria borda do bounds (-32,0): cobre a África inteira e ainda deixa
-       Fernando de Noronha (-32,4) no mapa — -33 apagaria a ilha.
-       Oeste = -85, NÃO a borda do bounds: a costa noroeste do Peru vai até -81,3, fora do
-       bounds, e mascarar em -75,5 pintaria terra peruana de água. Assim os vizinhos ficam
-       todos visíveis e só somem Galápagos e mar aberto. */
-    try {
-      var MASK_LAT = [-60, 85];
-      var MASK_LON = [-85, BRASIL_BOUNDS[1][0]];
-      /* Teto norte: em contêiner ALTO (mobile) a sobra é de latitude, não de longitude, e
-         entravam Cuba, Jamaica e Rep. Dominicana (lat 18-23) — no desktop largo era Bahamas
-         e Barbados. 13 fica 0,5° acima da costa da Colômbia, então Caracas (10,5), Bogotá,
-         Trinidad e Panamá continuam no mapa. Ao sul não há teto: Argentina e Chile são
-         vizinhos legítimos e o quadro do país já os inclui. */
-      var TETO_NORTE = 13;
-      var retangulo = function (lonA, lonB, latA, latB) {
-        /* vértices a cada 5°: fill de vão largo com 4 cantos deforma na projeção globo */
-        var r = [], s = 5, x, y;
-        for (x = lonA; x < lonB; x += s) r.push([x, latA]);
-        for (y = latA; y < latB; y += s) r.push([lonB, y]);
-        for (x = lonB; x > lonA; x -= s) r.push([x, latB]);
-        for (y = latB; y > latA; y -= s) r.push([lonA, y]);
-        r.push([lonA, latA]);
-        return r;
-      };
-      map.addSource("af-fora-do-quadro", {
-        type: "geojson",
-        data: {
-          type: "Feature", properties: {},
-          geometry: {
-            type: "MultiPolygon",
-            coordinates: [
-              [retangulo(MASK_LON[1], 60, MASK_LAT[0], MASK_LAT[1])],   // leste: África
-              [retangulo(-180, MASK_LON[0], MASK_LAT[0], MASK_LAT[1])], // oeste: Pacífico e Galápagos
-              [retangulo(MASK_LON[0], MASK_LON[1], TETO_NORTE, MASK_LAT[1])] // norte: Caribe
-            ]
-          }
-        }
-      });
-      /* entra aqui, antes dos pins (adicionados no load das lojas), pra cobrir os rótulos
-         de país da África sem nunca passar por cima das unidades */
-      map.addLayer({
-        id: "af-mascara-oceano", type: "fill", source: "af-fora-do-quadro",
-        /* opacidade 0.999 de propósito: fill 100% opaco vai pra passada "opaque" e os
-           rótulos (passada translucent, sem depth test) atravessam por cima — os nomes dos
-           países africanos ficavam visíveis sobre a máscara. Abaixo de 1 o fill entra na
-           mesma passada dos símbolos, onde a ordem do estilo é respeitada. */
-        paint: { "fill-color": "#a7dade", "fill-opacity": 0.999 }
-      });
-      /* ...e os RÓTULOS ainda passavam por cima da máscara: o MapLibre desenha símbolo sem
-         depth test, então "Nigeria", "Gabon" e "Gulf of Guinea" apareciam flutuando na água
-         mesmo com a África coberta. Filtrar por `within` na janela é o que de fato resolve.
-         Só nas layers de PONTO (país/estado/cidade/aeroporto/nome de água): as de linha
-         (rodovia, curso de água) cruzam a borda da janela e `within` as apagaria inteiras. */
-      var JANELA_BR = {
-        type: "Polygon",
-        coordinates: [[
-          [MASK_LON[0], MASK_LAT[0]], [MASK_LON[1], MASK_LAT[0]],
-          [MASK_LON[1], TETO_NORTE], [MASK_LON[0], TETO_NORTE],
-          [MASK_LON[0], MASK_LAT[0]]
-        ]]
-      };
-      map.getStyle().layers.forEach(function (l) {
-        if (l.type !== "symbol") return;
-        if (!/^(label_|water_name|airport)/.test(l.id)) return;
-        try {
-          var f = map.getFilter(l.id);
-          map.setFilter(l.id, f ? ["all", f, ["within", JANELA_BR]] : ["within", JANELA_BR]);
-        } catch (_) {}
-      });
-    } catch (_) {}
+    /* SÓ O BRASIL no mapa: tudo que não é território nacional vira água.
+       Pedido do operador em 11/08. A máscara retangular anterior (flancos + teto norte)
+       resolvia a África no quadro, mas deixava Peru, Bolívia, Colômbia e Argentina
+       desenhados; aqui o recorte é a própria fronteira.
+       Por que fronteira de verdade e não retângulo mais fechado: o BRASIL_BOUNDS é quase
+       quadrado (aspect 1,004) e a tela não é, então sempre sobra longitude — 16,7° de cada
+       lado em 16:9, 30° em 21:9. Fechar o zoom até a largura mandar cortaria 56% da altura
+       do país, e maxBounds limita arrasto, não enquadramento. Recortar no polígono é a única
+       saída que não corta o Brasil nem deixa vizinho aparecendo.
+       Malha oficial do IBGE (v3/malhas/paises/BR), arredondada a 4 decimais (~11 m):
+       21 polígonos, ~3.400 vértices, 64 KB — inclui Fernando de Noronha (-32,41) e as
+       ilhas oceânicas, que um retângulo em -32,0 apagaria. */
+    fetch("encontre-uma-loja_assets/brasil-fronteira.geojson")
+      .then(function (r) { return r.json(); })
+      .then(function (br) {
+        if (!br || !br.coordinates || !br.coordinates.length) return;
+        /* Inverso do país: um anel do mundo com cada polígono do Brasil como BURACO.
+           Vértices a cada 5° no anel externo — 4 cantos deformam na projeção globo.
+           Só o anel externo de cada polígono (ring[0]) entra como buraco: lagoa interna
+           do IBGE continua água de verdade, que é o que ela é. */
+        var mundo = [], s = 5, x, y;
+        for (x = -180; x < 180; x += s) mundo.push([x, -85]);
+        for (y = -85; y < 85; y += s) mundo.push([180, y]);
+        for (x = 180; x > -180; x -= s) mundo.push([x, 85]);
+        for (y = 85; y > -85; y -= s) mundo.push([-180, y]);
+        mundo.push([-180, -85]);
+        var recorte = [mundo];
+        br.coordinates.forEach(function (poly) { recorte.push(poly[0]); });
+
+        map.addSource("af-fora-do-brasil", {
+          type: "geojson",
+          data: { type: "Feature", properties: {}, geometry: { type: "Polygon", coordinates: recorte } }
+        });
+        /* ⚠️ beforeId obrigatório: este bloco é assíncrono (fetch) e pode chegar DEPOIS do
+           load das lojas — sem ele a máscara entra no topo e cobre as unidades. */
+        var antes = map.getLayer("af-pin-halo") ? "af-pin-halo" : undefined;
+        map.addLayer({
+          id: "af-mascara-oceano", type: "fill", source: "af-fora-do-brasil",
+          /* opacidade 0.999 de propósito: fill 100% opaco vai pra passada "opaque" e os
+             rótulos (passada translucent, sem depth test) atravessam por cima — os nomes
+             dos países ficavam visíveis sobre a máscara. Abaixo de 1 o fill entra na mesma
+             passada dos símbolos, onde a ordem do estilo é respeitada. */
+          paint: { "fill-color": "#a7dade", "fill-opacity": 0.999 }
+        }, antes);
+        /* ...e os RÓTULOS ainda passam por cima: símbolo é desenhado sem depth test, então
+           "Peru", "Lima" e "Bolivia" flutuavam na água mesmo com o país coberto. `within`
+           na fronteira é o que de fato resolve — e agora o critério é "está no Brasil",
+           não "está na janela". Só nas layers de PONTO (país/estado/cidade/aeroporto/nome
+           de água): as de linha (rodovia, curso de água) cruzam a fronteira e `within` as
+           apagaria inteiras. */
+        var BR_POLY = { type: "MultiPolygon", coordinates: br.coordinates };
+        map.getStyle().layers.forEach(function (l) {
+          if (l.type !== "symbol") return;
+          if (!/^(label_|water_name|airport)/.test(l.id)) return;
+          try {
+            var f = map.getFilter(l.id);
+            map.setFilter(l.id, f ? ["all", f, ["within", BR_POLY]] : ["within", BR_POLY]);
+          } catch (_) {}
+        });
+      })
+      .catch(function () { /* sem máscara o mapa ainda funciona: degrada, não quebra */ });
   });
 
   /* voo de abertura: aproximação DENTRO do Brasil (não parte mais do globo do mundo).
