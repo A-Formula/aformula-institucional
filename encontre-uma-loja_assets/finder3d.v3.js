@@ -209,8 +209,16 @@
           /* opacidade 0.999 de propósito: fill 100% opaco vai pra passada "opaque" e os
              rótulos (passada translucent, sem depth test) atravessam por cima — os nomes
              dos países ficavam visíveis sobre a máscara. Abaixo de 1 o fill entra na mesma
-             passada dos símbolos, onde a ordem do estilo é respeitada. */
-          paint: { "fill-color": "#a7dade", "fill-opacity": 0.999 }
+             passada dos símbolos, onde a ordem do estilo é respeitada.
+             Gate por zoom (decisão do operador em 11/08): "só o Brasil" é sobre a vista de
+             PAÍS. Em Foz do Iguaçu no z11 a máscara pintava Paraguai e Argentina de água e a
+             cidade terminava no talho da fronteira — no zoom de rua o vizinho real informa
+             mais do que atrapalha. Some entre z6 e z7,5, que é acima de qualquer
+             enquadramento de país (o mais fechado medido foi 4,34 em 3440x1440). */
+          paint: {
+            "fill-color": "#a7dade",
+            "fill-opacity": ["interpolate", ["linear"], ["zoom"], 6, 0.999, 7.5, 0]
+          }
         }, antes);
         /* ...e os RÓTULOS ainda passam por cima: símbolo é desenhado sem depth test, então
            "Peru", "Lima" e "Bolivia" flutuavam na água mesmo com o país coberto. `within`
@@ -219,13 +227,11 @@
            de água): as de linha (rodovia, curso de água) cruzam a fronteira e `within` as
            apagaria inteiras. */
         var BR_POLY = { type: "MultiPolygon", coordinates: br.coordinates };
+        var filtrosOriginais = {};
         map.getStyle().layers.forEach(function (l) {
           if (l.type !== "symbol") return;
           if (!/^(label_|water_name|airport)/.test(l.id)) return;
-          try {
-            var f = map.getFilter(l.id);
-            map.setFilter(l.id, f ? ["all", f, ["within", BR_POLY]] : ["within", BR_POLY]);
-          } catch (_) {}
+          try { filtrosOriginais[l.id] = map.getFilter(l.id) || null; } catch (_) { return; }
           /* rótulo em português: o positron cai em `name_en` no fallback, e era por isso que
              o país aparecia como "Brazil" no meio do mapa. As tiles têm `name:pt` ("Brasil"),
              só não era a primeira escolha. Cidade brasileira já vinha certa por não ter
@@ -238,6 +244,25 @@
             ]);
           } catch (_) {}
         });
+        /* Recorte dos rótulos, casado com o gate da máscara acima. `filter` NÃO aceita
+           expressão de zoom no MapLibre, então o liga/desliga vem de um handler no limiar —
+           não de uma interpolação. Ganho de desempenho junto: acima do limiar o `within` de
+           ~3.400 vértices deixa de ser avaliado por símbolo, e é justamente no zoom de rua
+           que há mais rótulo na tela. */
+        var LIMIAR_RECORTE = 7.2; // meio da faixa 6→7,5 em que a máscara desaparece
+        var recorteLigado = null;
+        function recortarRotulos(ligar) {
+          if (ligar === recorteLigado) return; // só mexe na virada, não a cada frame de zoom
+          recorteLigado = ligar;
+          Object.keys(filtrosOriginais).forEach(function (id) {
+            var f = filtrosOriginais[id];
+            try {
+              map.setFilter(id, ligar ? (f ? ["all", f, ["within", BR_POLY]] : ["within", BR_POLY]) : f);
+            } catch (_) {}
+          });
+        }
+        recortarRotulos(map.getZoom() < LIMIAR_RECORTE);
+        map.on("zoom", function () { recortarRotulos(map.getZoom() < LIMIAR_RECORTE); });
       })
       .catch(function () { /* sem máscara o mapa ainda funciona: degrada, não quebra */ });
   });
@@ -351,7 +376,20 @@
     map.addSource("af-stores", { type: "geojson", data: pinGeojson(STORES) });
     map.addLayer({
       id: "af-pin-halo", source: "af-stores", type: "circle",
-      paint: { "circle-radius": 8, "circle-color": "#008896", "circle-opacity": 0.35, "circle-pitch-alignment": "map" }
+      paint: {
+        "circle-radius": 8, "circle-color": "#008896", "circle-opacity": 0.35, "circle-pitch-alignment": "map",
+        /* Transição 0 porque quem interpola é o pulso, que já calcula o valor do quadro —
+           os 300ms padrão só empilhariam uma segunda interpolação sobre a primeira.
+           ⚠️ NÃO resolve a repintura contínua, e isto está medido (11/08): com transição 0
+           registrada e confirmada por getPaintProperty, os renders seguiram em ~130/s e
+           style.hasTransitions() seguiu true. A prova por eliminação foi outra — neutralizar
+           as CHAMADAS do pulso derruba de 144/s pra 0/s. Ou seja: mapa com animação repinta
+           na taxa do monitor, ponto. É custo de animação, não defeito. O que dá pra cortar
+           é QUANDO ela roda (fora da viewport, reduced-motion) e quantas escritas por
+           segundo ela faz — ver o pulso adiante. */
+        "circle-radius-transition": { duration: 0, delay: 0 },
+        "circle-opacity-transition": { duration: 0, delay: 0 }
+      }
     });
     map.addLayer({
       id: "af-pin-dot", source: "af-stores", type: "circle",
@@ -383,20 +421,54 @@
       map.on("mouseenter", layer, function () { map.getCanvas().style.cursor = "pointer"; });
       map.on("mouseleave", layer, function () { map.getCanvas().style.cursor = ""; });
     });
-    requestAnimationFrame(pulse);
+    iniciarPulso();
   }
 
-  /* pulso contínuo do halo — a "respiração" do mapa */
-  function pulse(now) {
-    if (pinsReady) {
-      var t = (now % 2400) / 2400;
+  /* Pulso do halo — a "respiração" do mapa.
+     Medido em 11/08: o rAF cru escrevia 2 paint properties por quadro, ~288 escritas/s a
+     144Hz, e o mapa repintava a 131–144/s **parado**. Três freios, nenhum muda o visual:
+     - teto de ~30fps: o ciclo é de 2,4s, 30 quadros descrevem a respiração igual. Corta as
+       escritas de ~288/s pra ~60/s. ⚠️ Isto reduz o trabalho de JS, NÃO a taxa de repintura:
+       enquanto a animação existe o MapLibre repinta na taxa do monitor (medido, ver a nota
+       da transição no af-pin-halo). Quem quiser o repaint em zero tem que parar a animação.
+     - fora da viewport não anima, via IntersectionObserver. Vale no celular, onde a página é
+       longa; em desktop 1440x860 o mapa tem 860px numa página de 1254px e nunca sai do
+       viewport — testei e o IO diz "visível" com razão, o cenário é que não existe ali.
+     - prefers-reduced-motion: halo estático, sem laço nenhum.
+     Aba em background já é coberta pelo próprio rAF, que não dispara ali. */
+  var pulsoAtivo = false, pulsoNaTela = true, ultimoPulso = 0, semAnimacao = false;
+  try { semAnimacao = window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (_) {}
+
+  function iniciarPulso() {
+    if (semAnimacao) { // respeita quem pediu menos movimento: halo parado, no meio do ciclo
       try {
-        map.setPaintProperty("af-pin-halo", "circle-radius", 7 + t * 20);
-        map.setPaintProperty("af-pin-halo", "circle-opacity", 0.5 * (1 - t));
+        map.setPaintProperty("af-pin-halo", "circle-radius", 12);
+        map.setPaintProperty("af-pin-halo", "circle-opacity", 0.28);
       } catch (_) {}
+      return;
     }
+    if (pulsoAtivo) return;
+    pulsoAtivo = true;
     requestAnimationFrame(pulse);
   }
+  function pulse(now) {
+    if (!pulsoAtivo) return;              // parou: não reagenda, o laço morre
+    requestAnimationFrame(pulse);
+    if (!pinsReady || !pulsoNaTela) return;
+    if (now - ultimoPulso < 33) return;   // ~30fps
+    ultimoPulso = now;
+    var t = (now % 2400) / 2400;
+    try {
+      map.setPaintProperty("af-pin-halo", "circle-radius", 7 + t * 20);
+      map.setPaintProperty("af-pin-halo", "circle-opacity", 0.5 * (1 - t));
+    } catch (_) {}
+  }
+  try {
+    new IntersectionObserver(function (entradas) {
+      pulsoNaTela = entradas.some(function (e) { return e.isIntersecting; });
+      if (pulsoNaTela) { if (pinsReady) iniciarPulso(); } else { pulsoAtivo = false; }
+    }, { threshold: 0 }).observe(map.getContainer());
+  } catch (_) { /* sem IO o pulso segue como antes: degrada, não quebra */ }
 
   function paintActive() {
     if (!pinsReady) return;
