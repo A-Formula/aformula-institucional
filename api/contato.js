@@ -46,6 +46,7 @@ module.exports = async (req, res) => {
       nome, telefone: telefone || null, email, assunto, mensagem, cep, marketing,
       // localização do lead (cepUf é offline, então vem sempre) + unidade que atende
       cepUf: analise.cepUf, cepCidade: analise.cepCidade,
+      cepLat: analise.cepLat, cepLng: analise.cepLng,
       unidade: analise.unidade, unidadeSlug: analise.unidadeSlug,
       unidadeCidade: analise.unidadeCidade, unidadeUf: analise.unidadeUf,
       distanciaKm: analise.distanciaKm, foraDeRaio: analise.foraDeRaio,

@@ -121,9 +121,39 @@
   .spark .hit>span.on{background:rgba(0,136,150,.07)}
   .axis{display:flex;justify-content:space-between;font-size:10.5px;color:var(--mut);
         font-variant-numeric:tabular-nums;margin-top:4px}
+  /* dia / semana / mês — um segmented control discreto, no canto do cartão */
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fbfdfd}
+  .seg button{background:none;border:none;padding:4px 11px;font-size:11.5px;font-weight:700;color:var(--mut)}
+  .seg button+button{border-left:1px solid var(--line)}
+  .seg button:hover{color:var(--teal-700);background:#f2f7f7}
+  .seg button.on{background:var(--teal);color:#fff}
 
-  .panels{display:grid;grid-template-columns:1fr;gap:12px}
-  @media(min-width:1024px){.panels{grid-template-columns:1fr 1fr}}
+  /* ---- mapa de bolhas (proporcional ao volume) ----
+     Bolha, não estado pintado: lead se concentra em cidade, e pintar o estado faria o Amazonas
+     (1,5 mi de km²) gritar mais alto que São Paulo com um décimo dos leads. Raio ∝ √volume,
+     porque quem lê compara ÁREA — raio ∝ volume exageraria o maior em quadrado. */
+  .mapwrap{display:grid;grid-template-columns:1fr;gap:12px;align-items:start}
+  @media(min-width:640px){.mapwrap{grid-template-columns:minmax(0,1fr) minmax(150px,190px)}}
+  /* O contorno do Brasil é quase quadrado (1000×1051): sem teto de altura, largura cheia viraria
+     800px de mapa e o dashboard dobra de tamanho. aspect-ratio mantém a proporção; o max-height
+     entra na frente em tela larga e o SVG se encaixa centralizado. */
+  .map{position:relative;background:#f7fafa;border:1px solid var(--line);border-radius:10px;overflow:hidden;
+       aspect-ratio:1000/1051;max-height:330px;margin:0 auto;width:100%}
+  .map svg{display:block;width:100%;height:100%}
+  .map .uf{fill:#e7edee;stroke:#fff;stroke-width:1.1;vector-effect:non-scaling-stroke}
+  .map .uf.hot{fill:#dde7e8}
+  .bub{fill:var(--teal);fill-opacity:.42;stroke:#fff;stroke-width:2;vector-effect:non-scaling-stroke;cursor:pointer}
+  .bub:hover,.bub.on{fill-opacity:.72}
+  .bub.on{stroke:var(--teal-d)}
+  .maplegend{display:flex;align-items:flex-end;gap:14px;font-size:11px;color:var(--mut);margin-top:8px;padding-left:2px}
+  .maplegend .sw{display:flex;align-items:center;gap:5px}
+  .maplegend i{display:block;border-radius:50%;background:var(--teal);opacity:.42;border:1.5px solid #fff}
+  .mapnote{font-size:11px;color:var(--mut);margin:8px 0 0;line-height:1.4}
+
+  /* align-items:start — cada cartão tem a altura do seu conteúdo. Esticando, o cartão baixo ao
+     lado do mapa abria um vão de ~400px DENTRO dele; espaço entre cartões incomoda menos. */
+  .panels{display:grid;grid-template-columns:1fr;gap:12px;align-items:start}
+  @media(min-width:1024px){.panels{grid-template-columns:1fr 1fr}.span2{grid-column:1/-1}}
   .panel{background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px 15px;
          display:flex;flex-direction:column}
   .panel h3{margin:0;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--teal-700);
@@ -134,7 +164,7 @@
   .panel.warn h3{color:#8a5a00}
   /* "ver todas" empurrado pro rodapé do cartão: com 2 painéis lado a lado de alturas diferentes,
      o botão de um não pode flutuar no meio do vão do outro. */
-  .more{margin-top:auto;padding-top:9px;background:none;border:none;align-self:flex-start;
+  .more{padding-top:9px;background:none;border:none;align-self:flex-start;
         font-size:11.5px;font-weight:700;color:var(--teal);padding-left:6px}
   .more:hover{text-decoration:underline}
 
@@ -290,9 +320,10 @@ async function geocodeCep(cep){
 // Mesmo contrato do analisarCep() do servidor: a unidade mais próxima vem SEMPRE, com o flag
 // foraDeRaio. Pro mapa de leads, demanda longe de qualquer loja é o dado mais valioso que existe.
 async function analisarCep(cep){
-  const out={cepUf:ufDoCep(cep),cepCidade:null,unidade:null,unidadeSlug:null,unidadeCidade:null,unidadeUf:null,distanciaKm:null,foraDeRaio:null};
+  const out={cepUf:ufDoCep(cep),cepCidade:null,cepLat:null,cepLng:null,unidade:null,unidadeSlug:null,unidadeCidade:null,unidadeUf:null,distanciaKm:null,foraDeRaio:null};
   const loc=await geocodeCep(cep); if(!loc) return out;
   out.cepCidade=loc.cidade||null; out.cepUf=out.cepUf||loc.uf||null;
+  out.cepLat=loc.lat; out.cepLng=loc.lng;   // coordenada p/ o mapa de bolhas
   const lojas=await getLojas(); if(!lojas.length) return out;
   let melhor=null;
   for(const s of lojas){ const d=haversine(loc.lat,loc.lng,s.lat,s.lng); if(!melhor||d<melhor.d) melhor={s,d}; }
@@ -458,9 +489,10 @@ const ufDe = m => m.cepUf || ufDoCep(m.cep) || null;
 // '' (não 'sem localização') quando o CEP não diz nada: quem chama omite a linha em vez de
 // escrever uma ausência. Lead antigo sem CEP é normal — o formulário só passou a exigir em 05/08.
 const pracaDe = m => (m.cepCidade ? m.cepCidade+(ufDe(m)?'/'+ufDe(m):'') : (ufDe(m)?'CEP '+String(m.cep||'').slice(0,5)+'… ('+ufDe(m)+')' : ''));
-// Legado: gravado antes de 11/08/2026, quando o contato passou a guardar a unidade. `geoAt` marca
-// que o backfill já tentou — sem isso, CEP que falha no geocode reapareceria como pendente pra sempre.
-const pendenteGeo = m => m.unidade===undefined && !m.geoAt && digits(m.cep).length===8;
+// Legado: gravado antes de 11/08/2026, quando o contato passou a guardar unidade e coordenada.
+// O teste é `cepLat===undefined` (campo AUSENTE), não falsy: geocode que falha grava null, e null
+// significa "já tentamos, não deu" — retestar pra sempre seria loop. `geoAt` marca a tentativa.
+const pendenteGeo = m => m.cepLat===undefined && !m.geoAt && digits(m.cep).length===8;
 
 async function vInbox(){
   const v=$('#view');
@@ -565,20 +597,109 @@ async function vInbox(){
           : '');
   }
 
-  /* Evolução no tempo — a forma que faltava. 12 semanas, uma série só (logo, sem legenda):
+  /* ---------- MAPA DE BOLHAS ----------
+     Geometria em asset versionado e cacheado por 1 ano (admin_assets/ pega o header immutable);
+     carregada uma vez, sob demanda. Falha de rede → o painel segue sem mapa, nunca quebra. */
+  let _geoUF=null, _geoErr=false;
+  async function getGeoUF(){
+    if(_geoUF||_geoErr) return _geoUF;
+    try{ const r=await fetch('/admin_assets/uf-brasil.v1.json'); _geoUF=await r.json(); }
+    catch(_){ _geoErr=true; }
+    return _geoUF;
+  }
+  // Mesma projeção do gerador (Mercator) — se divergir, as bolhas caem fora do desenho.
+  const mercY = lat => Math.log(Math.tan(Math.PI/4+(lat*Math.PI/180)/2))*180/Math.PI;
+  // Limites vindos do próprio IBGE na geração; fixos porque o viewBox foi calculado com eles.
+  const BB={minX:-73.9906,maxX:-28.8477,minY:mercY(-33.7511),maxY:mercY(5.2718)};
+
+  function agruparPorCidade(list){
+    const m=new Map();
+    list.forEach(x=>{
+      if(typeof x.cepLat!=='number'||typeof x.cepLng!=='number') return;
+      const k=(x.cepCidade||'—')+'|'+(ufDe(x)||'');
+      const g=m.get(k)||{cidade:x.cepCidade||'—',uf:ufDe(x)||'',n:0,lat:0,lng:0};
+      g.n++; g.lat+=x.cepLat; g.lng+=x.cepLng; m.set(k,g);
+    });
+    // posição = média dos leads da cidade (não centroide do município): cai onde eles realmente estão
+    return [...m.values()].map(g=>({...g,lat:g.lat/g.n,lng:g.lng/g.n})).sort((a,b)=>b.n-a.n);
+  }
+
+  async function renderMapa(list, ufAtivo){
+    const alvo=$('#mapa'); if(!alvo) return;
+    const geo=await getGeoUF();
+    if(!geo){ alvo.innerHTML='<p class="mapnote">Não foi possível carregar o mapa. O ranking ao lado tem os mesmos números.</p>'; return; }
+    const {w:W,h:H}=geo;
+    const sx=lon=>((lon-BB.minX)/(BB.maxX-BB.minX))*W;
+    const sy=lat=>((BB.maxY-mercY(lat))/(BB.maxY-BB.minY))*H;
+    const cidades=agruparPorCidade(list);
+    const semCoord=list.length-cidades.reduce((s,c)=>s+c.n,0);
+    const max=Math.max(...cidades.map(c=>c.n),1);
+    const R_MAX=W*0.055, R_MIN=W*0.009;
+    const raio=n=>R_MIN+(R_MAX-R_MIN)*Math.sqrt(n/max);   // área ∝ volume
+    const comLeads=new Set(cidades.map(c=>c.uf));
+    // maiores desenhados primeiro: bolha pequena dentro de bolha grande continua clicável
+    const bolhas=[...cidades].sort((a,b)=>b.n-a.n).map(c=>
+      `<circle class="bub${ufAtivo&&ufAtivo===c.uf?' on':''}" cx="${sx(c.lng).toFixed(1)}" cy="${sy(c.lat).toFixed(1)}"
+        r="${raio(c.n).toFixed(1)}" data-uf="${esc(c.uf)}" tabindex="0" role="button"
+        data-tip="<b>${esc(c.cidade)}${c.uf?'/'+esc(c.uf):''}</b><br>${c.n} lead(s)<br><span class='k'>clique para filtrar ${esc(c.uf||'')}</span>"></circle>`).join('');
+    // A legenda é medida em PIXEL da tela, não em % do seu contêiner: `raio` está em unidades do
+    // viewBox (1000), então precisa da escala real do SVG renderizado — senão os círculos saem
+    // como pontinhos que não correspondem a bolha nenhuma.
+    const legN=[...new Set([1,Math.max(2,Math.round(max/4)),max])].filter(n=>n<=max).slice(-3);
+    // .map tem width:100% e max-height:330px com aspect-ratio, então a largura efetiva é a menor
+    // entre a coluna e 330·W/H. Calculado ANTES de inserir — depois seria uma segunda medição.
+    const escala=Math.min(alvo.clientWidth||330, 330*W/H)/W;
+    alvo.innerHTML=`
+      <div class="map"><svg viewBox="0 0 ${W} ${H}" role="img"
+        aria-label="Mapa do Brasil com ${cidades.length} cidade(s) marcada(s) por volume de leads">
+        <g>${Object.entries(geo.uf).map(([uf,d])=>
+          `<path class="uf${comLeads.has(uf)?' hot':''}" d="${d}"></path>`).join('')}</g>
+        <g>${bolhas}</g>
+      </svg></div>
+      <div class="maplegend">
+        ${legN.map(n=>{const d=Math.max(5,raio(n)*2*escala);
+          return `<span class="sw"><i style="width:${d.toFixed(1)}px;height:${d.toFixed(1)}px"></i>${n}</span>`;}).join('')}
+        <span style="margin-left:auto">tamanho = nº de leads</span>
+      </div>
+      ${semCoord?`<p class="mapnote">${semCoord} lead(s) fora do mapa por não ter coordenada do CEP${
+        all.filter(pendenteGeo).length?' — o botão acima resolve isso.':'.'}</p>`:''}`;
+    wireTips(alvo);
+    alvo.querySelectorAll('.bub').forEach(b=>{
+      const acionar=()=>{ const s=$('#if-uf'); s.value = s.value===b.dataset.uf ? '' : b.dataset.uf; apply(); };
+      b.addEventListener('click',acionar);
+      b.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); acionar(); } });
+    });
+  }
+
+  /* Evolução no tempo — a forma que faltava. Uma série só (logo, sem legenda):
      área em lavagem de 10%, linha de 2px, ponto na ponta, linha de base em hairline. Os valores
      não ficam presos ao tooltip: o pico é rotulado direto e a tabela abaixo tem tudo. */
-  function serieSemanal(list){
-    const DIA=864e5, SEMANAS=12;
-    const seg=d=>{const x=new Date(d);x.setHours(0,0,0,0);x.setDate(x.getDate()-((x.getDay()+6)%7));return x;};
-    const base=seg(new Date());
-    const buckets=[];
-    for(let i=SEMANAS-1;i>=0;i--) buckets.push({ini:new Date(base.getTime()-i*7*DIA),n:0});
+  // dia | semana | mês. Cada um com a sua janela e o seu rótulo — 30 dias de barras diárias conta
+  // uma história (picos de campanha), 12 meses conta outra (sazonalidade).
+  const PERIODOS={
+    dia:   {n:30, rot:'últimos 30 dias',  ini:d=>{const x=new Date(d);x.setHours(0,0,0,0);return x;},
+            passo:x=>{const y=new Date(x);y.setDate(y.getDate()+1);return y;},
+            fmt:d=>`${String(d.getDate()).padStart(2,'0')}/${MESES[d.getMonth()]}`, un:'dia'},
+    semana:{n:12, rot:'últimas 12 semanas',
+            ini:d=>{const x=new Date(d);x.setHours(0,0,0,0);x.setDate(x.getDate()-((x.getDay()+6)%7));return x;},
+            passo:x=>{const y=new Date(x);y.setDate(y.getDate()+7);return y;},
+            fmt:d=>`${String(d.getDate()).padStart(2,'0')}/${MESES[d.getMonth()]}`, un:'semana de'},
+    mes:   {n:12, rot:'últimos 12 meses', ini:d=>new Date(d.getFullYear(),d.getMonth(),1),
+            passo:x=>new Date(x.getFullYear(),x.getMonth()+1,1),
+            fmt:d=>`${MESES[d.getMonth()]}/${String(d.getFullYear()).slice(2)}`, un:''},
+  };
+  let periodo='semana';
+  function serie(list){
+    const P=PERIODOS[periodo];
+    // Constrói pra frente a partir do início da janela: somar 7·864e5 atravessando horário de
+    // verão desalinharia os buckets do início-de-semana real.
+    const buckets=[]; let cur=P.ini(new Date());
+    for(let i=0;i<P.n;i++){ buckets.unshift({ini:cur,n:0}); cur=P.ini(new Date(cur.getTime()-1)); }
+    const idx=new Map(buckets.map((b,i)=>[b.ini.getTime(),i]));
     list.forEach(m=>{
       const t=m.createdAt; if(!t) return;
       const d=t.toDate?t.toDate():new Date(t); if(isNaN(d.getTime())) return;
-      const s=seg(d).getTime();
-      const b=buckets.find(x=>x.ini.getTime()===s); if(b) b.n++;
+      const i=idx.get(P.ini(d).getTime()); if(i!=null) buckets[i].n++;
     });
     return buckets;
   }
@@ -598,21 +719,23 @@ async function vInbox(){
       ? `<span class="pk" style="left:${pct(x(iMax),W)};top:${pct(y(buckets[iMax].n)-4,H)};${
            iMax===0?'transform:translate(0,-100%)':(iMax===buckets.length-1?'transform:translate(-100%,-100%)':'')}">${buckets[iMax].n}</span>`
       : '';
-    const fmt=d=>`${String(d.getDate()).padStart(2,'0')}/${MESES[d.getMonth()]}`;
+    const P=PERIODOS[periodo], fmt=P.fmt;
+    const leg=b=>`${P.un?P.un+' ':''}${fmt(b.ini)}`;
     return `<div class="spark">
       <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img"
-           aria-label="Leads por semana nas últimas 12 semanas; pico de ${buckets[iMax].n} na semana de ${fmt(buckets[iMax].ini)}">
+           aria-label="Leads por ${periodo} nas ${P.rot}; pico de ${buckets[iMax].n} em ${fmt(buckets[iMax].ini)}">
         <path d="${area}" fill="var(--teal)" fill-opacity=".1"></path>
         <path d="${linha}" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linejoin="round"
               stroke-linecap="round" vector-effect="non-scaling-stroke"></path>
         <line x1="0" y1="${H}" x2="${W}" y2="${H}" stroke="var(--line)" stroke-width="1" vector-effect="non-scaling-stroke"></line>
       </svg>
       ${pico}<span class="dot" style="left:${pct(ult[0],W)};top:${pct(ult[1],H)}"></span>
-      <div class="hit">${buckets.map((b,i)=>`<span data-wk="${i}"
-        data-tip="<b>${b.n} lead(s)</b><br><span class='k'>semana de ${fmt(b.ini)}</span>"></span>`).join('')}</div>
+      <div class="hit">${buckets.map(b=>`<span
+        data-tip="<b>${b.n} lead(s)</b><br><span class='k'>${leg(b)}</span>"></span>`).join('')}</div>
     </div>
-    <div class="axis"><span>${fmt(buckets[0].ini)}</span><span>12 semanas</span><span>${fmt(buckets[buckets.length-1].ini)}</span></div>`;
+    <div class="axis"><span>${fmt(buckets[0].ini)}</span><span>${P.rot}</span><span>${fmt(buckets[buckets.length-1].ini)}</span></div>`;
   }
+  const cidadesN = list => agruparPorCidade(list).length;
   function conta(list, keyFn){
     const m=new Map();
     list.forEach(x=>{ const k=keyFn(x); if(!k) return; m.set(k,(m.get(k)||0)+1); });   // '' e null ficam fora: rótulo vazio não é categoria
@@ -646,17 +769,23 @@ async function vInbox(){
                    delta===null?'30 dias · sem comparação':`${j30} em 30d · ${j60} nos 30 anteriores`)}
             ${mini(list.length?Math.round(optin*100/list.length)+'%':'—',`aceitam marketing · ${optin}`)}
             ${mini(fora.length,fora.length?`sem loja em 150 km · ${porPraca.length} praça(s)`:'sem loja em 150 km')}
+            <div style="min-width:auto"><div class="seg">${
+              [['dia','Dia'],['semana','Semana'],['mes','Mês']].map(([k,l])=>
+                `<button data-per="${k}" class="${periodo===k?'on':''}">${l}</button>`).join('')}</div></div>
           </div>
         </div>
-        ${areaChart(serieSemanal(list))}
+        ${areaChart(serie(list))}
       </div>
       <div class="panels">
+        <div class="panel"><h3>Mapa de leads <span class="cnt">${porUf.length} UF(s) · ${cidadesN(list)} cidade(s)</span></h3>
+          <p class="ph">Cada bolha é uma cidade; o tamanho é o volume de leads. Clique numa bolha ou numa barra para filtrar o estado.</p>
+          <div class="mapwrap">
+            <div id="mapa"><p class="mapnote">Carregando mapa…</p></div>
+            <div>${bars(porUf,list.length,'if-uf',$('#if-uf').value,'uf')}</div>
+          </div></div>
         <div class="panel"><h3>Unidades que recebem os leads <span class="cnt">${porUnidade.length} unidade(s)</span></h3>
           <p class="ph">${cobertos} com loja em até 150 km${semUnid?` · ${semUnid} sem localização`:''}. Clique para filtrar.</p>
           ${bars(porUnidade,list.length,'if-unidade',$('#if-unidade').value)}</div>
-        <div class="panel"><h3>Concentração por estado <span class="cnt">${porUf.length} UF(s)</span></h3>
-          <p class="ph">Onde os leads estão, pelo CEP informado. Clique para filtrar.</p>
-          ${bars(porUf,list.length,'if-uf',$('#if-uf').value)}</div>
         <div class="panel"><h3>Motivo do contato <span class="cnt">${porAssunto.length} assunto(s)</span></h3>
           <p class="ph">Assunto escolhido no formulário. Clique para filtrar.</p>
           ${bars(porAssunto,list.length,'if-assunto',$('#if-assunto').value)}</div>
@@ -667,8 +796,12 @@ async function vInbox(){
           ${fora.length?bars(porPraca,list.length,'praca',null,'praca'):''}</div>
       </div>`;
     wireTips($('#dash'));
+    renderMapa(list, $('#if-uf').value);   // assíncrono: o mapa preenche o vão quando a geometria chega
     $('#dash').querySelectorAll('[data-exp]').forEach(b=>b.addEventListener('click',()=>{
       const k=b.dataset.exp; expandido[k]=!expandido[k]; renderDash(list,totalGeral);
+    }));
+    $('#dash').querySelectorAll('[data-per]').forEach(b=>b.addEventListener('click',()=>{
+      periodo=b.dataset.per; renderDash(list,totalGeral);
     }));
     $('#dash').querySelectorAll('.bar').forEach(b=>b.addEventListener('click',()=>{
       const f=b.dataset.f, val=b.dataset.v;

@@ -98,7 +98,8 @@ function waUrl(loja) {
  */
 async function analisarCep(cep) {
   const vazio = {
-    cepUf: ufDoCep(cep), cepCidade: null, unidade: null, unidadeSlug: null,
+    cepUf: ufDoCep(cep), cepCidade: null, cepLat: null, cepLng: null,
+    unidade: null, unidadeSlug: null,
     unidadeCidade: null, unidadeUf: null, distanciaKm: null, foraDeRaio: null,
   };
   try {
@@ -106,6 +107,9 @@ async function analisarCep(cep) {
     if (!loc) return vazio;
     vazio.cepCidade = loc.cidade || null;
     vazio.cepUf = vazio.cepUf || loc.uf || null;
+    // Coordenada do CEP: alimenta o mapa de bolhas do painel. Não expõe nada novo — o CEP de 8
+    // dígitos já está gravado e é MAIS preciso que isto; e o mapa só mostra o agregado por cidade.
+    vazio.cepLat = loc.lat; vazio.cepLng = loc.lng;
     const lista = await get(LOJAS_URL);
     if (!Array.isArray(lista)) return vazio;
     // "em breve" = unidade anunciada que ainda não atende; contá-la como receptora do lead é furo.
