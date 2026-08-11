@@ -3,7 +3,7 @@
 const { getDb, notify, guard, isEmail, addToMailing, FieldValue } = require("./_lib/backend");
 const { FLOWS, fluxoPorAssunto } = require("./_lib/flows");
 const { enqueueFlow } = require("./_lib/queue");
-const { resolverUnidade } = require("./_lib/unidade");
+const { resolverUnidade, analisarCep } = require("./_lib/unidade");
 
 // "Acompanhamento de pedido" saiu do formulário (virou "Orçamento", 10/08/2026) mas continua
 // aceito aqui: a lista é validação de entrada, e rejeitar o assunto antigo só quebraria quem
@@ -35,9 +35,20 @@ module.exports = async (req, res) => {
   const db = getDb();
   if (!db) return res.status(503).json({ ok: false, error: "backend-offline" });
 
+  // Resolve o CEP ANTES de gravar (e para TODOS os assuntos, não só os que têm régua): é o que
+  // permite ao painel saber qual unidade recebe cada lead e montar o mapa de concentração. Antes
+  // disto o resultado era calculado só dentro do if da régua e jogado fora depois do e-mail.
+  // Best-effort por contrato — campos null não travam o contato.
+  const analise = await analisarCep(cep);
+
   try {
     await db.collection("contact_messages").add({
       nome, telefone: telefone || null, email, assunto, mensagem, cep, marketing,
+      // localização do lead (cepUf é offline, então vem sempre) + unidade que atende
+      cepUf: analise.cepUf, cepCidade: analise.cepCidade,
+      unidade: analise.unidade, unidadeSlug: analise.unidadeSlug,
+      unidadeCidade: analise.unidadeCidade, unidadeUf: analise.unidadeUf,
+      distanciaKm: analise.distanciaKm, foraDeRaio: analise.foraDeRaio,
       status: "new", createdAt: FieldValue.serverTimestamp(),
     });
   } catch (e) {
@@ -54,9 +65,10 @@ module.exports = async (req, res) => {
   // acompanhamento de pedido (é atendimento), franqueado (régua não existe) e imprensa (manual).
   const fluxo = fluxoPorAssunto(assunto, mensagem);
   if (fluxo && FLOWS[fluxo]) {
-    // Resolve a unidade mais próxima pelo CEP (best-effort). Alimenta o CTA direto no WhatsApp
-    // dela e a personalização por cidade dos e-mails. null → régua cai no localizador genérico.
-    const unidade = await resolverUnidade(cep);
+    // Reaproveita a análise já feita acima (zero chamada de rede extra). Alimenta o CTA direto no
+    // WhatsApp da unidade e a personalização por cidade. null (inclui fora do raio de 150 km) →
+    // régua cai no localizador genérico, como antes.
+    const unidade = await resolverUnidade(cep, analise);
     await enqueueFlow(db, {
       flow: fluxo, steps: FLOWS[fluxo], email,
       dados: {

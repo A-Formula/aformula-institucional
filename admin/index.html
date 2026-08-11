@@ -68,7 +68,10 @@
   .toolbar .search{flex:1;min-width:200px;max-width:340px}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   @media(max-width:1100px){.grid2{grid-template-columns:1fr}}
-  @media(max-width:760px){#app{grid-template-columns:1fr}aside{flex-direction:row;flex-wrap:wrap;max-height:none}main{max-height:none}}
+  @media(max-width:760px){#app{grid-template-columns:1fr}aside{flex-direction:row;flex-wrap:wrap;max-height:none}main{max-height:none}
+    /* No celular a tabela rola dentro do próprio bloco em vez de comprimir as colunas — quem
+       rola horizontalmente é ela, nunca a página. */
+    #rows{overflow-x:auto}#rows table{min-width:720px}}
   textarea.fld{min-height:120px;resize:vertical;line-height:1.6}
   textarea.code{min-height:340px;font-family:ui-monospace,Consolas,monospace;font-size:13px}
   .row{display:flex;gap:12px;flex-wrap:wrap}.row>*{flex:1;min-width:180px}
@@ -80,6 +83,87 @@
   .pubbar{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 18px;display:flex;align-items:center;gap:14px;margin-bottom:22px}
   .pubbar .dot{width:9px;height:9px;border-radius:50%;background:var(--warn)}
   .pubbar.clean .dot{background:var(--ok)}
+
+  /* ---- dashboard de leads (mobile-first: 1 coluna; expande em 640/1024) ----
+     Especificações de marca conforme o protocolo de dataviz: marca fina, ponta de dado
+     arredondada em 4px e quadrada na linha de base, grade em hairline recessivo, valor
+     só na ponta da barra (a % vive no tooltip), texto sempre em token de texto — nunca
+     na cor da série. Uma série só por gráfico ⇒ nenhuma legenda. */
+  .dash{margin-bottom:18px;display:flex;flex-direction:column;gap:12px}
+
+  /* herói: o número que o painel lidera, os secundários na mesma faixa (economiza uma linha
+     inteira de cartões) e a evolução no tempo logo abaixo — tudo num só cartão. */
+  .hero{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px 10px}
+  .hero-top{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:4px}
+  /* figuras proporcionais (sem tabular-nums): em corpo grande, dígitos de largura fixa afrouxam o número */
+  .hero .n{font-size:40px;font-weight:800;color:var(--teal-d);line-height:.95;letter-spacing:-.02em}
+  .hero .l{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--teal-700);font-weight:700;margin-top:3px}
+  .hero .mini{display:flex;gap:22px;flex-wrap:wrap;margin-left:auto;align-items:flex-end}
+  .hero .mini>div{min-width:96px}
+  .hero .mini .mn{font-size:19px;font-weight:800;color:var(--teal-d);line-height:1.1}
+  .hero .mini .ml{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut);font-weight:700;margin-top:1px}
+  .chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;
+        border-radius:999px;padding:2px 9px;background:#eef4f4;color:var(--teal-700)}
+  .chip.up{background:#e0f4ea;color:#08774c} .chip.down{background:#fbe6e2;color:#a3301f}
+
+  /* Altura fixa e enxuta. preserveAspectRatio="none" estica os caminhos, então a linha usa
+     non-scaling-stroke e o ponto/rótulo saem do SVG pra overlay HTML — texto esticado na
+     horizontal fica deformado, e círculo esticado vira elipse. */
+  .spark{position:relative;height:78px}
+  .spark svg{display:block;width:100%;height:100%}
+  .spark .dot{position:absolute;width:9px;height:9px;border-radius:50%;background:var(--teal);
+              box-shadow:0 0 0 2px #fff;transform:translate(-50%,-50%);pointer-events:none}
+  .spark .pk{position:absolute;transform:translate(-50%,-100%);font-size:11.5px;font-weight:700;
+             color:var(--ink);white-space:nowrap;pointer-events:none}
+  /* faixas de hover: alvo de largura cheia, invisíveis até o mouse chegar */
+  .spark .hit{position:absolute;inset:0;display:flex}
+  .spark .hit>span{flex:1;cursor:crosshair}
+  .spark .hit>span.on{background:rgba(0,136,150,.07)}
+  .axis{display:flex;justify-content:space-between;font-size:10.5px;color:var(--mut);
+        font-variant-numeric:tabular-nums;margin-top:4px}
+
+  .panels{display:grid;grid-template-columns:1fr;gap:12px}
+  @media(min-width:1024px){.panels{grid-template-columns:1fr 1fr}}
+  .panel{background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px 15px;
+         display:flex;flex-direction:column}
+  .panel h3{margin:0;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--teal-700);
+            display:flex;align-items:center;gap:6px}
+  .panel h3 .cnt{margin-left:auto;letter-spacing:0;text-transform:none;font-size:11.5px;color:var(--mut);font-weight:600}
+  .panel .ph{font-size:11.5px;color:var(--mut);margin:3px 0 9px;line-height:1.4}
+  .panel.warn{border-color:#f0dfb0;background:#fffdf6}
+  .panel.warn h3{color:#8a5a00}
+  /* "ver todas" empurrado pro rodapé do cartão: com 2 painéis lado a lado de alturas diferentes,
+     o botão de um não pode flutuar no meio do vão do outro. */
+  .more{margin-top:auto;padding-top:9px;background:none;border:none;align-self:flex-start;
+        font-size:11.5px;font-weight:700;color:var(--teal);padding-left:6px}
+  .more:hover{text-decoration:underline}
+
+  /* linha = rótulo + barra proporcional + valor na ponta. Botão: clicar filtra a tabela. */
+  .bars{display:flex;flex-direction:column;gap:1px}
+  .bar{display:grid;grid-template-columns:minmax(88px,36%) 1fr auto;align-items:center;gap:12px;
+       background:none;border:none;padding:4px 6px;border-radius:7px;width:100%;text-align:left;font-size:13px;color:var(--ink)}
+  .bar:hover{background:#f4f9f9} .bar:focus-visible{outline:2px solid var(--teal);outline-offset:-2px}
+  .bar.on{background:#e6f2f3;box-shadow:inset 0 0 0 1.5px var(--teal)}
+  .bar .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+  /* trilha = passo mais claro da mesma rampa; preenchimento quadrado na base, 4px na ponta do dado */
+  .bar .tr{background:#eaf2f2;border-radius:4px;height:10px;overflow:hidden}
+  .bar .fl{display:block;height:100%;border-radius:0 4px 4px 0;background:var(--teal);transition:width .18s ease-out}
+  .panel.warn .bar .fl{background:var(--warn)}
+  .panel.warn .bar .tr{background:#f6ecd8}
+  .bar .vl{font-variant-numeric:tabular-nums;font-weight:700;color:var(--teal-d);min-width:1.8em;text-align:right}
+  .dash-empty{font-size:13px;color:var(--mut)}
+
+  /* tooltip único e flutuante — os valores também estão na barra e na tabela, nunca só aqui */
+  #ttip{position:fixed;z-index:80;pointer-events:none;opacity:0;transition:opacity .12s;
+        background:var(--teal-d);color:#fff;font-size:12px;line-height:1.45;padding:7px 10px;border-radius:8px;
+        box-shadow:0 6px 20px rgba(6,50,55,.22);max-width:240px}
+  #ttip b{color:#fff}
+  #ttip .k{color:#9fc7cc}
+
+  /* Ação neutra, não aviso: CEP só virou obrigatório em 05/08/2026, então lead antigo sem CEP é
+     o dado que existia — não é pendência e não pinta de âmbar. Só aparece quando há algo a fazer. */
+  .bfbar{font-size:12.5px;color:var(--mut);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .bfbar .t{flex:1;min-width:180px}
 </style>
 </head>
 <body>
@@ -169,6 +253,77 @@ function fmtTsCSV(ts){ if(!ts) return ''; const d=ts.toDate?ts.toDate():new Date
 // Neutraliza fórmulas em CSV (Excel executa células que começam com = + - @) — segurança do export.
 const csvSafe = v => { const s=(v==null?'':String(v)); return /^[=+\-@\t\r]/.test(s) ? "'"+s : s; };
 
+/* ---------- GEO DE LEADS (espelha api/_lib/unidade.js) ----------
+   Existe no cliente por dois motivos: (1) UF sai das faixas oficiais de CEP, offline — os leads
+   antigos ganham localização sem tocar em rede nenhuma; (2) o backfill (resolver a UNIDADE dos
+   leads gravados antes de 11/08/2026) roda aqui em vez de virar uma função serverless nova — o
+   projeto tem 10 e o teto do plano é 12. Mudou a regra no servidor? Espelhar aqui. */
+const RAIO_MAX_KM = 150;   // idem servidor: acima disto "a unidade mais próxima" não atende
+const UF_FAIXAS=[[1000,19999,'SP'],[20000,28999,'RJ'],[29000,29999,'ES'],[30000,39999,'MG'],[40000,48999,'BA'],[49000,49999,'SE'],[50000,56999,'PE'],[57000,57999,'AL'],[58000,58999,'PB'],[59000,59999,'RN'],[60000,63999,'CE'],[64000,64999,'PI'],[65000,65999,'MA'],[66000,68899,'PA'],[68900,68999,'AP'],[69000,69299,'AM'],[69300,69399,'RR'],[69400,69899,'AM'],[69900,69999,'AC'],[70000,72799,'DF'],[72800,72999,'GO'],[73000,73699,'DF'],[73700,76799,'GO'],[76800,76999,'RO'],[77000,77999,'TO'],[78000,78899,'MT'],[78900,78999,'RO'],[79000,79999,'MS'],[80000,87999,'PR'],[88000,89999,'SC'],[90000,99999,'RS']];
+const digits = s => String(s==null?'':s).replace(/\D/g,'');
+function ufDoCep(cep){ const c=digits(cep); if(c.length!==8) return null; const p=+c.slice(0,5);
+  for(const [i,f,uf] of UF_FAIXAS) if(p>=i&&p<=f) return uf; return null; }
+function haversine(a,b,c,d){ const R=6371,p=Math.PI/180,dLat=(c-a)*p,dLon=(d-b)*p;
+  const x=Math.sin(dLat/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x)); }
+let _lojas=null;
+async function getLojas(){
+  if(_lojas) return _lojas;
+  const r=await fetch('/encontre-uma-loja_assets/lojas.json');
+  const l=await r.json();
+  // "em breve" = unidade anunciada que ainda não atende → não pode contar como receptora de lead.
+  _lojas=(Array.isArray(l)?l:[]).filter(s=>s.lat&&s.lng&&!/em breve/i.test(s.nome||''));
+  return _lojas;
+}
+async function jget(url){ try{ const r=await fetch(url); return r.ok?await r.json():null; }catch(_){ return null; } }
+async function geocodeCep(cep){
+  const c=digits(cep); if(c.length!==8) return null;
+  const a=await jget(`https://cep.awesomeapi.com.br/json/${c}`);
+  if(a&&a.lat&&a.lng) return {lat:+a.lat,lng:+a.lng,cidade:a.city||null,uf:a.state||null};
+  const v=await jget(`https://viacep.com.br/ws/${c}/json/`);
+  if(!v||v.erro) return null;
+  const q=encodeURIComponent(`${v.logradouro?v.logradouro+', ':''}${v.localidade||''} ${v.uf||''} Brasil`);
+  const n=await jget(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${q}`);
+  if(!n||!n[0]) return null;
+  return {lat:+n[0].lat,lng:+n[0].lon,cidade:v.localidade||null,uf:v.uf||null};
+}
+// Mesmo contrato do analisarCep() do servidor: a unidade mais próxima vem SEMPRE, com o flag
+// foraDeRaio. Pro mapa de leads, demanda longe de qualquer loja é o dado mais valioso que existe.
+async function analisarCep(cep){
+  const out={cepUf:ufDoCep(cep),cepCidade:null,unidade:null,unidadeSlug:null,unidadeCidade:null,unidadeUf:null,distanciaKm:null,foraDeRaio:null};
+  const loc=await geocodeCep(cep); if(!loc) return out;
+  out.cepCidade=loc.cidade||null; out.cepUf=out.cepUf||loc.uf||null;
+  const lojas=await getLojas(); if(!lojas.length) return out;
+  let melhor=null;
+  for(const s of lojas){ const d=haversine(loc.lat,loc.lng,s.lat,s.lng); if(!melhor||d<melhor.d) melhor={s,d}; }
+  out.unidade=melhor.s.nome||null; out.unidadeSlug=melhor.s.slug||null;
+  out.unidadeCidade=melhor.s.cidade||null; out.unidadeUf=melhor.s.estado||null;
+  out.distanciaKm=Math.round(melhor.d); out.foraDeRaio=melhor.d>RAIO_MAX_KM;
+  return out;
+}
+
+/* ---------- TOOLTIP (um só, reaproveitado) ----------
+   Realça, nunca esconde: todo valor que aparece aqui também está na barra, no eixo ou na tabela.
+   Responde a foco de teclado além do mouse — quem navega por Tab lê a mesma coisa. */
+function wireTips(raiz){
+  let el=$('#ttip');
+  if(!el){ el=document.createElement('div'); el.id='ttip'; document.body.appendChild(el); }
+  const mostra=(t,alvo)=>{
+    el.innerHTML=t; el.style.opacity='1';
+    const r=alvo.getBoundingClientRect(), b=el.getBoundingClientRect();
+    // clampeado na viewport: tooltip de barra na borda direita não pode sair da tela
+    el.style.left=Math.max(8,Math.min(window.innerWidth-b.width-8,r.left+r.width/2-b.width/2))+'px';
+    el.style.top=(r.top-b.height-9<8 ? r.bottom+9 : r.top-b.height-9)+'px';
+  };
+  const esconde=()=>{ el.style.opacity='0'; };
+  raiz.querySelectorAll('[data-tip]').forEach(n=>{
+    const on=()=>{ mostra(n.dataset.tip,n); n.classList.add('on'); };
+    const off=()=>{ esconde(); n.classList.remove('on'); };
+    n.addEventListener('mouseenter',on); n.addEventListener('mouseleave',off);
+    n.addEventListener('focus',on);      n.addEventListener('blur',off);
+  });
+}
+
 /* ---------- DIAGNÓSTICO (versão no ar + motivo do último logout) ---------- */
 const CMSX_VER='2026-07-20-e';
 let cmsxWasIn=false, cmsxHandled=false, cmsxLastEmail='';   // cmsxHandled = o logout foi causado por nós (Sair ou negação)
@@ -250,7 +405,13 @@ document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',()=
   document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
   b.classList.add('active'); router(b.dataset.view);
 }));
-function router(v){ ({inbox:vInbox,prescritores:vPresc,career:vCareer,newsletter:vNews,preContent:vPreContent,settings:vSettings}[v]||vInbox)(); }
+// Listener ao vivo da inbox. Cancelado ao trocar de aba — sem isso, ir e voltar em "Mensagens"
+// empilha listeners e cada lead novo dispararia N re-renders.
+let unsubInbox=null;
+function router(v){
+  if(unsubInbox){ unsubInbox(); unsubInbox=null; }
+  ({inbox:vInbox,prescritores:vPresc,career:vCareer,newsletter:vNews,preContent:vPreContent,settings:vSettings}[v]||vInbox)();
+}
 
 /* Upload de mídia (Vercel Blob via /api/upload, gated por admin) — usado pelo Conteúdo do prescritor (PDF) */
 async function uploadFile(file){
@@ -285,40 +446,294 @@ async function loadCounts(){
   }catch(e){ console.error('loadCounts', e); }
 }
 
-/* ---------- INBOX (contatos) ---------- */
+/* ---------- INBOX (contatos) + DASHBOARD DE LEADS ----------
+   Valores especiais dos filtros de unidade: __fora__ = existe loja, mas a mais próxima está a
+   mais de 150 km (demanda descoberta); __none__ = CEP não resolvido (backfill pendente ou CEP
+   inválido). Sem esses dois, um lead somem da soma sem o operador perceber. */
+const F_FORA='__fora__', F_NONE='__none__';
+// Unidade que EFETIVAMENTE recebe o lead. Fora do raio não conta como receptora: o e-mail manda
+// essa pessoa pro localizador, não pra loja — creditar a loja inflaria o ranking dela.
+const unidadeDe = m => (m.unidade && !m.foraDeRaio) ? m.unidade : null;
+const ufDe = m => m.cepUf || ufDoCep(m.cep) || null;
+// '' (não 'sem localização') quando o CEP não diz nada: quem chama omite a linha em vez de
+// escrever uma ausência. Lead antigo sem CEP é normal — o formulário só passou a exigir em 05/08.
+const pracaDe = m => (m.cepCidade ? m.cepCidade+(ufDe(m)?'/'+ufDe(m):'') : (ufDe(m)?'CEP '+String(m.cep||'').slice(0,5)+'… ('+ufDe(m)+')' : ''));
+// Legado: gravado antes de 11/08/2026, quando o contato passou a guardar a unidade. `geoAt` marca
+// que o backfill já tentou — sem isso, CEP que falha no geocode reapareceria como pendente pra sempre.
+const pendenteGeo = m => m.unidade===undefined && !m.geoAt && digits(m.cep).length===8;
+
 async function vInbox(){
   const v=$('#view');
   v.innerHTML=`<div class="topbar"><div><h1 class="page">Mensagens de contato</h1><p class="hint" id="i-count"></p></div><button class="btn" id="i-csv">⬇ Exportar CSV</button></div>
+  <div id="bfwrap" style="margin-bottom:16px"></div>
   <div class="toolbar">
     <select class="fld" id="if-status" style="max-width:160px"><option value="">Status: todos</option><option value="new">Novos</option><option value="done">Resolvidos</option></select>
     <select class="fld" id="if-assunto" style="max-width:230px"><option value="">Assunto: todos</option></select>
+    <select class="fld" id="if-unidade" style="max-width:250px"><option value="">Unidade: todas</option></select>
+    <select class="fld" id="if-uf" style="max-width:120px"><option value="">UF: todas</option></select>
     <select class="fld" id="if-mkt" style="max-width:180px"><option value="">Marketing: todos</option><option value="1">Aceita</option><option value="0">Não aceita</option></select>
-    <input class="fld search" id="if-q" placeholder="Buscar nome, e-mail, mensagem…">
+    <input class="fld search" id="if-q" placeholder="Buscar nome, e-mail, cidade, mensagem…">
     <button class="btn btn--ghost btn--sm" id="if-clear">Limpar</button>
-  </div><div id="rows">Carregando…</div>`;
-  let snap;
-  try{ snap = await db.collection('contact_messages').orderBy('createdAt','desc').limit(500).get(); }
-  catch(e){ $('#rows').innerHTML='<div class="empty">Não foi possível carregar as mensagens. Recarregue a página.</div>'; return; }
-  if(snap.empty){ $('#i-count').textContent='Nenhuma mensagem ainda.'; $('#rows').innerHTML='<div class="empty">Nenhuma mensagem ainda.</div>'; return; }
-  const all = snap.docs.map(d=>({id:d.id,...d.data()}));
+  </div>
+  <div class="dash" id="dash"></div>
+  <div id="rows">Carregando…</div>`;
+  let all=[], current=[], silenciar=false;
+
   const fill=(sel,vals)=>{const s=$(sel);[...new Set(vals.filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt')).forEach(x=>{const o=document.createElement('option');o.value=x;o.textContent=x;s.appendChild(o);});};
-  fill('#if-assunto',all.map(m=>m.assunto));
-  let current=all;
+  // Idempotente: roda a cada atualização ao vivo. Preserva a seleção do operador — um lead novo
+  // não pode zerar o filtro que ele acabou de aplicar. Se o valor selecionado deixar de existir
+  // na lista, ele é MANTIDO como opção órfã em vez de sumir (sumir mudaria a tabela sem aviso).
+  function sincronizarFiltros(){
+    [['#if-assunto',all.map(m=>m.assunto),null],
+     ['#if-uf',all.map(ufDe),null],
+     ['#if-unidade',all.map(unidadeDe),`<option value="${F_FORA}">⚠ sem loja em 150 km</option><option value="${F_NONE}">sem localização</option>`]
+    ].forEach(([sel,vals,extra])=>{
+      const el=$(sel), escolhido=el.value, primeira=el.querySelector('option').outerHTML;
+      el.innerHTML=primeira; fill(sel,vals);
+      if(extra) el.insertAdjacentHTML('beforeend',extra);
+      if(escolhido && !el.querySelector(`option[value="${CSS.escape(escolhido)}"]`)){
+        el.insertAdjacentHTML('beforeend',`<option value="${esc(escolhido)}">${esc(escolhido)}</option>`);
+      }
+      el.value=escolhido;
+    });
+  }
+  function badgeInbox(){
+    const n=all.filter(m=>(m.status||'new')==='new').length, b=$('#badge-inbox');
+    if(!b) return;
+    if(n){ b.textContent=n; b.classList.remove('hidden'); } else b.classList.add('hidden');
+  }
+
+  // Tempo real: lead novo entra na tabela e recalcula o dashboard sem recarregar a página.
+  unsubInbox = db.collection('contact_messages').orderBy('createdAt','desc').limit(500)
+    .onSnapshot(snap=>{
+      all = snap.docs.map(d=>({id:d.id,...d.data()}));
+      // O backfill grava centenas de docs em sequência; cada um voltaria como evento aqui e
+      // re-renderizaria a tela no meio do loop. Ele re-renderiza uma vez, no fim.
+      if(silenciar) return;
+      sincronizarFiltros(); badgeInbox(); apply();
+    }, err=>{
+      console.error('[inbox] listener', err);
+      // Erro depois do primeiro carregamento: mantém o que está na tela em vez de apagar tudo.
+      if(!all.length) $('#rows').innerHTML='<div class="empty">Não foi possível carregar as mensagens. Recarregue a página.</div>';
+    });
   function apply(){
-    const st=$('#if-status').value, as=$('#if-assunto').value, mk=$('#if-mkt').value, q=$('#if-q').value.trim().toLowerCase();
+    const st=$('#if-status').value, as=$('#if-assunto').value, un=$('#if-unidade').value,
+          uf=$('#if-uf').value, mk=$('#if-mkt').value, q=$('#if-q').value.trim().toLowerCase();
     current=all.filter(m=>(!st||(m.status||'new')===st)&&(!as||m.assunto===as)
+      &&(!uf||ufDe(m)===uf)
+      &&(!un|| (un===F_FORA ? m.foraDeRaio===true : un===F_NONE ? (!m.unidade&&!m.foraDeRaio) : unidadeDe(m)===un))
       &&(mk===''||(mk==='1'?!!m.marketing:!m.marketing))
-      &&(!q||[m.nome,m.email,m.telefone,m.mensagem,m.cep].some(x=>String(x||'').toLowerCase().includes(q))));
+      &&(!q||[m.nome,m.email,m.telefone,m.mensagem,m.cep,m.cepCidade,m.unidade].some(x=>String(x||'').toLowerCase().includes(q))));
+    // Base vazia é estado diferente de "filtro sem resultado" — o dashboard não tem o que mostrar.
+    if(!all.length){
+      $('#i-count').textContent='Nenhuma mensagem ainda.';
+      $('#dash').innerHTML=''; $('#bfwrap').innerHTML='';
+      $('#rows').innerHTML='<div class="empty">Nenhuma mensagem ainda.</div>';
+      return;
+    }
     const nNew=all.filter(m=>(m.status||'new')==='new').length;
     $('#i-count').textContent=`${current.length} de ${all.length} mensagem(ns) · ${nNew} nova(s).`;
+    renderDash(current, all.length);
+    renderBackfill();
     render(current);
   }
+
+  /* ----- dashboard ----- */
+  // Rótulo clicável → aplica o filtro correspondente. É o que transforma o painel de "quadro
+  // bonito" em navegação: vejo o pico, clico, leio os leads que o formaram.
+  // Teto de 5 linhas por painel, com botão de expandir. A escala das barras é sempre do MAIOR
+  // da lista inteira, não do maior das 5 visíveis — senão expandir reescalaria tudo e a leitura
+  // "esta é o dobro daquela" mudaria de significado ao clicar. Nada é cortado em silêncio: o
+  // botão diz quantas faltam e a lista inteira também está no CSV.
+  const TETO=5;
+  const expandido={};   // sobrevive ao re-render (filtrar não fecha o painel que você abriu)
+  function bars(list, total, filtro, ativo, chave){
+    if(!list.length) return '<p class="dash-empty">Sem dados para o filtro atual.</p>';
+    const max=Math.max(...list.map(x=>x[1]))||1;
+    const aberto=!!expandido[chave||filtro], vis=aberto?list:list.slice(0,TETO);
+    const linha=([nome,n,val])=>{
+      const pc=total?Math.round(n*100/total):0;
+      return `<button class="bar${ativo===(val===undefined?nome:val)?' on':''}" data-f="${filtro}" data-v="${esc(val===undefined?nome:val)}"
+        data-tip="<b>${esc(nome)}</b><br>${n} lead(s) · ${pc}% do total filtrado<br><span class='k'>clique para filtrar</span>">
+        <span class="nm">${esc(nome)}</span>
+        <span class="tr"><span class="fl" style="width:${Math.max(2,Math.round(n*100/max))}%"></span></span>
+        <span class="vl">${n}</span></button>`;
+    };
+    return '<div class="bars">'+vis.map(linha).join('')+'</div>'
+      + (list.length>TETO
+          ? `<button class="more" data-exp="${esc(chave||filtro)}">${aberto?'▲ mostrar só as 5 maiores':`▼ ver todas as ${list.length}`}</button>`
+          : '');
+  }
+
+  /* Evolução no tempo — a forma que faltava. 12 semanas, uma série só (logo, sem legenda):
+     área em lavagem de 10%, linha de 2px, ponto na ponta, linha de base em hairline. Os valores
+     não ficam presos ao tooltip: o pico é rotulado direto e a tabela abaixo tem tudo. */
+  function serieSemanal(list){
+    const DIA=864e5, SEMANAS=12;
+    const seg=d=>{const x=new Date(d);x.setHours(0,0,0,0);x.setDate(x.getDate()-((x.getDay()+6)%7));return x;};
+    const base=seg(new Date());
+    const buckets=[];
+    for(let i=SEMANAS-1;i>=0;i--) buckets.push({ini:new Date(base.getTime()-i*7*DIA),n:0});
+    list.forEach(m=>{
+      const t=m.createdAt; if(!t) return;
+      const d=t.toDate?t.toDate():new Date(t); if(isNaN(d.getTime())) return;
+      const s=seg(d).getTime();
+      const b=buckets.find(x=>x.ini.getTime()===s); if(b) b.n++;
+    });
+    return buckets;
+  }
+  function areaChart(buckets){
+    const W=1000,H=100,PT=18,PB=1;    // PT = folga pro rótulo do pico; PB mantém o pico fora da base
+    const max=Math.max(...buckets.map(b=>b.n),1);
+    const x=i=>buckets.length<2?W/2:(i*W)/(buckets.length-1);
+    const y=n=>PT+(H-PT-PB)*(1-n/max);
+    const pts=buckets.map((b,i)=>[x(i),y(b.n)]);
+    const linha=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+    const area=`${linha} L ${W} ${H} L 0 ${H} Z`;
+    const iMax=buckets.reduce((a,b,i)=>buckets[a].n>=b.n?a:i,0);
+    const pct=(v,t)=>(v*100/t).toFixed(2)+'%';
+    const ult=pts[pts.length-1];
+    // pico e ponta em overlay HTML, posicionados em % — imunes ao esticamento do SVG
+    const pico = buckets[iMax].n>0
+      ? `<span class="pk" style="left:${pct(x(iMax),W)};top:${pct(y(buckets[iMax].n)-4,H)};${
+           iMax===0?'transform:translate(0,-100%)':(iMax===buckets.length-1?'transform:translate(-100%,-100%)':'')}">${buckets[iMax].n}</span>`
+      : '';
+    const fmt=d=>`${String(d.getDate()).padStart(2,'0')}/${MESES[d.getMonth()]}`;
+    return `<div class="spark">
+      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img"
+           aria-label="Leads por semana nas últimas 12 semanas; pico de ${buckets[iMax].n} na semana de ${fmt(buckets[iMax].ini)}">
+        <path d="${area}" fill="var(--teal)" fill-opacity=".1"></path>
+        <path d="${linha}" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linejoin="round"
+              stroke-linecap="round" vector-effect="non-scaling-stroke"></path>
+        <line x1="0" y1="${H}" x2="${W}" y2="${H}" stroke="var(--line)" stroke-width="1" vector-effect="non-scaling-stroke"></line>
+      </svg>
+      ${pico}<span class="dot" style="left:${pct(ult[0],W)};top:${pct(ult[1],H)}"></span>
+      <div class="hit">${buckets.map((b,i)=>`<span data-wk="${i}"
+        data-tip="<b>${b.n} lead(s)</b><br><span class='k'>semana de ${fmt(b.ini)}</span>"></span>`).join('')}</div>
+    </div>
+    <div class="axis"><span>${fmt(buckets[0].ini)}</span><span>12 semanas</span><span>${fmt(buckets[buckets.length-1].ini)}</span></div>`;
+  }
+  function conta(list, keyFn){
+    const m=new Map();
+    list.forEach(x=>{ const k=keyFn(x); if(!k) return; m.set(k,(m.get(k)||0)+1); });   // '' e null ficam fora: rótulo vazio não é categoria
+    return [...m.entries()].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],'pt'));
+  }
+  function renderDash(list, totalGeral){
+    const DIA=864e5, agora=Date.now();
+    const ts=m=>{ const t=m.createdAt; if(!t) return null; const d=t.toDate?t.toDate():new Date(t); const n=d.getTime(); return isNaN(n)?null:n; };
+    const j30=list.filter(m=>{const t=ts(m); return t!=null&&agora-t<=30*DIA;}).length;
+    const j60=list.filter(m=>{const t=ts(m); return t!=null&&agora-t>30*DIA&&agora-t<=60*DIA;}).length;
+    // Sem base anterior, "variação" não existe — mostrar "+100%" seria inventar tendência.
+    const delta = j60>0 ? Math.round((j30-j60)*100/j60) : null;
+    // "não respondidas" NÃO entra no dashboard: a equipe não responde pelo painel, então o número
+    // mediria uma fila que não existe. O status da linha e o filtro continuam na tabela.
+    const optin=list.filter(m=>m.marketing).length;
+    const semUnid=list.filter(m=>!m.unidade&&!m.foraDeRaio).length;
+    const fora=list.filter(m=>m.foraDeRaio===true);
+    const porUnidade=conta(list,unidadeDe), porUf=conta(list,ufDe),
+          porAssunto=conta(list,m=>m.assunto||null), porPraca=conta(fora,pracaDe);
+    const cobertos=list.length-semUnid-fora.length;
+    const mini=(n,l)=>`<div><div class="mn">${n}</div><div class="ml">${l}</div></div>`;
+    // Uma figura-herói por vista, os secundários na MESMA faixa dela em corpo menor. Antes eram
+    // cartões separados numa linha própria — hierarquia igual e uma faixa de altura desperdiçada.
+    $('#dash').innerHTML=`
+      <div class="hero">
+        <div class="hero-top">
+          <div><div class="n">${list.length}</div><div class="l">leads no filtro</div></div>
+          <div class="mini">
+            ${mini(delta===null?'<span class="chip">sem base</span>'
+                    :`<span class="chip ${delta>=0?'up':'down'}">${delta>=0?'▲':'▼'} ${delta>=0?'+':''}${delta}%</span>`,
+                   delta===null?'30 dias · sem comparação':`${j30} em 30d · ${j60} nos 30 anteriores`)}
+            ${mini(list.length?Math.round(optin*100/list.length)+'%':'—',`aceitam marketing · ${optin}`)}
+            ${mini(fora.length,fora.length?`sem loja em 150 km · ${porPraca.length} praça(s)`:'sem loja em 150 km')}
+          </div>
+        </div>
+        ${areaChart(serieSemanal(list))}
+      </div>
+      <div class="panels">
+        <div class="panel"><h3>Unidades que recebem os leads <span class="cnt">${porUnidade.length} unidade(s)</span></h3>
+          <p class="ph">${cobertos} com loja em até 150 km${semUnid?` · ${semUnid} sem localização`:''}. Clique para filtrar.</p>
+          ${bars(porUnidade,list.length,'if-unidade',$('#if-unidade').value)}</div>
+        <div class="panel"><h3>Concentração por estado <span class="cnt">${porUf.length} UF(s)</span></h3>
+          <p class="ph">Onde os leads estão, pelo CEP informado. Clique para filtrar.</p>
+          ${bars(porUf,list.length,'if-uf',$('#if-uf').value)}</div>
+        <div class="panel"><h3>Motivo do contato <span class="cnt">${porAssunto.length} assunto(s)</span></h3>
+          <p class="ph">Assunto escolhido no formulário. Clique para filtrar.</p>
+          ${bars(porAssunto,list.length,'if-assunto',$('#if-assunto').value)}</div>
+        <div class="panel warn"><h3>⚠ Demanda sem loja perto ${fora.length?`<span class="cnt">${fora.length} lead(s)</span>`:''}</h3>
+          <p class="ph">${fora.length
+            ? `A mais de 150 km da unidade mais próxima — foram pro localizador, não pra uma loja. É o mapa de expansão.`
+            : 'Nenhum lead fora do raio de 150 km. A rede cobre toda a demanda que chegou.'}</p>
+          ${fora.length?bars(porPraca,list.length,'praca',null,'praca'):''}</div>
+      </div>`;
+    wireTips($('#dash'));
+    $('#dash').querySelectorAll('[data-exp]').forEach(b=>b.addEventListener('click',()=>{
+      const k=b.dataset.exp; expandido[k]=!expandido[k]; renderDash(list,totalGeral);
+    }));
+    $('#dash').querySelectorAll('.bar').forEach(b=>b.addEventListener('click',()=>{
+      const f=b.dataset.f, val=b.dataset.v;
+      if(f==='praca'){ // praça não é campo indexado: filtra pelos leads fora de raio + busca a cidade
+        $('#if-unidade').value=F_FORA;
+        $('#if-q').value=(val.split('/')[0]||'').trim();
+      } else {
+        const sel=$('#'+f);
+        sel.value = sel.value===val ? '' : val;   // clicar de novo no mesmo desliga o filtro
+      }
+      apply();
+    }));
+  }
+
+  /* ----- backfill do histórico ----- */
+  // Leads gravados antes de 11/08/2026 têm CEP mas não têm unidade. Sem isto o mapa começaria
+  // vazio, ignorando todo o histórico já coletado. Sequencial e com pausa: as APIs de CEP são
+  // públicas e gratuitas — rajada de 500 chamadas leva rate-limit e devolve nada.
+  function renderBackfill(){
+    const pend=all.filter(pendenteGeo);
+    const w=$('#bfwrap');
+    if(!pend.length){ w.innerHTML=''; return; }
+    w.innerHTML=`<div class="bfbar"><div class="t">${pend.length} lead(s) antigo(s) têm CEP mas ainda não têm a loja identificada.</div>
+      <button class="btn btn--ghost btn--sm" id="bf-run">Identificar as unidades (${pend.length})</button></div>`;
+    $('#bf-run').addEventListener('click',async()=>{
+      const btn=$('#bf-run'), box=btn.closest('.bfbar'), t=box.querySelector('.t');
+      btn.disabled=true;
+      silenciar=true;          // o listener continua recebendo; só não re-renderiza no meio do loop
+      let ok=0, fail=0;
+      for(let i=0;i<pend.length;i++){
+        const m=pend[i];
+        t.innerHTML=`<strong>Identificando ${i+1} de ${pend.length}…</strong> ${ok} resolvido(s)${fail?`, ${fail} sem resultado`:''}. Pode continuar usando o painel.`;
+        let a;
+        try{ a=await analisarCep(m.cep); }catch(_){ a=null; }
+        const upd = a ? {...a, geoAt:new Date().toISOString()} : {geoAt:new Date().toISOString()};
+        try{
+          await db.collection('contact_messages').doc(m.id).update(upd);
+          Object.assign(m,upd);            // mantém o array local em sincronia com o banco
+          if(a&&a.unidade) ok++; else fail++;
+        }catch(_){ fail++; }
+        await new Promise(r=>setTimeout(r,350));   // respeita o rate-limit das APIs públicas de CEP
+      }
+      // Volta a ouvir e re-renderiza UMA vez, já com as unidades e UFs que o backfill acabou de criar.
+      silenciar=false;
+      sincronizarFiltros(); badgeInbox(); apply();
+      // O resumo entra DEPOIS do apply e como linha extra: se alguma escrita falhou, a barra de
+      // pendentes reaparece embaixo dele em vez de ser encoberta por um "pronto" que mentiria.
+      $('#bfwrap').insertAdjacentHTML('afterbegin',
+        `<div class="bfbar"><div class="t"><strong>Pronto: ${ok} unidade(s) identificada(s)${fail?`, ${fail} CEP(s) sem resultado`:''}.</strong></div></div>`);
+    });
+  }
+
   function render(list){
     if(!list.length){ $('#rows').innerHTML='<div class="empty">Nenhuma mensagem com esses filtros.</div>'; return; }
-    let h='<table><thead><tr><th>Quando</th><th>Nome</th><th>Contato</th><th>Assunto</th><th>Mensagem</th><th>Mkt</th><th>Status</th><th></th></tr></thead><tbody>';
+    let h='<table><thead><tr><th>Quando</th><th>Nome</th><th>Contato</th><th>Origem / unidade</th><th>Assunto</th><th>Mensagem</th><th>Mkt</th><th>Status</th><th></th></tr></thead><tbody>';
     list.forEach(m=>{ const stt=(m.status||'new');
+      const un=unidadeDe(m);
+      const cel = un
+        ? `<strong>${esc(un)}</strong>${m.distanciaKm!=null?`<br><span class="hint">a ${m.distanciaKm} km do CEP</span>`:''}`
+        : m.foraDeRaio
+          ? `<span class="tag pending">sem loja em 150 km</span>${m.unidade?`<br><span class="hint">+ próxima: ${esc(m.unidade)}, ${m.distanciaKm} km</span>`:''}`
+          : `<span class="hint">—</span>`;   // sem CEP ou CEP que não resolve: neutro, não é pendência
       h+=`<tr><td>${fmtTs(m.createdAt)}</td><td><strong>${esc(m.nome)}</strong></td>
       <td>${esc(m.email)}<br><span class="hint">${esc(m.telefone||'')}${m.cep?' · CEP '+esc(m.cep):''}</span></td>
+      <td style="max-width:200px">${pracaDe(m)?`<span class="hint">${esc(pracaDe(m))}</span><br>`:''}${cel}</td>
       <td>${esc(m.assunto)}</td><td style="max-width:260px">${esc(m.mensagem)}</td>
       <td>${m.marketing?'<span class="tag done">✓</span>':'<span class="hint">—</span>'}</td>
       <td><span class="tag tag--status ${stt==='done'?'done':'new'}">${stt==='done'?'resolvido':'novo'}</span></td>
@@ -342,12 +757,16 @@ async function vInbox(){
       apply(); loadCounts();
     }));
   }
-  ['#if-status','#if-assunto','#if-mkt'].forEach(s=>$(s).addEventListener('change',apply));
+  ['#if-status','#if-assunto','#if-unidade','#if-uf','#if-mkt'].forEach(s=>$(s).addEventListener('change',apply));
   $('#if-q').addEventListener('input',apply);
-  $('#if-clear').addEventListener('click',()=>{['#if-status','#if-assunto','#if-mkt','#if-q'].forEach(s=>$(s).value='');apply();});
+  $('#if-clear').addEventListener('click',()=>{['#if-status','#if-assunto','#if-unidade','#if-uf','#if-mkt','#if-q'].forEach(s=>$(s).value='');apply();});
   $('#i-csv').addEventListener('click',()=>{
-    const rows=[['data','nome','email','telefone','cep','assunto','mensagem','marketing','status']];
-    current.forEach(m=>rows.push([fmtTsCSV(m.createdAt),m.nome,m.email,m.telefone||'',m.cep||'',m.assunto,m.mensagem,m.marketing?'sim':'não',(m.status||'new')==='done'?'resolvido':'novo']));
+    // Colunas de geo vêm juntas na planilha: é o que permite tabela dinâmica por loja/estado no Excel.
+    const rows=[['data','nome','email','telefone','cep','cidade_do_cep','uf','unidade_que_atende','unidade_mais_proxima','unidade_cidade','unidade_uf','distancia_km','sem_loja_em_150km','assunto','mensagem','marketing','status']];
+    current.forEach(m=>rows.push([fmtTsCSV(m.createdAt),m.nome,m.email,m.telefone||'',m.cep||'',
+      m.cepCidade||'',ufDe(m)||'',unidadeDe(m)||'',m.unidade||'',m.unidadeCidade||'',m.unidadeUf||'',
+      m.distanciaKm!=null?m.distanciaKm:'',m.foraDeRaio===true?'sim':(m.foraDeRaio===false?'não':''),
+      m.assunto,m.mensagem,m.marketing?'sim':'não',(m.status||'new')==='done'?'resolvido':'novo']));
     const csv='﻿'+rows.map(r=>r.map(c=>`"${csvSafe(c).replace(/"/g,'""')}"`).join(';')).join('\r\n');
     const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); a.download='mensagens-aformula.csv'; a.click();
   });

@@ -49,6 +49,28 @@ async function geocode(cep) {
   return { lat: +n[0].lat, lng: +n[0].lon, cidade: v.localidade || null, uf: v.uf || null };
 }
 
+// Faixas oficiais de CEP por UF. Existe porque o mapa de leads não pode depender de rede: CEP
+// antigo/inexistente ou geocode fora do ar deixaria o lead sem localização nenhuma. Com isto, UF
+// é 100% offline e determinística — a cidade e a loja é que dependem do geocode.
+const FAIXAS_UF = [
+  [1000, 19999, "SP"], [20000, 28999, "RJ"], [29000, 29999, "ES"], [30000, 39999, "MG"],
+  [40000, 48999, "BA"], [49000, 49999, "SE"], [50000, 56999, "PE"], [57000, 57999, "AL"],
+  [58000, 58999, "PB"], [59000, 59999, "RN"], [60000, 63999, "CE"], [64000, 64999, "PI"],
+  [65000, 65999, "MA"], [66000, 68899, "PA"], [68900, 68999, "AP"], [69000, 69299, "AM"],
+  [69300, 69399, "RR"], [69400, 69899, "AM"], [69900, 69999, "AC"], [70000, 72799, "DF"],
+  [72800, 72999, "GO"], [73000, 73699, "DF"], [73700, 76799, "GO"], [76800, 76999, "RO"],
+  [77000, 77999, "TO"], [78000, 78899, "MT"], [78900, 78999, "RO"], [79000, 79999, "MS"],
+  [80000, 87999, "PR"], [88000, 89999, "SC"], [90000, 99999, "RS"],
+];
+
+function ufDoCep(cep) {
+  const c = digits(cep);
+  if (c.length !== 8) return null;
+  const p = +c.slice(0, 5);
+  for (const [ini, fim, uf] of FAIXAS_UF) if (p >= ini && p <= fim) return uf;
+  return null;
+}
+
 function haversine(a, b, c, d) {
   const R = 6371, p = Math.PI / 180, dLat = (c - a) * p, dLon = (d - b) * p;
   const x = Math.sin(dLat / 2) ** 2 + Math.cos(a * p) * Math.cos(c * p) * Math.sin(dLon / 2) ** 2;
@@ -64,38 +86,75 @@ function waUrl(loja) {
 }
 
 /**
- * @returns {Promise<null|{nome,cidade,estado,waUrl,distanciaKm}>}
- *   null = não deu pra resolver (CEP ruim, rede, ou nenhuma unidade com telefone).
+ * Análise completa do CEP — é o que o PAINEL grava e usa pro mapa de leads.
+ *
+ * Diferença de contrato vs. resolverUnidade(): aqui a unidade mais próxima vem SEMPRE, com a
+ * distância e o flag `foraDeRaio`. Por quê: pro e-mail, "251 km" é longe demais pra afirmar
+ * "sua unidade" (daí o null lá); pro mapa, é justo o dado mais valioso — mostra demanda em
+ * praça que a rede ainda não cobre. Descartar isso é apagar o mapa de expansão.
+ *
+ * @returns {Promise<{cepUf,cepCidade,unidade,unidadeSlug,unidadeCidade,unidadeUf,distanciaKm,foraDeRaio}>}
+ *   Nunca lança. Campos não resolvidos vêm null — `cepUf` é offline, então quase nunca falha.
  */
-async function resolverUnidade(cep) {
+async function analisarCep(cep) {
+  const vazio = {
+    cepUf: ufDoCep(cep), cepCidade: null, unidade: null, unidadeSlug: null,
+    unidadeCidade: null, unidadeUf: null, distanciaKm: null, foraDeRaio: null,
+  };
   try {
     const loc = await geocode(cep);
-    if (!loc) return null;
+    if (!loc) return vazio;
+    vazio.cepCidade = loc.cidade || null;
+    vazio.cepUf = vazio.cepUf || loc.uf || null;
     const lista = await get(LOJAS_URL);
-    if (!Array.isArray(lista)) return null;
-    // "em breve" = unidade anunciada que ainda não atende; mandar lead pra lá é furo.
+    if (!Array.isArray(lista)) return vazio;
+    // "em breve" = unidade anunciada que ainda não atende; contá-la como receptora do lead é furo.
     const geo = lista.filter((s) => s.lat && s.lng && !/em breve/i.test(s.nome || "") && waUrl(s));
-    if (!geo.length) return null;
+    if (!geo.length) return vazio;
     let melhor = null;
     for (const s of geo) {
       const d = haversine(loc.lat, loc.lng, s.lat, s.lng);
       if (!melhor || d < melhor.d) melhor = { s, d };
     }
-    if (melhor.d > RAIO_MAX_KM) {
-      console.log(`[unidade] mais próxima a ${Math.round(melhor.d)}km (> ${RAIO_MAX_KM}) — usando localizador`);
-      return null;
-    }
     return {
-      nome: melhor.s.nome || null,
-      cidade: melhor.s.cidade || loc.cidade || null,
-      estado: melhor.s.estado || loc.uf || null,
-      waUrl: waUrl(melhor.s),
+      ...vazio,
+      unidade: melhor.s.nome || null,
+      unidadeSlug: melhor.s.slug || null,
+      unidadeCidade: melhor.s.cidade || null,
+      unidadeUf: melhor.s.estado || null,
       distanciaKm: Math.round(melhor.d),
+      foraDeRaio: melhor.d > RAIO_MAX_KM,
+      _waUrl: waUrl(melhor.s),
     };
   } catch (e) {
-    console.error("[unidade] falhou:", e && e.message);
-    return null;
+    console.error("[unidade] análise falhou:", e && e.message);
+    return vazio;
   }
 }
 
-module.exports = { resolverUnidade, cidadeDoCep: async (cep) => (await geocode(cep))?.cidade || null };
+/**
+ * @returns {Promise<null|{nome,cidade,estado,waUrl,distanciaKm}>}
+ *   null = não deu pra resolver (CEP ruim, rede) OU a mais próxima está fora do raio —
+ *   nesse caso quem chama cai no localizador genérico, que é o comportamento correto.
+ */
+async function resolverUnidade(cep, analise) {
+  const a = analise || (await analisarCep(cep));
+  if (!a.unidade || a.foraDeRaio) {
+    if (a.distanciaKm != null) {
+      console.log(`[unidade] mais próxima a ${a.distanciaKm}km (> ${RAIO_MAX_KM}) — usando localizador`);
+    }
+    return null;
+  }
+  return {
+    nome: a.unidade,
+    cidade: a.unidadeCidade || a.cepCidade || null,
+    estado: a.unidadeUf || a.cepUf || null,
+    waUrl: a._waUrl || null,
+    distanciaKm: a.distanciaKm,
+  };
+}
+
+module.exports = {
+  resolverUnidade, analisarCep, ufDoCep,
+  cidadeDoCep: async (cep) => (await geocode(cep))?.cidade || null,
+};
