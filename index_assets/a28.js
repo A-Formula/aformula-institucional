@@ -65,4 +65,20 @@
       setTimeout(function(){ btn.textContent = old; }, 2600);
     });
   }
+
+  /* ---- Botão flutuante de mensagem → página de contato ----
+     Injetado aqui (padrão da casa, como o aviso de cookies) pra valer em toda página que
+     carrega este script. Na própria /contato não aparece. z-index 99998: abaixo do aviso
+     de cookies (99999), que é temporário e tem prioridade. */
+  if (!/\/contato(\.html)?\/?$/i.test(location.pathname)) {   /* cleanUrls: em produção é /contato */
+    var fabCss = document.createElement("style");
+    fabCss.textContent = '.af-fab{position:fixed;right:22px;bottom:22px;z-index:99998;display:inline-flex;align-items:center;gap:9px;height:48px;padding:0 20px 0 16px;border-radius:999px;background:#008896;color:#fff;font-family:inherit;font-weight:700;font-size:14px;letter-spacing:.02em;text-decoration:none;box-shadow:0 10px 28px rgba(0,18,26,.28);transition:transform .25s,box-shadow .25s,background .25s}.af-fab:hover{transform:translateY(-2px);box-shadow:0 16px 34px rgba(0,18,26,.36);background:#00525d}.af-fab:focus-visible{outline:3px solid #063237;outline-offset:2px}.af-fab svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}@media(prefers-reduced-motion:reduce){.af-fab{transition:none}}@media(max-width:767px){.af-fab{right:14px;bottom:calc(14px + env(safe-area-inset-bottom));height:52px;width:52px;padding:0;justify-content:center}.af-fab span{display:none}}';
+    document.head.appendChild(fabCss);
+    var fab = document.createElement("a");
+    fab.href = "contato.html";
+    fab.className = "af-fab";
+    fab.setAttribute("aria-label", "Fale conosco — página de contato");
+    fab.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-9 8.4 8.5 8.5 0 0 1-3.8-.9L3 20l1-4.9a8.38 8.38 0 0 1-.5-3.6 8.5 8.5 0 0 1 8.5-8.5 8.38 8.38 0 0 1 9 8.5z"/></svg><span>Fale conosco</span>';
+    document.body.appendChild(fab);
+  }
 })();

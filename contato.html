@@ -1186,44 +1186,27 @@ ol,ul{margin:0;padding:0;list-style:none}
     }
     if(VIA_UNIDADE[assunto]){
       if(digits(cep).length!==8){
-        set(msg,"ok","Mensagem recebida com sucesso! Veja no mapa a unidade mais próxima para falar direto com ela.");
-        setTimeout(function(){window.location.href="encontre-uma-loja.html";},1400);
+        set(msg,"ok","Mensagem recebida!");
+        setTimeout(function(){window.location.href="encontre-uma-loja.html";},600);
         return;
       }
-      set(msg,"ok","Mensagem recebida! Procurando a unidade que vai te atender…");
-      /* A DECISÃO É DO SERVIDOR (ident.rota). Ele conhece o raio de 150 km e a contagem de
-         repetições, que o navegador não tem como saber. O `nearest()` daqui virou RESERVA: só
-         entra se a resposta não vier (rede, timeout, endpoint fora). Antes esta função decidia
-         sozinha e mandava o lead de Curitiba pro WhatsApp de Florianópolis, a 251 km, enquanto o
-         painel e o aviso interno diziam Brooklin — duas verdades pro mesmo lead. */
+      /* A DECISÃO segue sendo DO SERVIDOR (ident.rota). Ele conhece o raio de 150 km e a
+         contagem de repetições, que o navegador não tem como saber. O `nearest()` é RESERVA
+         (pré-aquecido no submit, em ident.localP): só decide se a resposta não vier. */
       var texto="Olá! "+ORIGEM+" "+(ident.nome?"Aqui é "+ident.nome+". ":"")+VIA_UNIDADE[assunto]+":\n\n"+(ident.mensagem||"");
-      function abrir(nome,cidade,estado,w,motivo){
-        var onde=nome+(cidade?" ("+cidade+(estado?"/"+estado:"")+")":"");
-        var url=w+"?text="+encodeURIComponent(texto);
-        /* "mais próxima" é afirmação de distância: só pode ser dita quando é verdade. Na loja
-           própria (nenhuma unidade em 150 km) a frase muda, senão o site mente na cara do cliente. */
-        set(msg,"ok", motivo==="propria"
-          ? "Não há unidade a menos de 150 km do seu CEP. Quem vai te atender é a A Fórmula "+onde+"."
-          : "Unidade mais próxima: "+onde+".");
-        /* O link entra SEMPRE, antes de tentar o pop-up. O navegador só permite window.open logo
-           depois do clique, e aqui já houve a ida ao servidor — o bloqueador pode barrar (medido:
-           barrou no teste). Com o link visível, a pessoa clica e o lead não morre. */
-        var a=document.createElement("a");
-        a.href=url; a.target="_blank"; a.rel="noopener noreferrer"; a.className="contact__wa";
-        a.textContent="Abrir o WhatsApp da A Fórmula "+nome;
-        msg.appendChild(document.createElement("br"));
-        msg.appendChild(a);
-        window.open(url,"_blank","noopener");
+      function abrir(w){
+        /* Redirect na MESMA aba: location.href não é barrado por bloqueador de pop-up — o
+           window.open pós-fetch era (medido em teste), e a pessoa ficava parada na mensagem.
+           O POST usa keepalive, então o envio sobrevive à navegação. */
+        window.location.href=w+"?text="+encodeURIComponent(texto);
       }
-      function reserva(){
-        nearest(cep).then(function(s){
-          var w=s&&waLink(s);
-          if(w)abrir(s.nome,s.cidade,s.estado,w,"raio");
-          else{set(msg,"ok","Mensagem recebida com sucesso! Veja as unidades no mapa.");setTimeout(function(){window.location.href="encontre-uma-loja.html";},1200);}
-        });
-      }
-      if(ident.rota&&ident.rota.waUrl)abrir(ident.rota.nome,ident.rota.cidade,ident.rota.estado,ident.rota.waUrl,ident.rota.motivo);
-      else reserva();
+      set(msg,"ok","Mensagem recebida!");
+      if(ident.rota&&ident.rota.waUrl){abrir(ident.rota.waUrl);return;}
+      (ident.localP||nearest(cep)).then(function(s){
+        var w=s&&waLink(s);
+        if(w)abrir(w);
+        else setTimeout(function(){window.location.href="encontre-uma-loja.html";},600);
+      });
       return;
     }
     set(msg,"ok","Mensagem recebida com sucesso!");
@@ -1246,17 +1229,22 @@ ol,ul{margin:0;padding:0;list-style:none}
     /* O backend agora DEVOLVE qual unidade atende (raio de 150 km + freio anti-teste), então nos
        assuntos que abrem WhatsApp vale esperar a resposta. Nos outros o roteamento é local e
        esperar só atrasaria a pessoa. */
-    var enviar=fetch("/api/contato",{method:"POST",headers:{"Content-Type":"application/json"},
+    /* keepalive: o redirect pro WhatsApp acontece o mais cedo possível e a navegação NÃO pode
+       cancelar este POST — sem keepalive o navegador aborta fetch em voo ao trocar de página
+       e o lead não seria gravado. */
+    var enviar=fetch("/api/contato",{method:"POST",keepalive:true,headers:{"Content-Type":"application/json"},
       body:JSON.stringify({nome:nome,telefone:tel,email:email,assunto:assunto,mensagem:mensagem,cep:cep,marketing:marketing})})
       .then(function(r){return r.json();}).catch(function(){return null;});
     if(window.gtag)gtag('event','generate_lead',{form_name:'contato',form_location:'contato'});
     if(btn)btn.disabled=false;
     var ident={nome:nome,email:email,telefone:tel,mensagem:mensagem};
     if(VIA_UNIDADE[assunto]){
-      set(msg,"ok","Mensagem recebida! Procurando a unidade que vai te atender…");
-      /* Teto de 7s: se o servidor demorar (o geocode do CEP depende de API pública), a página
-         decide com o cálculo dela em vez de deixar a pessoa olhando uma mensagem parada. */
-      Promise.race([enviar,new Promise(function(ok){setTimeout(function(){ok(null);},7000);})])
+      set(msg,"ok","Mensagem recebida!");
+      /* Reserva pré-aquecida: o cálculo local começa JÁ, em paralelo com o servidor. Se o teto
+         de 4s estourar, a resposta local costuma estar pronta e o redirect sai na hora, em vez
+         de só então começar a geocodificar. */
+      ident.localP=nearest(cep);
+      Promise.race([enviar,new Promise(function(ok){setTimeout(function(){ok(null);},4000);})])
         .then(function(j){ ident.rota=(j&&j.rota)||null; route(assunto,cep,ident); });
     } else {
       route(assunto,cep,ident);
