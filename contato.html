@@ -1197,7 +1197,7 @@ ol,ul{margin:0;padding:0;list-style:none}
       function abrir(w){
         /* Redirect na MESMA aba: location.href não é barrado por bloqueador de pop-up — o
            window.open pós-fetch era (medido em teste), e a pessoa ficava parada na mensagem.
-           O POST usa keepalive, então o envio sobrevive à navegação. */
+           Quando chega aqui o lead JÁ está gravado (route() só roda após o ok:true). */
         window.location.href=w+"?text="+encodeURIComponent(texto);
       }
       set(msg,"ok","Mensagem recebida!");
@@ -1226,30 +1226,30 @@ ol,ul{margin:0;padding:0;list-style:none}
     var btn=f.querySelector('button[type="submit"]');
     if(btn)btn.disabled=true;
     set(msg,"ok","Enviando…");
-    /* O backend agora DEVOLVE qual unidade atende (raio de 150 km + freio anti-teste), então nos
-       assuntos que abrem WhatsApp vale esperar a resposta. Nos outros o roteamento é local e
-       esperar só atrasaria a pessoa. */
-    /* keepalive: o redirect pro WhatsApp acontece o mais cedo possível e a navegação NÃO pode
-       cancelar este POST — sem keepalive o navegador aborta fetch em voo ao trocar de página
-       e o lead não seria gravado. */
+    /* O REGISTRO DO LEAD É OBRIGATÓRIO (regra do negócio, 12/08/2026): NENHUM redirect
+       acontece antes de o servidor confirmar a gravação — o `ok:true` do /api/contato só é
+       devolvido DEPOIS do add no banco. Falhou ou estourou o teto → erro na tela, dados do
+       formulário preservados pra tentar de novo. Nunca seguir pro WhatsApp com lead perdido. */
     var enviar=fetch("/api/contato",{method:"POST",keepalive:true,headers:{"Content-Type":"application/json"},
       body:JSON.stringify({nome:nome,telefone:tel,email:email,assunto:assunto,mensagem:mensagem,cep:cep,marketing:marketing})})
-      .then(function(r){return r.json();}).catch(function(){return null;});
+      .then(function(r){return r.ok?r.json():null;}).catch(function(){return null;});
     if(window.gtag)gtag('event','generate_lead',{form_name:'contato',form_location:'contato'});
-    if(btn)btn.disabled=false;
     var ident={nome:nome,email:email,telefone:tel,mensagem:mensagem};
-    if(VIA_UNIDADE[assunto]){
-      set(msg,"ok","Mensagem recebida!");
-      /* Reserva pré-aquecida: o cálculo local começa JÁ, em paralelo com o servidor. Se o teto
-         de 4s estourar, a resposta local costuma estar pronta e o redirect sai na hora, em vez
-         de só então começar a geocodificar. */
-      ident.localP=nearest(cep);
-      Promise.race([enviar,new Promise(function(ok){setTimeout(function(){ok(null);},4000);})])
-        .then(function(j){ ident.rota=(j&&j.rota)||null; route(assunto,cep,ident); });
-    } else {
-      route(assunto,cep,ident);
-    }
-    if(assunto!=="Trabalhe conosco")f.reset();
+    /* Reserva pré-aquecida: o cálculo local começa JÁ, em paralelo com o servidor. Se a
+       confirmação vier sem rota (CEP que o servidor não geocodificou), o destino local
+       costuma estar pronto e o redirect sai na hora. */
+    if(VIA_UNIDADE[assunto])ident.localP=nearest(cep);
+    Promise.race([enviar,new Promise(function(ok){setTimeout(function(){ok(null);},12000);})])
+      .then(function(j){
+        if(btn)btn.disabled=false;
+        if(!j||!j.ok){
+          set(msg,"err","Não foi possível enviar sua mensagem agora. Tente de novo em instantes.");
+          return;   // dados intactos no formulário — a pessoa só clica Enviar de novo
+        }
+        ident.rota=j.rota||null;
+        if(assunto!=="Trabalhe conosco")f.reset();
+        route(assunto,cep,ident);
+      });
   });
 
   var selAssunto=document.getElementById("c-assunto");
