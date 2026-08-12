@@ -530,6 +530,17 @@ async function vInbox(){
   <div class="dash" id="dash"></div>
   <div id="rows">Carregando…</div>`;
   let all=[], current=[], silenciar=false;
+  /* Sem teto de 500: o dashboard precisa do TOTAL real. Duas fontes mescladas por id —
+     (1) carga única da coleção inteira ao abrir a aba; (2) o listener ao vivo segue nos 500
+     mais recentes (lead novo entra na hora; o histórico já está na memória pela carga única).
+     NUNCA deletar via docChanges 'removed': num query com limit ele também dispara quando um
+     doc sai da janela dos 500 (chegou lead novo), e apagar por ele sumiria com lead vivo.
+     Apagar nesta sessão remove do mapa local; apagado em OUTRA sessão só some ao recarregar. */
+  const porId=new Map();
+  const tsDe=m=>{ const t=m.createdAt; if(!t) return 0; const d=t.toDate?t.toDate():new Date(t); const n=d.getTime(); return isNaN(n)?0:n; };
+  const absorver=docs=>docs.forEach(d=>porId.set(d.id,Object.assign(porId.get(d.id)||{},{id:d.id},d.data())));
+  function reconstruir(){ all=[...porId.values()].sort((a,b)=>tsDe(b)-tsDe(a)); }
+  function refletir(){ if(silenciar) return; sincronizarFiltros(); badgeInbox(); apply(); }
 
   const fill=(sel,vals)=>{const s=$(sel);[...new Set(vals.filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt')).forEach(x=>{const o=document.createElement('option');o.value=x;o.textContent=x;s.appendChild(o);});};
   // Idempotente: roda a cada atualização ao vivo. Preserva a seleção do operador — um lead novo
@@ -555,14 +566,18 @@ async function vInbox(){
     if(n){ b.textContent=n; b.classList.remove('hidden'); } else b.classList.add('hidden');
   }
 
+  // Carga única do histórico completo — o que estiver além dos 500 do listener vem daqui.
+  db.collection('contact_messages').orderBy('createdAt','desc').get()
+    .then(snap=>{ absorver(snap.docs); reconstruir(); refletir(); })
+    .catch(e=>console.error('[inbox] carga completa', e));
   // Tempo real: lead novo entra na tabela e recalcula o dashboard sem recarregar a página.
   unsubInbox = db.collection('contact_messages').orderBy('createdAt','desc').limit(500)
     .onSnapshot(snap=>{
-      all = snap.docs.map(d=>({id:d.id,...d.data()}));
+      absorver(snap.docs); reconstruir();
       // O backfill grava centenas de docs em sequência; cada um voltaria como evento aqui e
-      // re-renderizaria a tela no meio do loop. Ele re-renderiza uma vez, no fim.
-      if(silenciar) return;
-      sincronizarFiltros(); badgeInbox(); apply();
+      // re-renderizaria a tela no meio do loop. Ele re-renderiza uma vez, no fim (refletir
+      // respeita o `silenciar`).
+      refletir();
     }, err=>{
       console.error('[inbox] listener', err);
       // Erro depois do primeiro carregamento: mantém o que está na tela em vez de apagar tudo.
@@ -918,6 +933,7 @@ async function vInbox(){
     $('#rows').querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',async()=>{
       if(!confirm('Apagar esta mensagem permanentemente?')) return; b.disabled=true;
       if(!await adminDelete('contact_messages', b.dataset.del)){ b.disabled=false; return; }
+      porId.delete(b.dataset.del);   // senão a próxima reconstrução ressuscitaria a linha apagada
       const i=all.findIndex(x=>x.id===b.dataset.del); if(i>=0)all.splice(i,1);
       apply(); loadCounts();
     }));
