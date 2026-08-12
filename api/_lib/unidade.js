@@ -35,10 +35,40 @@ async function get(url) {
   } catch { return null; } finally { clearTimeout(t); }
 }
 
-// Mesma cadeia do front: awesomeapi (já traz lat/lng) → viacep + nominatim como reserva.
+// Tabela offline faixa de CEP → município + coordenada (5.503 municípios; fonte Correios/IBGE
+// via github.com/Maahzuka/database-CEPS, uso livre; gerada em 12/08/2026). É a 1ª FONTE do
+// geocode: resolve em microssegundos, sem rede e sem rate-limit. Precisão = sede do município,
+// suficiente pro raio de 150 km — o nível de rua das APIs só mudaria km marginais. As APIs
+// públicas viram reserva (CEP fora da tabela). Regenerar: novo dump da fonte + mesmo formato.
+let _faixas = null;
+function faixasCep() {
+  if (_faixas === null) {
+    try { _faixas = require("./cep-municipios.json").faixas || []; }
+    catch (e) { console.error("[unidade] tabela de CEP indisponível:", e && e.message); _faixas = []; }
+  }
+  return _faixas;
+}
+// Busca binária: faixas ordenadas por início e sem sobreposição (validado na geração).
+function geocodeOffline(cep) {
+  const c = digits(cep);
+  if (c.length !== 8) return null;
+  const n = +c, f = faixasCep();
+  let lo = 0, hi = f.length - 1;
+  while (lo <= hi) {
+    const m = (lo + hi) >> 1;
+    if (f[m][0] > n) hi = m - 1;
+    else if (f[m][1] < n) lo = m + 1;
+    else return { lat: f[m][2], lng: f[m][3], cidade: f[m][4], uf: f[m][5] };
+  }
+  return null;
+}
+
+// Cadeia do geocode: tabela offline → awesomeapi (já traz lat/lng) → viacep + nominatim.
 async function geocode(cep) {
   const c = digits(cep);
   if (c.length !== 8) return null;
+  const off = geocodeOffline(c);
+  if (off) return off;
   const a = await get(`https://cep.awesomeapi.com.br/json/${c}`);
   if (a && a.lat && a.lng) return { lat: +a.lat, lng: +a.lng, cidade: a.city || null, uf: a.state || null };
   const v = await get(`https://viacep.com.br/ws/${c}/json/`);

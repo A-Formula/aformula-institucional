@@ -324,8 +324,28 @@ async function getLojas(){
   return _lojas;
 }
 async function jget(url){ try{ const r=await fetch(url); return r.ok?await r.json():null; }catch(_){ return null; } }
+/* Tabela offline faixa de CEP → município + coordenada (mesma do servidor e do contato.html).
+   1ª fonte do geocode: o BACKFILL passa a rodar sem rede e sem os 350ms de pausa por rate-limit
+   das APIs públicas — centenas de leads resolvem em segundos. APIs só pra CEP fora da tabela. */
+let _faixasCep=null;
+async function getFaixasCep(){
+  if(_faixasCep) return _faixasCep;
+  const j=await jget('/index_assets/cep-municipios.v1.json');
+  _faixasCep=(j&&j.faixas)||[];
+  return _faixasCep;
+}
+async function geocodeOffline(cep){
+  const c=digits(cep); if(c.length!==8) return null;
+  const n=+c, f=await getFaixasCep();
+  let lo=0,hi=f.length-1;
+  while(lo<=hi){ const m=(lo+hi)>>1;
+    if(f[m][0]>n)hi=m-1; else if(f[m][1]<n)lo=m+1;
+    else return {lat:f[m][2],lng:f[m][3],cidade:f[m][4],uf:f[m][5]}; }
+  return null;
+}
 async function geocodeCep(cep){
   const c=digits(cep); if(c.length!==8) return null;
+  const off=await geocodeOffline(c); if(off) return {...off,_offline:true};
   const a=await jget(`https://cep.awesomeapi.com.br/json/${c}`);
   if(a&&a.lat&&a.lng) return {lat:+a.lat,lng:+a.lng,cidade:a.city||null,uf:a.state||null};
   const v=await jget(`https://viacep.com.br/ws/${c}/json/`);
@@ -340,6 +360,7 @@ async function geocodeCep(cep){
 async function analisarCep(cep){
   const out={cepUf:ufDoCep(cep),cepCidade:null,cepLat:null,cepLng:null,unidade:null,unidadeSlug:null,unidadeCidade:null,unidadeUf:null,distanciaKm:null,foraDeRaio:null};
   const loc=await geocodeCep(cep); if(!loc) return out;
+  out._offline=!!loc._offline;   // backfill usa pra pular a pausa de rate-limit; NÃO vai pro banco
   out.cepCidade=loc.cidade||null; out.cepUf=out.cepUf||loc.uf||null;
   out.cepLat=loc.lat; out.cepLng=loc.lng;   // coordenada p/ o mapa de bolhas
   const lojas=await getLojas(); if(!lojas.length) return out;
@@ -875,13 +896,17 @@ async function vInbox(){
         t.innerHTML=`<strong>Identificando ${i+1} de ${pend.length}…</strong> ${ok} resolvido(s)${fail?`, ${fail} sem resultado`:''}. Pode continuar usando o painel.`;
         let a;
         try{ a=await analisarCep(m.cep); }catch(_){ a=null; }
+        const semRede=!!(a&&a._offline);
         const upd = a ? {...a, geoAt:new Date().toISOString()} : {geoAt:new Date().toISOString()};
+        delete upd._offline;               // flag de controle local — não polui o documento
         try{
           await db.collection('contact_messages').doc(m.id).update(upd);
           Object.assign(m,upd);            // mantém o array local em sincronia com o banco
           if(a&&a.unidade) ok++; else fail++;
         }catch(_){ fail++; }
-        await new Promise(r=>setTimeout(r,350));   // respeita o rate-limit das APIs públicas de CEP
+        // A pausa só existe pelo rate-limit das APIs públicas de CEP. Resolvido pela tabela
+        // offline (a imensa maioria) → sem pausa: centenas de leads em segundos.
+        if(!semRede) await new Promise(r=>setTimeout(r,350));
       }
       // Volta a ouvir e re-renderiza UMA vez, já com as unidades e UFs que o backfill acabou de criar.
       silenciar=false;
