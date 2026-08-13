@@ -241,6 +241,7 @@
     <button class="nav-item active" data-view="inbox">📥 Mensagens <span class="badge hidden" id="badge-inbox">0</span></button>
     <button class="nav-item" data-view="prescritores">🩺 Prescritores <span class="badge hidden" id="badge-presc">0</span></button>
     <button class="nav-item" data-view="career">💼 Trabalhe conosco <span class="badge hidden" id="badge-career">0</span></button>
+    <button class="nav-item" data-view="cliques">📊 Cliques</button>
     <button class="nav-item" data-view="newsletter">✉️ Newsletter</button>
     <button class="nav-item" data-view="preContent">🔬 Conteúdo prescritor</button>
     <button class="nav-item" data-view="settings">⚙️ Configurações</button>
@@ -480,7 +481,7 @@ document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',()=
 let unsubInbox=null;
 function router(v){
   if(unsubInbox){ unsubInbox(); unsubInbox=null; }
-  ({inbox:vInbox,prescritores:vPresc,career:vCareer,newsletter:vNews,preContent:vPreContent,settings:vSettings}[v]||vInbox)();
+  ({inbox:vInbox,prescritores:vPresc,career:vCareer,cliques:vCliques,newsletter:vNews,preContent:vPreContent,settings:vSettings}[v]||vInbox)();
 }
 
 /* Upload de mídia (Vercel Blob via /api/upload, gated por admin) — usado pelo Conteúdo do prescritor (PDF) */
@@ -1261,6 +1262,117 @@ async function vNews(){
     const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); a.download='newsletter-aformula.csv'; a.click();
   });
   apply();
+}
+
+/* ---------- CLIQUES ----------
+   Mede o MEIO do funil, que o painel não enxergava: quantas pessoas clicam em WhatsApp, telefone
+   e no botão flutuante. Sem isso, um mês com poucos leads é ambíguo — pode ser pouca gente
+   clicando (problema de tráfego/CTA) ou muita gente clicando e ninguém convertendo (problema de
+   atendimento). São diagnósticos opostos.
+   Fonte: coleção `clicks`, um doc por dia POR evento, gravado pela /api/track. Contador agregado,
+   sem PII — por isso aqui não existe (nem pode existir) linha por pessoa. */
+const CLK_ROTULO = {
+  clique_whatsapp:    'WhatsApp',
+  clique_telefone:    'Telefone',
+  clique_cta:         'Botões marcados (CTA)',
+  clique_fab_contato: 'Botão flutuante “Fale conosco”',
+};
+let clkDias = 30;
+async function vCliques(){
+  const v=$('#view');
+  v.innerHTML=`<div class="topbar"><div><h1 class="page">Cliques no site</h1>
+    <p class="hint">Volume de cliques nos canais de contato. Número agregado e anônimo — complementa os leads, que são só quem chegou ao fim do formulário.</p></div>
+    <button class="btn" id="clk-csv">⬇ Exportar CSV</button></div>
+    <div id="clkbody">Carregando…</div>`;
+
+  // Corte por dia em string YYYY-MM-DD: o campo `dia` é texto, então a comparação lexicográfica
+  // equivale à cronológica e o Firestore resolve com índice de campo único (sem índice composto).
+  const corte = new Date(Date.now() - clkDias*864e5);
+  const cutoff = new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(corte);
+
+  let snap;
+  try{ snap = await db.collection('clicks').where('dia','>=',cutoff).get(); }
+  catch(e){ $('#clkbody').innerHTML='<div class="empty">Não foi possível carregar os cliques. Recarregue a página.</div>'; return; }
+
+  const docs = snap.docs.map(d=>d.data());
+  const seletor = `<div class="seg">${[[7,'7 dias'],[30,'30 dias'],[90,'90 dias']].map(([k,l])=>
+      `<button data-clkp="${k}" class="${clkDias===k?'on':''}">${l}</button>`).join('')}</div>`;
+
+  if(!docs.length){
+    // Base vazia é estado diferente de "nada aconteceu": a medição começou em 13/08/2026, então
+    // um painel zerado logo depois disso é esperado, não é falha.
+    $('#clkbody').innerHTML=`<div class="hero"><div class="hero-head"><h3>Volume de cliques</h3>${seletor}</div>
+      <p class="dash-empty" style="padding:8px 0">Nenhum clique registrado nos últimos ${clkDias} dias.
+      A medição entrou no ar em 13/08/2026 — antes dessa data não há histórico.</p></div>`;
+    wireClk(); return;
+  }
+
+  // Soma dos mapas aninhados. Cada doc traz {total, rotulos:{...}, paginas:{...}} de UM dia+evento.
+  const soma=(alvo,mapa)=>{ for(const k in (mapa||{})) alvo[k]=(alvo[k]||0)+(mapa[k]||0); };
+  const porEvento={}, porRotulo={}, porPagina={}, porDia={}, waPorUnidade={};
+  let total=0;
+  docs.forEach(d=>{
+    const n=d.total||0; total+=n;
+    porEvento[d.evento]=(porEvento[d.evento]||0)+n;
+    porDia[d.dia]=(porDia[d.dia]||0)+n;
+    soma(porRotulo,d.rotulos); soma(porPagina,d.paginas);
+    if(d.evento==='clique_whatsapp') soma(waPorUnidade,d.rotulos);
+  });
+  const ord=o=>Object.entries(o).sort((a,b)=>b[1]-a[1]);
+  const barras=(lista,tot,vazio)=>{
+    if(!lista.length) return `<p class="dash-empty">${vazio}</p>`;
+    const max=Math.max(...lista.map(x=>x[1]))||1;
+    return '<div class="bars">'+lista.slice(0,12).map(([nome,n])=>{
+      const pc=tot?Math.round(n*100/tot):0;
+      return `<div class="bar" data-tip="<b>${esc(nome)}</b><br>${n} clique(s) · ${pc}% do período">
+        <span class="nm">${esc(nome)}</span>
+        <span class="tr"><span class="fl" style="width:${Math.max(2,Math.round(n*100/max))}%"></span></span>
+        <span class="vl">${n}</span></div>`;
+    }).join('')+'</div>'+(lista.length>12?`<p class="ph">Mostrando as 12 maiores de ${lista.length}. O CSV traz todas.</p>`:'');
+  };
+  const mini=(n,l)=>`<div><div class="mn">${n}</div><div class="ml">${l}</div></div>`;
+  const dias=Object.keys(porDia).length||1;
+
+  $('#clkbody').innerHTML=`
+    <div class="hero">
+      <div class="hero-head"><h3>Volume de cliques</h3>${seletor}</div>
+      <div class="hero-stats">
+        <div><div class="n">${total}</div><div class="l">cliques em ${clkDias} dias</div></div>
+        ${mini(porEvento.clique_whatsapp||0,'no WhatsApp<br>(site + Encontre uma loja)')}
+        ${mini(porEvento.clique_fab_contato||0,'no botão flutuante<br>“Fale conosco”')}
+        ${mini(Math.round(total/dias),`por dia, em média<br>${dias} dia(s) com registro`)}
+      </div>
+    </div>
+    <div class="panels">
+      <div class="panel"><h3>Por canal <span class="cnt">${Object.keys(porEvento).length} canal(is)</span></h3>
+        <p class="ph">Onde a pessoa clicou para falar com a A Fórmula.</p>
+        ${barras(ord(porEvento).map(([k,n])=>[CLK_ROTULO[k]||k,n]),total,'Sem cliques no período.')}</div>
+      <div class="panel"><h3>WhatsApp por unidade <span class="cnt">${Object.keys(waPorUnidade).length} origem(ns)</span></h3>
+        <p class="ph">Nome do card clicado na Encontre uma loja. “—” = clique num link de WhatsApp fora do localizador.</p>
+        ${barras(ord(waPorUnidade),porEvento.clique_whatsapp||0,'Nenhum clique em WhatsApp ainda.')}</div>
+      <div class="panel span2"><h3>Páginas que mais geram clique <span class="cnt">${Object.keys(porPagina).length} página(s)</span></h3>
+        <p class="ph">Em que página a pessoa estava quando clicou.</p>
+        ${barras(ord(porPagina),total,'Sem dados.')}</div>
+    </div>`;
+  wireTips($('#clkbody'));
+  wireClk();
+
+  $('#clk-csv').addEventListener('click',()=>{
+    const rows=[['dia','evento','rotulo','cliques']];
+    docs.forEach(d=>{
+      const r=d.rotulos||{};
+      if(!Object.keys(r).length) rows.push([d.dia,CLK_ROTULO[d.evento]||d.evento,'',d.total||0]);
+      for(const k in r) rows.push([d.dia,CLK_ROTULO[d.evento]||d.evento,k,r[k]]);
+    });
+    const csv='﻿'+rows.map(r=>r.map(c=>`"${csvSafe(c).replace(/"/g,'""')}"`).join(';')).join('\r\n');
+    const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+    a.download=`cliques-aformula-${clkDias}d.csv`; a.click();
+  });
+}
+function wireClk(){
+  document.querySelectorAll('[data-clkp]').forEach(b=>b.addEventListener('click',()=>{
+    clkDias=parseInt(b.dataset.clkp,10); vCliques();
+  }));
 }
 
 /* ---------- SETTINGS ---------- */

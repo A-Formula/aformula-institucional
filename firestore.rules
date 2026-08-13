@@ -29,6 +29,11 @@ service cloud.firestore {
     match /email_jobs/{doc}       { allow read: if isAdmin(); allow write: if false; }
     match /email_runs/{doc}       { allow read: if isAdmin(); allow write: if false; }
 
+    // Contadores de clique (agregados, sem PII). Escrita só pela /api/track via admin SDK, que
+    // ignora rules — deixar `write: false` aqui garante que ninguém escreva direto do browser
+    // com o SDK cliente e infle o número.
+    match /clicks/{doc}           { allow read: if isAdmin(); allow write: if false; }
+
     // Área do prescritor (F4): aprovado = existe prescriber_access/{email} (criado na aprovação).
     function isApprovedPrescriber() {
       return request.auth != null

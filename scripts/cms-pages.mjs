@@ -23,6 +23,17 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+// Preferência por derivado WebP. O painel guarda o caminho da imagem como ela foi semeada
+// (JPEG/PNG pesado). Sem isto, otimizar uma imagem no HTML seria DESFEITO no próximo "Publicar":
+// o valor do banco ainda apontaria pro .jpg e o motor reescreveria por cima, silenciosamente.
+// Só troca quando o .webp existe de fato no disco — imagem sem derivado segue como está.
+const CMS_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+export const preferirWebp = (rel) => {
+  if (!rel || !/\.(jpe?g|png)$/i.test(rel)) return rel;
+  const cand = rel.replace(/\.(jpe?g|png)$/i, '.webp');
+  return fs.existsSync(path.join(CMS_ROOT, cand.replace(/^\//, ''))) ? cand : rel;
+};
+
 const TEXT_TAGS = ['h1', 'h2', 'h3', 'p'];
 const DEFAULT_ITEM_TAGS = ['h3', 'p', 'span'];
 
@@ -246,8 +257,9 @@ function processSection(block, sec, colDef, anchor) {
   }
   if (sec.imgs) for (const im of enumImgs(block, itemRanges)) {
     const stored = sec.imgs[String(im.idx)];
-    if (stored && stored.val && stored.val !== im.src)
-      edits.push({ start: im.start, end: im.start + im.tagStr.length, rep: im.tagStr.replace(/src="[^"]*"/, `src="${E(stored.val)}"`) });
+    const valA = stored && preferirWebp(stored.val);
+    if (valA && valA !== im.src)
+      edits.push({ start: im.start, end: im.start + im.tagStr.length, rep: im.tagStr.replace(/src="[^"]*"/, `src="${E(valA)}"`) });
   }
   if (colDef && Array.isArray(sec.items) && itemRanges.length) {
     const editsFor = (it, ib) => {
@@ -259,8 +271,9 @@ function processSection(block, sec, colDef, anchor) {
       }
       if (it.imgs) for (const im of enumImgs(ib, [])) {
         const stored = it.imgs[String(im.idx)];
-        if (stored && stored.val && stored.val !== im.src)
-          iEdits.push({ start: im.start, end: im.start + im.tagStr.length, rep: im.tagStr.replace(/src="[^"]*"/, `src="${E(stored.val)}"`) });
+        const valB = stored && preferirWebp(stored.val);
+        if (valB && valB !== im.src)
+          iEdits.push({ start: im.start, end: im.start + im.tagStr.length, rep: im.tagStr.replace(/src="[^"]*"/, `src="${E(valB)}"`) });
       }
       if (it.tail && it.tail.val) {
         const m = ib.match(/(<img[^>]*>\s*)([^<]+)(<\/span>\s*)$/);

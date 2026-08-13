@@ -24,6 +24,22 @@ const stripDangerous = h => (h==null?'':String(h))
 const FALLBACK = {saude:'blog_assets/a36.webp',dicas:'blog_assets/a38.webp','cuidados-com-o-corpo':'blog_assets/a35.webp',novidades:'blog_assets/a33.webp',mercado:'blog_assets/a39.webp',beleza:'blog_assets/a37.webp',ativos:'blog_assets/a40.webp','cuidados-com-o-cabelo':'blog_assets/a34.webp','sem-categoria':'blog_assets/a38.webp'};
 const imgOf = p => p.cover || FALLBACK[p.categorySlug] || 'blog_assets/a38.jpg';
 
+// As capas vêm do Firestore em tamanho de origem (2688×1536 JPEG, 250–570 KB cada). Nos CARDS
+// elas aparecem a ~300 px — 14× menores que o arquivo. Em vez de reescrever o campo `cover` no
+// banco (que quebraria o editor e o histórico), o build prefere o derivado em WebP quando o
+// arquivo existe no disco, e cai no original quando não existe. Assim capa nova continua
+// funcionando no dia em que é publicada, mesmo antes de alguém gerar os derivados.
+//   {slug}.webp        → 1600 px, usado no hero do artigo (largura total)
+//   {slug}-thumb.webp  → 800 px, usado nos cards da home e da listagem
+// Gerar derivados novos: ffmpeg -i capa.jpg -vf scale=1600:-2 -c:v libwebp -quality 80 saida.webp
+const derivado = (rel, sufixo) => {
+  if (!rel || !/\.(jpe?g|png)$/i.test(rel)) return rel;      // já é webp/svg: nada a trocar
+  const cand = rel.replace(/\.(jpe?g|png)$/i, sufixo + '.webp');
+  return fs.existsSync(path.join(ROOT, cand.replace(/^\//, ''))) ? cand : rel;
+};
+const capaCard = p => derivado(imgOf(p), '-thumb');
+const capaHero = p => derivado(p.cover, '');
+
 async function loadFirestore() {
   const saRaw = process.env.FIREBASE_SERVICE_ACCOUNT;
   if (!saRaw) { console.log('[build] sem FIREBASE_SERVICE_ACCOUNT — mantendo arquivos commitados'); return null; }
@@ -114,7 +130,7 @@ function buildIndexHtml(src, posts) {
   src = src.replace(/<a class="fcard" href="[^"]*"><img src="[^"]*" alt="[^"]*"([^>]*)><span class="fcard__t">[^<]*<\/span><\/a>/g, (m, imgTail) => {
     const p = gal[i++]; if (!p) return m;
     const title = p.title.length <= 84 ? p.title : p.title.slice(0,81).trimEnd() + '…';
-    return `<a class="fcard" href="${p.path}"><img src="${p.cover}" alt="${E(p.coverAlt||p.title)}"${imgTail}><span class="fcard__t">${E(title)}</span></a>`;
+    return `<a class="fcard" href="${p.path}"><img src="${capaCard(p)}" alt="${E(p.coverAlt||p.title)}"${imgTail}><span class="fcard__t">${E(title)}</span></a>`;
   });
   return src;
 }
@@ -159,7 +175,7 @@ ${ogImg}
     return `\n<script type="application/ld+json">${json}</script>`;
   })();
   const heroOpen = p.cover
-    ? `<section class="art-hero art-hero--img" role="img" aria-label="${E(p.coverAlt||p.title)}"><div class="art-hero__bg" style="background-image:url(${E(p.cover)})"></div><div class="art-hero__scrim"></div>`
+    ? `<section class="art-hero art-hero--img" role="img" aria-label="${E(p.coverAlt||p.title)}"><div class="art-hero__bg" style="background-image:url(${E(capaHero(p))})"></div><div class="art-hero__scrim"></div>`
     : '<section class="art-hero">';
   const relCards = related.map(r=>`<a class="rel-card" href="${E(r.path)}"><span class="rel-cat">${E(r.categoryLabel)}</span><span class="rel-title">${E(r.title)}</span><span class="rel-meta">${dataPt(r.publishedAt)} · ${r.readTime} min de leitura</span></a>`).join('\n');
   const relHtml = related.length ? `<section class="art-rel"><div class="container"><h2>Continue lendo</h2><div class="art-rel-grid">${relCards}</div></div></section>` : '';
@@ -205,6 +221,7 @@ ${parts.footer}
 <script id="art-copy-js">(function(){var b=document.querySelector(".art-copy");if(!b)return;b.addEventListener("click",function(){var u=b.getAttribute("data-copy"),ok=document.getElementById("art-copy-ok");function done(){if(ok){ok.hidden=false;setTimeout(function(){ok.hidden=true;},2600);}}if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(u).then(done).catch(done);}else{var t=document.createElement("textarea");t.value=u;document.body.appendChild(t);t.select();try{document.execCommand("copy");}catch(_){}document.body.removeChild(t);done();}});})();</script>
 <script src="/index_assets/a28.js"></script>
 <script src="/index_assets/a31.js"></script>
+<script src="/index_assets/af-contato.v1.js"></script>
 </body></html>`;
 }
 
@@ -239,13 +256,13 @@ function buildBlogHtml(src, posts) {
   src = setTplText(src,40,E(featured.title),'h2');
   src = setTplText(src,41,E(featured.excerpt.slice(0,140)),'p');
   src = setTplAttr(src,42,'href',E(featured.path),'a');
-  src = setTplAttr(src,47,'src',E(imgOf(featured)),'img');
+  src = setTplAttr(src,47,'src',E(derivado(imgOf(featured),'')),'img');   // destaque: grande na tela, usa o 1600
   src = setTplAttr(src,47,'alt',E(featured.coverAlt||featured.title),'img');
   // recentes
   const CARD=[{art:135,img:137,cat:139,h3:140,p:141,date:143,read:145,a:146},{art:150,img:152,cat:154,h3:155,p:156,date:158,read:160,a:161},{art:165,img:167,cat:169,h3:170,p:171,date:173,read:175,a:176},{art:180,img:182,cat:184,h3:185,p:186,date:188,read:190,a:191}];
   recent4.forEach((p,i)=>{const t=CARD[i];
     src=setTplAttr(src,t.art,'data-cat',E(p.categorySlug),'article');
-    src=setTplAttr(src,t.img,'src',E(imgOf(p)),'img');
+    src=setTplAttr(src,t.img,'src',E(capaCard(p)),'img');
     src=setTplAttr(src,t.img,'alt',E(p.coverAlt||p.title),'img');
     src=setTplText(src,t.cat,E(p.categoryLabel),'span');
     src=setTplText(src,t.h3,E(p.title),'h3');
@@ -255,7 +272,7 @@ function buildBlogHtml(src, posts) {
     src=setTplAttr(src,t.a,'href',E(p.path),'a');});
   // em alta — renderiza a lista curada (N cards) substituindo o miolo do trilho [data-trend-row]
   const trendCard = p => `      <a href="${E(p.path)}" data-tcard="" style="scroll-snap-align: start; position: relative; border-radius: 18px; overflow: hidden; aspect-ratio: 3 / 4.1; display: block;">
-        <img src="${E(imgOf(p))}" alt="${E(p.coverAlt||p.title)}" style="position: absolute; inset: 0px; width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);" loading="lazy" decoding="async">
+        <img src="${E(capaCard(p))}" alt="${E(p.coverAlt||p.title)}" style="position: absolute; inset: 0px; width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);" loading="lazy" decoding="async">
         <div style="position: absolute; inset: 0px; background: linear-gradient(rgba(6, 50, 55, 0) 0%, rgba(6, 50, 55, 0.38) 44%, rgba(6, 50, 55, 0.97) 100%);"></div>
         <div style="position: absolute; left: 0px; right: 0px; bottom: 0px; padding: 24px;">
           <span style="font-family: Avenir, sans-serif; font-weight: 900; font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; color: rgb(79, 182, 192);">${E(p.categoryLabel)}</span>
@@ -268,7 +285,7 @@ function buildBlogHtml(src, posts) {
     (_m, open) => `${open}\n${trend.map(trendCard).join('\n')}\n    </div>\n  </div></section>`
   );
   // índice embutido (idempotente: remove antigo)
-  const index = posts.map(p=>({t:p.title,c:p.categorySlug,cl:p.categoryLabel,x:(p.excerpt||'').slice(0,120),d:dataPt(p.publishedAt),r:`${p.readTime} min de leitura`,i:imgOf(p),h:p.path}));
+  const index = posts.map(p=>({t:p.title,c:p.categorySlug,cl:p.categoryLabel,x:(p.excerpt||'').slice(0,120),d:dataPt(p.publishedAt),r:`${p.readTime} min de leitura`,i:capaCard(p),h:p.path}));
   const indexJson = JSON.stringify(index).replace(/<\//g,'<\\/');
   const NEW_JS = fs.readFileSync(path.join(__dirname,'blog-filter.js.html'),'utf8').replace('__INDEX_JSON__', indexJson);
   src = src.replace(/<script id="af-posts-index"[^>]*>[\s\S]*?<\/script>\s*/,'');
