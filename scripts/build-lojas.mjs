@@ -20,6 +20,24 @@
 //   vem do `nome`, que é dado curado pela matriz (validado: as 8 cidades com 2+
 //   unidades têm rótulo único).
 // - O endereço aparece SEMPRE verbatim, nunca recomposto.
+//
+// HORÁRIO (2026-08-17, 2ª rodada): vem de _coleta-google/{slug}.json, NUNCA de constante.
+// - Só entra se `confere === true` E `diasCapturados === 7` E os 7 dias parseiam.
+// - 15 unidades não têm horário no perfil → a página OMITE o card, o schema e a menção
+//   no lead/FAQ. Publicar o genérico manda o cliente pra porta fechada.
+// - Dois turnos vêm colados no Google ("08:00–12:0014:00–18:00") → 2 entradas de
+//   openingHoursSpecification no mesmo dia, exibidas como "8h às 12h e 14h às 18h".
+// - Dia "Fechado" não entra no schema (a ausência já significa fechado).
+//
+// sameAs = `urlPerfil` da coleta, NÃO o place_id do cadastro: em Salvador o place_id
+// aponta pro PRÉDIO e traz a nota do shopping (4,5/35.912) no lugar da farmácia (4,2).
+//
+// Nota do Google: exibida no HTML com atribuição e link pro perfil. NUNCA como
+// aggregateRating — marcar avaliação de terceiro como do próprio site viola a
+// diretriz de dados estruturados do Google.
+//
+// Fotos: o JSON traz `fotos`, mas são hospedadas pelo Google e pertencem a quem
+// postou. Hotlink fere os termos e some sem aviso. Campo IGNORADO de propósito.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -31,23 +49,90 @@ const BASE = 'https://www.aformulabr.com.br';
 
 const SLUGS = ['salvador-shopping-paralela']; // piloto
 
-// ⚠️ HORÁRIO GENÉRICO — decisão do operador 2026-08-17, na falta do dado real
-// (cobertura 0% no lojas.json). A página declara que é referência e manda
-// confirmar pelo WhatsApp. Quando vier o horário por unidade, trocar aqui
-// (ou passar a ler u.horario, se o campo for criado no cadastro).
-const HORARIO = {
-  semana: { abre: '08:00', fecha: '18:00', rotulo: 'Segunda a sexta' },
-  sabado: { abre: '08:00', fecha: '13:00', rotulo: 'Sábado' },
-  domingoFechado: true,
-};
+// Ordem canônica da semana: [chave no JSON da coleta, rótulo pt-BR, dayOfWeek do schema]
+const DIAS = [
+  ['segunda-feira', 'Segunda', 'Monday'],
+  ['terça-feira', 'Terça', 'Tuesday'],
+  ['quarta-feira', 'Quarta', 'Wednesday'],
+  ['quinta-feira', 'Quinta', 'Thursday'],
+  ['sexta-feira', 'Sexta', 'Friday'],
+  ['sábado', 'Sábado', 'Saturday'],
+  ['domingo', 'Domingo', 'Sunday'],
+];
+
+// Perfil do Google por unidade (coleta de 2026-08-17). Ausente → página sem horário.
+function lerColeta(slug) {
+  const p = path.join(ROOT, '_coleta-google', `${slug}.json`);
+  if (!fs.existsSync(p)) return null;
+  try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch { return null; }
+}
+
+// '08:00–12:0014:00–18:00' → [['08:00','12:00'],['14:00','18:00']] · 'Fechado' → []
+function faixasDoDia(valor) {
+  if (valor == null) return null;                       // dia não capturado
+  if (/fechado/i.test(valor)) return [];                // fechado explícito
+  const out = [];
+  const re = /(\d{1,2}:\d{2})\s*[–—-]\s*(\d{1,2}:\d{2})/g;
+  let m;
+  while ((m = re.exec(valor))) out.push([m[1], m[2]]);
+  return out.length ? out : null;                       // texto inesperado → não confio
+}
+
+// Semana real ou null. null = a página não fala de horário (nem HTML, nem schema).
+function semana(coleta) {
+  if (!coleta || coleta.confere !== true || coleta.diasCapturados !== 7) return null;
+  const h = coleta.horarios || {};
+  const dias = [];
+  for (const [chave, rot, en] of DIAS) {
+    const f = faixasDoDia(h[chave]);
+    if (f === null) return null;                        // 1 dia duvidoso invalida a semana
+    dias.push({ rotulo: rot, en, faixas: f });
+  }
+  if (!dias.some((d) => d.faixas.length)) return null;  // 7 dias fechados = dado quebrado
+  return dias;
+}
+
+// Agrupa dias consecutivos com o mesmo horário: Seg–Sex iguais → "Segunda a sexta"
+function gruposDeHorario(dias) {
+  const chave = (d) => d.faixas.map((f) => f.join('-')).join('|');
+  const g = [];
+  for (const d of dias) {
+    const k = chave(d);
+    const ult = g[g.length - 1];
+    if (ult && ult.k === k) { ult.dias.push(d); } else { g.push({ k, dias: [d], faixas: d.faixas }); }
+  }
+  return g.map((x) => ({
+    rotulo: x.dias.length === 1
+      ? x.dias[0].rotulo
+      : `${x.dias[0].rotulo} a ${x.dias[x.dias.length - 1].rotulo.toLowerCase()}`,
+    en: x.dias.map((d) => d.en),
+    faixas: x.faixas,
+  }));
+}
 
 // '08:00' → '8h' · '13:30' → '13h30' (sem zero à esquerda, como se escreve em pt-BR)
 const hm = (s) => String(s).replace(/^0/, '').replace(':', 'h').replace(/h00$/, 'h');
+
+// [['08:00','12:00'],['14:00','18:00']] → '8h às 12h e 14h às 18h' · [] → 'Fechado'
+const txtFaixas = (fx) => (fx.length
+  ? fx.map(([a, b]) => `${hm(a)} às ${hm(b)}`).join(' e ')
+  : 'Fechado');
+
+// '4.2' → '4,2' · '127' → 127 (ou null quando o perfil não tem nota)
+function notaGoogle(coleta) {
+  if (!coleta || coleta.confere !== true) return null;
+  const n = parseFloat(String(coleta.nota || '').replace(',', '.'));
+  const av = parseInt(String(coleta.avaliacoes || '').replace(/\D/g, ''), 10);
+  if (!Number.isFinite(n) || !Number.isFinite(av) || !coleta.urlPerfil) return null;
+  return { nota: n.toFixed(1).replace('.', ','), avaliacoes: av, url: coleta.urlPerfil };
+}
 
 const E = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
   .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
+const so = (s) => String(s || '').replace(/\D/g, '');   // só os dígitos
 
 const aberta = (u) => !/em breve/i.test(`${u.nome} ${u.slug}`);
 
@@ -114,6 +199,16 @@ const CSS = `<style id="loja-css">
 .loja-dl dd a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--line)}
 .loja-dl dd a:hover{color:var(--brand);border-color:var(--brand)}
 
+/* Nota do Google: sempre com atribuição visível e link pro perfil da unidade.
+   Nunca vira nota agregada no schema — a avaliação é da plataforma, não deste site.
+   (o termo tecnico fica fora daqui de proposito: grep no HTML tem de voltar zero) */
+.loja-google{display:flex;align-items:flex-start;gap:9px;margin:20px 0 0;padding-top:16px;
+  border-top:1px solid var(--line);font-size:14.5px;line-height:1.5;color:var(--muted)}
+.loja-google svg{flex:0 0 17px;width:17px;height:17px;color:#f2a72c;margin-top:2px}
+.loja-google strong{color:var(--ink);font-size:16px;font-weight:900}
+.loja-google a{color:var(--muted);text-decoration:underline}
+.loja-google a:hover{color:var(--brand)}
+
 .loja-cta{margin-top:26px;display:grid;gap:12px}
 .loja-wa{display:flex;align-items:center;justify-content:center;gap:12px;background:#1faf54;color:#fff;
   font-size:19px;font-weight:900;text-decoration:none;padding:22px 26px;border-radius:14px;line-height:1.2;
@@ -179,27 +274,47 @@ const I = {
   relogio: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>',
   wa: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm5.8 14.13c-.24.68-1.4 1.3-1.93 1.38-.53.08-1.04.29-3.5-.73-2.95-1.22-4.83-4.27-4.98-4.47-.15-.2-1.2-1.6-1.2-3.05s.76-2.16 1.03-2.46c.27-.3.59-.37.79-.37.2 0 .39.01.56.01.18.01.42-.07.66.5.24.58.82 2.01.89 2.16.07.15.12.32.02.52-.1.2-.15.32-.3.5-.15.17-.31.39-.44.52-.15.15-.3.31-.13.6.17.3.76 1.25 1.63 2.02 1.12.99 2.06 1.3 2.36 1.45.3.15.47.12.64-.07.17-.2.73-.86.93-1.15.2-.3.39-.24.66-.15.27.1 1.7.8 1.99.95.29.15.48.22.55.34.07.12.07.7-.17 1.38z"/></svg>',
   rota: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>',
+  estrela: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.6l2.9 5.9 6.5.95-4.7 4.6 1.1 6.45L12 17.45 6.2 20.5l1.1-6.45L2.6 9.45l6.5-.95L12 2.6z"/></svg>',
   check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>',
 };
 
-function render(u, todas, parts) {
+function render(u0, todas, parts, coleta) {
+  // Espaço nas pontas do endereço é ruído do cadastro (ex.: Aracaju termina com " "),
+  // e vira "Brasil . Atende..." na frase. Aparar espaço NÃO recompõe o endereço:
+  // o conteúdo segue verbatim, como manda a decisão de dado.
+  const u = { ...u0, endereco: String(u0.endereco ?? '').trim() };
   const url = `${BASE}/encontre-uma-loja/${u.slug}`;
   const rot = rotulo(u);                 // "Salvador — Shopping Paralela"
   const dist = distintivo(u);            // "Shopping Paralela"
   const nomeCompleto = `A Fórmula ${rot}`;
+  // O número PRINCIPAL é o que já está no site (celular do cadastro — a mesma fonte que o
+  // mapa/finder usa). Decisão do operador 2026-08-17: manter o do site, só acrescentar.
+  // O telefone do Google NÃO entra: em `macaubas` o perfil lista um DDD (11) para uma loja
+  // da Bahia, então importá-lo trocaria o contato certo por um errado.
   const tel = u.celular || u.telefone || null;
   const wa = waNumero(tel);
+  // Fixo do cadastro, só quando é número DIFERENTE do WhatsApp. 3 unidades (jacobina,
+  // senhor-do-bonfim, mossoro-medical-center) trazem dois números no mesmo campo, com "|".
+  const fixos = String(u.telefone || '').split('|').map((s) => s.trim())
+    .filter((f) => f && so(f) !== so(tel));
   const irmas = todas.filter((o) => o.cidade === u.cidade && o.slug !== u.slug && aberta(o));
 
-  const horaSemana = `${hm(HORARIO.semana.abre)} às ${hm(HORARIO.semana.fecha)}`;
-  const horaSabado = `${hm(HORARIO.sabado.abre)} às ${hm(HORARIO.sabado.fecha)}`;
+  // Horário REAL do perfil do Google, ou null → a página inteira cala sobre horário.
+  const dias = semana(coleta);
+  const grupos = dias ? gruposDeHorario(dias) : null;
+  const abertos = grupos ? grupos.filter((g) => g.faixas.length) : [];
+  // "segunda a sexta, 9h às 22h; sábado, 9h às 22h; domingo, 13h às 21h"
+  const resumoHoras = abertos
+    .map((g) => `${g.rotulo.toLowerCase()}, ${txtFaixas(g.faixas)}`).join('; ');
+  const fechaDomingo = !!(dias && !dias[6].faixas.length);
+  const rating = notaGoogle(coleta);
 
   // ---------- meta ----------
   const title = dist
     ? `Farmácia de Manipulação em ${u.cidade} — ${dist} | A Fórmula`
     : `Farmácia de Manipulação em ${u.cidade} | A Fórmula`;
   const desc = `A Fórmula em ${u.cidade} (${u.estado}): ${u.endereco}. ` +
-    `${HORARIO.semana.rotulo} de ${horaSemana}, sábado de ${horaSabado}. ` +
+    (resumoHoras ? `Atende ${resumoHoras}. ` : '') +
     `Envie a receita pelo WhatsApp e receba o orçamento.`;
 
   const titleBlock = `<title>${E(title)}</title>
@@ -221,10 +336,13 @@ function render(u, todas, parts) {
   // porque LLM extrai a frase isolada e sem o sujeito ela não serve de citação) ----------
   const confirme = tel ? ` confirme com a unidade pelo WhatsApp: ${tel}.` : ' confirme com a unidade.';
   const faq = [];
-  faq.push({
+  // Sem horário no perfil do Google → a pergunta não entra. Não existe resposta honesta
+  // (o genérico da rede bate em 4 de 56) e inventar manda o cliente pra porta fechada.
+  if (resumoHoras) faq.push({
     q: `Qual o horário de funcionamento da ${nomeCompleto}?`,
-    a: `${nomeCompleto} atende de segunda a sexta, de ${horaSemana}, e no sábado, de ${horaSabado}. ` +
-       `Não abre no domingo. Este é o horário de referência da rede — em feriados e datas especiais ` +
+    a: `${nomeCompleto} atende ${resumoHoras}. ` +
+       (fechaDomingo ? 'Não abre no domingo. ' : '') +
+       `Este é o horário publicado no Perfil do Google da unidade — em feriados e datas especiais ` +
        `pode mudar, então${confirme}`,
   });
   faq.push({
@@ -279,9 +397,17 @@ function render(u, todas, parts) {
           </a></li>`).join('\n');
 
   // ---------- dados estruturados ----------
-  const gbp = u.place_id
-    ? `https://www.google.com/maps/place/?q=place_id:${u.place_id}`
-    : null;
+  // sameAs = perfil REAL da unidade (coleta). O place_id do cadastro aponta pro prédio
+  // em Salvador e traz a nota do shopping. `confere` falso → omite, não chuta.
+  const gbp = (coleta && coleta.confere === true && coleta.urlPerfil) ? coleta.urlPerfil : null;
+
+  // 1 entrada por (grupo de dias × turno). Dia fechado não entra: a ausência já diz.
+  const horasSchema = (grupos || []).flatMap((g) => g.faixas.map(([abre, fecha]) => ({
+    '@type': 'OpeningHoursSpecification',
+    dayOfWeek: g.en,
+    opens: abre,
+    closes: fecha,
+  })));
 
   const pharmacy = {
     '@type': 'Pharmacy',
@@ -303,18 +429,8 @@ function render(u, todas, parts) {
     ...(gbp ? { sameAs: [gbp] } : {}),
     areaServed: { '@type': 'City', name: u.cidade },
     currenciesAccepted: 'BRL',
-    openingHoursSpecification: [
-      {
-        '@type': 'OpeningHoursSpecification',
-        dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
-        opens: HORARIO.semana.abre, closes: HORARIO.semana.fecha,
-      },
-      {
-        '@type': 'OpeningHoursSpecification',
-        dayOfWeek: ['Saturday'],
-        opens: HORARIO.sabado.abre, closes: HORARIO.sabado.fecha,
-      },
-    ],
+    ...(horasSchema.length ? { openingHoursSpecification: horasSchema } : {}),
+    // ⚠️ SEM aggregateRating de propósito: a nota é do Google, não deste site.
     parentOrganization: { '@id': `${BASE}/#organizacao` },
   };
 
@@ -380,9 +496,31 @@ function render(u, todas, parts) {
   const dados = [
     linha(I.pin, 'Endereço', `${E(u.endereco)}${u.cep ? `<br>CEP ${E(u.cep)}` : ''}`),
     tel ? linha(I.fone, 'Telefone e WhatsApp', `<a href="tel:+${wa}">${E(tel)}</a>`) : '',
+    fixos.length ? linha(I.fone, fixos.length > 1 ? 'Telefones fixos' : 'Telefone fixo',
+      fixos.map((f) => `<a href="tel:+55${so(f)}">${E(f)}</a>`).join('<br>')) : '',
     u.email ? linha(I.mail, 'E-mail', `<a href="mailto:${E(u.email)}">${E(u.email)}</a>`) : '',
-    linha(I.relogio, 'Horário', `${HORARIO.semana.rotulo}, ${horaSemana}<br>${HORARIO.sabado.rotulo}, ${horaSabado}`),
+    abertos.length
+      ? linha(I.relogio, 'Horário',
+          abertos.map((g) => `${E(g.rotulo)}, ${E(txtFaixas(g.faixas))}`).join('<br>'))
+      : '',
   ].filter(Boolean).join('\n            ');
+
+  // Nota do Google com atribuição explícita e link pro perfil. Nunca vira aggregateRating.
+  const notaHtml = rating
+    ? `<p class="loja-google">${I.estrela}<span><strong>${E(rating.nota)}</strong> no Google ·
+              <a href="${E(rating.url)}" target="_blank" rel="noopener">${rating.avaliacoes} avaliações</a></span></p>`
+    : '';
+
+  // Card de horário: só existe quando há dado real. Sem dado, o card inteiro sai.
+  const cardHoras = abertos.length ? `<div class="loja-card">
+            <h2>Horário de atendimento</h2>
+            <dl class="loja-horas">
+${grupos.map((g) => `              <div><dt>${E(g.rotulo)}</dt><dd${g.faixas.length ? '' : ' class="fechado"'}>${E(txtFaixas(g.faixas))}</dd></div>`).join('\n')}
+            </dl>
+            <p class="loja-nota">Horário publicado no Perfil do Google desta unidade,
+              conferido em 17/08/2026. Em feriados e datas especiais pode mudar — vale
+              confirmar com a unidade${tel ? ` pelo WhatsApp: ${E(tel)}` : ''} antes de ir.</p>
+          </div>` : '';
 
   const head = parts.head.replace('{{TITLE_BLOCK}}', titleBlock);
 
@@ -409,8 +547,8 @@ ${header}
       </nav>
       <p class="loja-kicker">Unidade ${E(u.cidade)} — ${E(u.estado)}</p>
       <h1>Farmácia de manipulação em ${E(u.cidade)}${dist ? ` — ${E(dist)}` : ''}</h1>
-      <p class="loja-lead">${E(nomeCompleto)} fica em ${E(u.endereco)}.
-        Atende de ${E(HORARIO.semana.rotulo.toLowerCase())} de ${E(horaSemana)} e no sábado de ${E(horaSabado)}.
+      <p class="loja-lead">${E(nomeCompleto)} fica em ${E(u.endereco)}.${resumoHoras ? `
+        Atende ${E(resumoHoras)}.` : ''}
         Envie a foto da sua receita pelo WhatsApp e receba o orçamento da unidade.</p>
     </div>
   </section>
@@ -425,6 +563,7 @@ ${header}
             <dl class="loja-dl">
             ${dados}
             </dl>
+            ${notaHtml}
             <div class="loja-cta">
               ${wa ? `<a class="loja-wa" href="https://wa.me/${wa}?text=${waMsg}" target="_blank" rel="noopener"
                  data-evt="wa-unidade" data-unidade="${E(u.slug)}">
@@ -437,16 +576,7 @@ ${header}
             </div>
           </div>
 
-          <div class="loja-card">
-            <h2>Horário de atendimento</h2>
-            <dl class="loja-horas">
-              <div><dt>${E(HORARIO.semana.rotulo)}</dt><dd>${E(horaSemana)}</dd></div>
-              <div><dt>${E(HORARIO.sabado.rotulo)}</dt><dd>${E(horaSabado)}</dd></div>
-              <div><dt>Domingo</dt><dd class="fechado">Fechado</dd></div>
-            </dl>
-            <p class="loja-nota">Horário de referência da rede. Em feriados e datas especiais pode
-              mudar — vale confirmar com a unidade${tel ? ` pelo WhatsApp: ${E(tel)}` : ''} antes de ir.</p>
-          </div>
+          ${cardHoras}
 
           <div class="loja-card">
             <h2>O que você resolve nesta unidade</h2>
@@ -520,19 +650,36 @@ function main() {
   console.log(`[lojas] ${lojas.length} no cadastro · ${abertas.length} abertas · ${lojas.length - abertas.length} "em breve" (nao geram pagina)`);
 
   let n = 0;
+  const gerados = [];
+  const semHorario = [];
   for (const u of alvo) {
     if (!u.slug || u.lat == null || u.lng == null) {
       console.warn(`[lojas] pulada (sem slug/coordenada): ${u.nome}`);
       continue;
     }
+    const coleta = lerColeta(u.slug);
+    if (!coleta) console.warn(`[lojas] sem coleta do Google: ${u.slug} (pagina sai sem horario e sem sameAs)`);
+    const dias = semana(coleta);
+    if (!dias) semHorario.push(u.slug);
     const dir = path.join(ROOT, 'encontre-uma-loja', u.slug);
     fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(path.join(dir, 'index.html'), render(u, abertas, parts));
-    console.log(`[lojas] /encontre-uma-loja/${u.slug}  (${rotulo(u)})`);
+    fs.writeFileSync(path.join(dir, 'index.html'), render(u, abertas, parts, coleta));
+    console.log(`[lojas] /encontre-uma-loja/${u.slug}  (${rotulo(u)})${dias ? '' : '  [sem horario]'}`);
+    gerados.push(u.slug);
     n++;
   }
-  console.log(`[lojas] ${n} pagina(s) gerada(s)`);
-  if (n) console.log('[lojas] LEMBRAR: os slugs gerados precisam estar fora do catch-all de redirect no vercel.json');
+  console.log(`[lojas] ${n} pagina(s) gerada(s) · ${semHorario.length} sem horario (card, schema e lead omitidos)`);
+  if (semHorario.length) console.log(`[lojas] sem horario: ${semHorario.join(', ')}`);
+
+  // ⚠️ Na Vercel o redirect roda ANTES do filesystem: todo slug gerado precisa sair do
+  // catch-all, senão a pagina real existe no disco e nunca aparece (307 pro mapa).
+  if (n) {
+    const src = `/encontre-uma-loja/:slug((?!${gerados.map((s) => `${s}$`).join('|')}).*)`;
+    console.log('\n[lojas] cole este "source" no redirect catch-all do vercel.json:\n');
+    console.log(src);
+    fs.writeFileSync(path.join(ROOT, '_coleta-google', '_vercel-lookahead.txt'), src + '\n');
+    console.log('\n[lojas] tambem salvo em _coleta-google/_vercel-lookahead.txt');
+  }
 }
 
 main();
