@@ -11,19 +11,19 @@
 | | |
 |---|---|
 | Unidades em operação consultadas | 75 |
-| Perfil confirmado como A Fórmula | **70** |
-| Rejeitadas pela trava de nome | 5 |
-| **Com a semana completa de horários** | **56** |
-| Sem horário publicado no perfil | 14 |
-| Nota média no Google | **4.47** (69 unidades) |
-| Com foto no perfil | 70 |
+| Perfil confirmado como A Fórmula | **75** |
+| Rejeitadas pela trava de nome | 0 |
+| **Com a semana completa de horários** | **60** |
+| Sem horário publicado no perfil | 15 |
+| Nota média no Google | **4.48** (74 unidades) |
+| Com foto no perfil | 75 |
 
 ## 🔴 O horário publicado hoje não representa a rede
 
 A página de unidade publica **08:00–18:00** de segunda a sexta, **08:00–13:00** no sábado
-e domingo fechado. Das 56 unidades com semana completa, **apenas 4 têm exatamente esse horário**.
+e domingo fechado. Das 60 unidades com semana completa, **apenas 4 têm exatamente esse horário**.
 
-Existem **35 padrões semanais distintos** em 56 unidades — ou seja, não há horário de rede.
+Existem **35 padrões semanais distintos** em 60 unidades — ou seja, não há horário de rede.
 
 | Fato | Unidades |
 |---|---|
@@ -38,7 +38,7 @@ Existem **35 padrões semanais distintos** em 56 unidades — ou seja, não há 
 
 | Unidades | Seg–Sex | Sábado | Domingo |
 |---|---|---|---|
-| 10 | 08:00–18:00 | 08:00–12:00 | Fechado |
+| 13 | 08:00–18:00 | 08:00–12:00 | Fechado |
 | 4 | 08:00–18:00 | 08:00–13:00 | Fechado |
 | 3 | 07:00–18:00 | 08:00–12:00 | Fechado |
 | 3 | 07:30–18:30 | 08:00–13:00 | Fechado |
@@ -46,17 +46,19 @@ Existem **35 padrões semanais distintos** em 56 unidades — ou seja, não há 
 | 2 | 08:00–18:30 | 08:00–12:30 | Fechado |
 | 2 | 08:00–19:00 | 08:00–14:00 | Fechado |
 | 2 | 08:00–12:00 e 14:00–18:00 | 08:00–12:00 | Fechado |
+| 2 | 09:00–18:00 | 09:00–13:00 | Fechado |
 | 1 | 08:00–21:00 | 08:00–21:00 | Fechado |
-| 1 | 08:00–17:00 | 08:00–13:00 | Fechado |
 
 ### Horário real, unidade por unidade
 
 | Unidade | Seg | Ter | Qua | Qui | Sex | Sáb | Dom |
 |---|---|---|---|---|---|---|---|
+| Rio Branco (AC) | 08:00–18:00 | 08:00–18:00 | 08:00–18:00 | 08:00–18:00 | 08:00–18:00 | 08:00–12:00 | Fechado |
 | Arapiraca (AL) | 07:00–18:00 | 07:00–18:00 | 07:00–18:00 | 07:00–18:00 | 07:00–18:00 | 08:00–12:00 | Fechado |
 | Maceió — Hiper Galeria (AL) | 08:00–21:00 | 08:00–21:00 | 08:00–21:00 | 08:00–21:00 | 08:00–21:00 | 08:00–21:00 | Fechado |
 | Maceió — Centro (AL) | 08:00–17:00 | 08:00–17:00 | 08:00–17:00 | 08:00–17:00 | 08:00–17:00 | 08:00–13:00 | Fechado |
 | Maceió — Mangabeiras (AL) | 10:00–22:00 | 10:00–22:00 | 10:00–22:00 | 10:00–22:00 | 10:00–22:00 | 10:00–22:00 | 13:00–22:00 |
+| Maceió — Rotary (AL) | 08:00–18:00 | 08:00–18:00 | 08:00–18:00 | 08:00–18:00 | 08:00–18:00 | 08:00–12:00 | Fechado |
 | Alagoinhas (BA) | 07:30–19:00 | 07:30–19:00 | 07:30–19:00 | 07:30–19:00 | 07:30–19:00 | 08:00–13:00 | Fechado |
 | Brumado (BA) | 08:00–18:00 | 08:00–18:00 | 08:00–18:00 | 08:00–18:00 | 08:00–18:00 | 08:00–12:00 | Fechado |
 | Camaçari — Shopping Rivieira (BA) | 09:00–18:00 | 09:00–18:00 | 09:00–18:00 | 09:00–18:00 | 09:00–18:00 | 09:00–18:00 | Fechado |
@@ -86,6 +88,7 @@ Existem **35 padrões semanais distintos** em 56 unidades — ou seja, não há 
 | Redenção (PA) | 08:00–18:00 | 08:00–18:00 | 08:00–18:00 | 08:00–18:00 | 08:00–18:00 | 08:00–12:00 | Fechado |
 | Campina Grande (PB) | 08:00–18:30 | 08:00–18:30 | 08:00–18:30 | 08:00–18:30 | 08:00–18:30 | 08:00–13:00 | Fechado |
 | João Pessoa — Jaguaribe (PB) | 08:00–17:00 | 08:00–17:00 | 08:00–17:00 | 08:00–17:00 | 08:00–17:00 | 08:00–11:00 | Fechado |
+| João Pessoa — Manaíra (PB) | 09:00–18:00 | 09:00–18:00 | 09:00–18:00 | 09:00–18:00 | 09:00–18:00 | 09:00–13:00 | Fechado |
 | Arcoverde (PE) | 08:00–18:30 | 08:00–18:30 | 08:00–18:30 | 08:00–18:30 | 08:00–18:30 | 08:00–12:00 | Fechado |
 | Belo Jardim (PE) | 08:00–18:30 | 08:00–18:30 | 08:00–18:30 | 08:00–18:30 | 08:00–18:30 | 08:00–12:30 | Fechado |
 | Caruaru (PE) | 07:30–18:30 | 07:30–18:30 | 07:30–18:30 | 07:30–18:30 | 07:30–18:30 | 08:00–13:00 | Fechado |
@@ -99,6 +102,7 @@ Existem **35 padrões semanais distintos** em 56 unidades — ou seja, não há 
 | Foz do Iguaçu (PR) | 08:00–18:00 | 08:00–18:00 | 08:00–18:00 | 08:00–18:00 | 08:00–18:00 | 08:00–13:00 | Fechado |
 | Rio de Janeiro (RJ) | 09:30–19:30 | 09:30–19:30 | 09:30–19:30 | 09:30–19:30 | 09:30–19:30 | Fechado | Fechado |
 | Mossoró (RN) | 07:00–18:00 | 07:00–18:00 | 07:00–18:00 | 07:00–18:00 | 07:00–18:00 | 08:00–12:00 | Fechado |
+| Natal (RN) | 08:00–18:00 | 08:00–18:00 | 08:00–18:00 | 08:00–18:00 | 08:00–18:00 | 08:00–12:00 | Fechado |
 | Porto Velho (RO) | 08:00–18:00 | 08:00–18:00 | 08:00–18:00 | 08:00–18:00 | 08:00–18:00 | 08:00–12:00 | Fechado |
 | Boa Vista (RR) | 08:00–19:00 | 08:00–19:00 | 08:00–19:00 | 08:00–19:00 | 08:00–19:00 | 08:00–14:00 | Fechado |
 | Florianópolis (SC) | 09:00–18:30 | 09:00–18:30 | 09:00–18:30 | 09:00–18:30 | 09:00–18:30 | 08:30–12:30 | Fechado |
@@ -110,7 +114,7 @@ Existem **35 padrões semanais distintos** em 56 unidades — ou seja, não há 
 | Araguaína (TO) | 07:30–18:30 | 07:30–18:30 | 07:30–18:30 | 07:30–18:30 | 07:30–18:30 | 07:30–12:30 | Fechado |
 | Palmas (TO) | 08:00–18:00 | 08:00–18:00 | 08:00–18:00 | 08:00–18:00 | 08:00–18:00 | 08:00–12:00 | Fechado |
 
-**Sem horário no perfil do Google (14):** Maceió — Farol (AL), Macapá (AP), Candeias (BA), Ipiaú (BA), Juazeiro (BA), Macaúbas (BA), Salvador — Caminho de Areia (BA), Senhor do Bonfim (BA), Fortaleza — Aldeota (CE), Petrolina — Centro (PE), Petrolina — Cidade Universitária (PE), Santa Cruz do Sul (RS), São Paulo — Perdizes (SP), São Paulo — Tatuapé (SP). Só o franqueado informa.
+**Sem horário no perfil do Google (15):** Maceió — Farol (AL), Macapá (AP), Candeias (BA), Feira de Santana — Maison (BA), Ipiaú (BA), Juazeiro (BA), Macaúbas (BA), Salvador — Caminho de Areia (BA), Senhor do Bonfim (BA), Fortaleza — Aldeota (CE), Petrolina — Centro (PE), Petrolina — Cidade Universitária (PE), Santa Cruz do Sul (RS), São Paulo — Perdizes (SP), São Paulo — Tatuapé (SP). Só o franqueado informa.
 
 ## 🔴 O `place_id` do cadastro não é confiável
 
@@ -139,7 +143,7 @@ call center (confirmado pelo operador em 17/08). Não é erro de cadastro.
 | 8532415222 | **2** — Fortaleza — Aldeota (CE), Fortaleza — Fátima (CE) |
 | 83986828696 | **2** — João Pessoa — Jaguaribe (PB), João Pessoa — Manaíra (PB) |
 
-### Onde o Google difere do cadastro (16)
+### Onde o Google difere do cadastro (18)
 
 Não é contradição: o cadastro traz o número do **call center**, e o Google costuma
 trazer o **fixo da loja**. São canais diferentes. Qual deve aparecer na página de
@@ -147,6 +151,8 @@ unidade é decisão do operador — **nada foi alterado**.
 
 | Unidade | No ar (cadastro) | No Google |
 |---|---|---|
+| Rio Branco (AC) | (68) 99968-4616 | (68) 99222-9628 |
+| Feira de Santana — Maison (BA) | (75) 99981-7557 | (75) 3602-6598 |
 | Jacobina (BA) | (74) 99957-0022 | (74) 3621-5521 |
 | Macaúbas (BA) | (77) 9999-5642 | (11) 4375-0707 |
 | Salvador — Caminho de Areia (BA) | (71) 99968-5469 | (71) 3207-2047 |
@@ -164,7 +170,7 @@ unidade é decisão do operador — **nada foi alterado**.
 | São Paulo — Tatuapé (SP) | (11) 96610-6464 | (11) 4508-5888 |
 | Palmas (TO) | 63 99201-3787 | (63) 3322-3332 |
 
-## Endereço — número do logradouro diferente (8)
+## Endereço — número do logradouro diferente (9)
 
 Comparado **só pelo número**: o Google reescreve bairro, abrevia logradouro e acrescenta
 CEP, então comparar a string inteira dá falso positivo (48 de 70 "divergiam" só por
@@ -172,6 +178,7 @@ formatação). Número diferente é sinal forte.
 
 | Unidade | No ar (cadastro) | No Google |
 |---|---|---|
+| Rio Branco (AC) | R. Quintino Bocaiuva, 1452 - Bosque, Rio Branco - AC, Brasil | R. Quintino Bocaiuva, 1.452 - Bosque, Rio Branco - AC, 69900-718 |
 | Maceió — Centro (AL) | Rua Dois de Dezembro, 90 - Centro, Maceió - AL, Brasil | Próximo ao 90C, R. Dois de Dezembro, s/N - s/N - Centro, Maceió - AL, 57020-120 |
 | Maceió — Farol (AL) | Avenida Moreira e Silva, 1067 - Farol, Maceió - AL, Brasil | Av. Moreira e Silva, 1079 - Farol, Maceió - AL, 57051-000 |
 | Feira de Santana — Ponto Central (BA) | Av. Getúlio Vargas, 1942 - Ponto Central, Feira de Santana - BA, 44075-425, Brasil | Av. Getúlio Vargas 1942 Ponto Central - Centro, Feira de Santana - BA, 44075-425 |
@@ -183,7 +190,7 @@ formatação). Número diferente é sinal forte.
 
 ## Nota e avaliações — ativo que o site não usa
 
-Nenhuma dessas avaliações aparece no site hoje. Nota média da rede: **4.47**.
+Nenhuma dessas avaliações aparece no site hoje. Nota média da rede: **4.48**.
 
 | Unidade | Nota | Avaliações | Fotos no perfil |
 |---|---|---|---|
@@ -198,7 +205,9 @@ Nenhuma dessas avaliações aparece no site hoje. Nota média da rede: **4.47**.
 | Brasília \| Asa Sul (DF) | 4.4 | 138 | 10 |
 | Boa Vista (RR) | 4.4 | 128 | 10 |
 | Salvador — Shopping Paralela (BA) | 4.2 | 127 | 10 |
+| Rio Branco (AC) | 4.9 | 126 | 10 |
 | Recife — Graças (PE) | 4.0 | 115 | 10 |
+| Natal (RN) | 5.0 | 102 | 10 |
 | São Paulo — Tatuapé (SP) | 5.0 | 102 | 10 |
 | Sorocaba (SP) | 5.0 | 98 | 10 |
 | Maceió — Hiper Galeria (AL) | 3.6 | 96 | 10 |
@@ -233,11 +242,14 @@ Nenhuma dessas avaliações aparece no site hoje. Nota média da rede: **4.47**.
 | Petrolina — Cidade Universitária (PE) | 3.9 | 30 | 10 |
 | Petrolina — Centro (PE) | 4.0 | 29 | 10 |
 | Arcoverde (PE) | 4.8 | 25 | 10 |
+| João Pessoa — Manaíra (PB) | 4.7 | 24 | 10 |
 | Fortaleza — Fátima (CE) | 4.0 | 22 | 10 |
 | Picos (PI) | 4.1 | 22 | 10 |
 | Campina Grande (PB) | 4.4 | 21 | 10 |
+| Maceió — Rotary (AL) | 4.2 | 20 | 10 |
 | Santo André (SP) | 4.8 | 20 | 10 |
 | Paulo Afonso (BA) | 4.9 | 18 | 10 |
+| Feira de Santana — Maison (BA) | 4.2 | 17 | 9 |
 | Porto Velho (RO) | 5.0 | 17 | 10 |
 | Santo Antônio de Jesus (BA) | 4.1 | 16 | 10 |
 | Jequié (BA) | 4.8 | 15 | 10 |
@@ -257,20 +269,7 @@ Nenhuma dessas avaliações aparece no site hoje. Nota média da rede: **4.47**.
 | Custódia (PE) | 5.0 | 2 | 9 |
 | Foz do Iguaçu (PR) | 5.0 | — | 9 |
 
-## ⚠️ Rejeitadas pela trava de nome (5)
 
-A busca não chegou num perfil cujo nome comece com "A Fórmula", então **nada foi
-gravado**. Precisam de conferência manual.
-
-- Rio Branco (AC) `rio-branco`
-- Maceió — Rotary (AL) `maceio-rotary`
-- Feira de Santana — Maison (BA) `feira-de-santana-maison`
-- João Pessoa — Manaíra (PB) `joao-pessoa-manaira`
-- Natal (RN) `natal`
-
-A trava é estrita de propósito: a versão anterior exigia só "fórmula" + "farmácia" e
-**aceitaria concorrente** — o operador flagrou "Companhia da Fórmula Alecrim — Farmácia
-de Manipulação" (anúncio patrocinado) aparecendo na busca.
 
 ## Como foi coletado
 

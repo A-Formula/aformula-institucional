@@ -120,7 +120,12 @@ Coletado em **${g.coletadoEm}** · nota **${g.nota || '—'}**${g.avaliacoes ? `
 
 **Horário de funcionamento no Google:**
 
-${semana}`;
+${semana}${g.coordenadaSuspeita ? `
+
+⚠️ **A coordenada do cadastro não bate com o perfil: ${g.coordenadaSuspeita}.** O perfil foi
+confirmado pelo nome e pelo endereço (mesma rua, mesmo número), então quem está errado é o
+\`lat/lng\` do \`lojas.json\` — e é ele que posiciona o pin desta loja no mapa do site.
+Corrigir pela coordenada do perfil do Google.` : ''}`;
   }
 
   const auto = `<!-- AUTO:INICIO — bloco gerado por scripts/build-fichas-sb.mjs. Editar FORA daqui. -->

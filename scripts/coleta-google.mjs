@@ -44,37 +44,70 @@ const has = (n) => process.argv.includes(n);
 const aberta = (u) => !/em breve/i.test(`${u.nome} ${u.slug}`);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function colhe(page, u) {
-  const query = `A Fórmula Farmácia de Manipulação ${u.endereco || ''} ${u.cidade} ${u.estado}`
-    .replace(/\s+/g, ' ').trim();
-  await page.goto(`https://www.google.com/maps/search/${encodeURIComponent(query)}/?hl=pt-BR`,
-    { waitUntil: 'domcontentloaded', timeout: 60000 });
-  await sleep(5000);
-
-  // 🔴 NÃO clicar no primeiro resultado: a lista traz ANÚNCIO ("Patrocinado") de
-  // concorrente com nome parecido — o operador flagrou "Companhia da Fórmula
-  // Alecrim - Farmácia de Manipulação" aparecendo na tela. Escolher pelo NOME.
-  if (!/\/maps\/place\//.test(page.url())) {
-    const alvo = await page.evaluate(() => {
-      const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
-        .toLowerCase().replace(/\s+/g, ' ').trim();
-      const links = [...document.querySelectorAll('a[href*="/maps/place/"]')];
-      for (const a of links) {
-        // texto do card que contém o link
-        const card = a.closest('[jsaction], div');
-        const rotulo = norm(a.getAttribute('aria-label') || card?.innerText || '');
-        // descarta anúncio
-        if (/patrocinado|sponsored|an[uú]ncio/.test(norm(card?.innerText || ''))) continue;
-        // exige a marca no INÍCIO do nome
-        if (/^a formula\b/.test(rotulo)) { a.setAttribute('data-alvo-af', '1'); return rotulo.slice(0, 70); }
+// Abre, na lista de resultados, o card cujo nome contém o token da marca.
+// 🔴 NUNCA clicar no primeiro: a lista traz ANÚNCIO ("Patrocinado") de concorrente
+// com nome parecido — o operador flagrou "Companhia da Fórmula Alecrim - Farmácia
+// de Manipulação". Sem match, não clica.
+async function abrirCard(page, u) {
+  // 🔴 Entre os candidatos, vence o MAIS PRÓXIMO da coordenada do cadastro — não o
+  // primeiro. Em Feira de Santana (2 lojas) o 1º card era sempre o Ponto Central, e
+  // a Maison herdava os dados da irmã: mesmo nome, mesmo telefone, mesma nota.
+  // O href traz a coordenada em !3d{lat}!4d{lng}.
+  const alvo = await page.evaluate(({ lat, lng }) => {
+    const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .toLowerCase().replace(/\s+/g, ' ').trim();
+    const R = 6371, rad = (x) => (x * Math.PI) / 180;
+    const dist = (a, b) => {
+      const dLat = rad(b.lat - a.lat), dLng = rad(b.lng - a.lng);
+      const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLng / 2) ** 2;
+      return 2 * R * Math.asin(Math.sqrt(h));
+    };
+    const cands = [];
+    for (const a of document.querySelectorAll('a[href*="/maps/place/"]')) {
+      const card = a.closest('[jsaction]') || a.parentElement;
+      if (/patrocinado|sponsored|an[uú]ncio/.test(norm(card?.innerText || ''))) continue;
+      const href = String(a.getAttribute('href') || '');
+      let rotulo = norm(a.getAttribute('aria-label') || '');
+      if (!rotulo) {
+        const m = href.match(/\/maps\/place\/([^/@]+)/);
+        if (m) rotulo = norm(decodeURIComponent(m[1]).replace(/\+/g, ' '));
       }
-      return null;
-    });
-    if (alvo) {
-      await page.click('a[data-alvo-af="1"]').catch(() => {});
-      await sleep(4500);
+      if (!/\ba formula\b/.test(rotulo)) continue;
+      const mc = href.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/) || href.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+      const km = (mc && lat != null) ? dist({ lat, lng }, { lat: +mc[1], lng: +mc[2] }) : null;
+      cands.push({ a, rotulo, km });
     }
-    // sem match de nome: NÃO clica em nada. Fica em "Resultados" e cai na trava.
+    if (!cands.length) return null;
+    const comKm = cands.filter((c) => c.km != null);
+    const esc = comKm.length ? comKm.sort((x, y) => x.km - y.km)[0] : cands[0];
+    esc.a.setAttribute('data-alvo-af', '1');
+    return { nome: esc.rotulo.slice(0, 70), km: esc.km, candidatos: cands.length };
+  }, { lat: u.lat, lng: u.lng });
+
+  if (alvo) {
+    await page.click('a[data-alvo-af="1"]').catch(() => {});
+    await sleep(4500);
+  }
+  return alvo;
+}
+
+async function colhe(page, u) {
+  // DUAS consultas, em ordem. A 1ª (com endereço) acerta a maioria; quando ela
+  // devolve LISTA em vez de perfil, a 2ª (só cidade+UF) costuma abrir o perfil
+  // direto — foi assim que Rio Branco apareceu ("Farmácia de Manipulação - a
+  // Fórmula", marca no fim do nome).
+  const queries = [
+    `A Fórmula Farmácia de Manipulação ${u.endereco || ''} ${u.cidade} ${u.estado}`,
+    `A Fórmula Farmácia de Manipulação ${u.cidade} ${u.estado}`,
+  ].map((q) => q.replace(/\s+/g, ' ').trim());
+
+  for (const query of queries) {
+    await page.goto(`https://www.google.com/maps/search/${encodeURIComponent(query)}/?hl=pt-BR`,
+      { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await sleep(5000);
+    if (/\/maps\/place\//.test(page.url())) break;
+    await abrirCard(page, u);
+    if (/\/maps\/place\//.test(page.url())) break;
   }
 
   // expandir o painel de horários (na view logada isso abre os 7 dias)
@@ -84,11 +117,27 @@ async function colhe(page, u) {
     if (el) { await el.click({ timeout: 3000 }).catch(() => {}); await sleep(1800); }
   }
 
+  // 🔴 Se não chegou num PERFIL, não extrair nada: na lista de resultados a página
+  // mostra nota e horário de um card qualquer — possivelmente concorrente — e isso
+  // entraria no JSON como se fosse da loja. Melhor devolver vazio.
+  if (!/\/maps\/place\//.test(page.url())) {
+    return { nomeGoogle: null, naoAbriuPerfil: true, urlPerfil: page.url().split('/data=')[0], fotos: [] };
+  }
+
   return await page.evaluate(() => {
     const out = {};
     const clean = (s) => (s ? String(s).replace(/\s+/g, ' ').trim() : null);
 
-    out.nomeGoogle = clean(document.querySelector('h1')?.textContent);
+    // 🔴 O NOME VEM DA URL, não do h1. Quando a busca devolveu lista, o painel de
+    // resultados fica no DOM e os primeiros h1 são "Resultados" e "Patrocinado" —
+    // isso rejeitou 5 lojas legítimas que estavam no perfil CERTO (Rio Branco já
+    // tinha os 7 dias colhidos). Perseguir h1 por exclusão é jogo perdido; o path
+    // /maps/place/{Nome}/ é determinístico. h1 fica só como reserva.
+    const mNome = location.pathname.match(/\/maps\/place\/([^/@]+)/);
+    out.nomeGoogle = mNome
+      ? clean(decodeURIComponent(mNome[1]).replace(/\+/g, ' '))
+      : ([...document.querySelectorAll('h1')].map((h) => clean(h.textContent))
+          .find((t) => t && !/^(resultados?|results?|patrocinado|sponsored)$/i.test(t)) || null);
 
     // aria-label dos botões do painel ("Endereço: ...", "Telefone: ...")
     const pick = (sel) => {
@@ -189,14 +238,51 @@ async function main() {
     try {
       const d = await colhe(page, u);
 
-      // 🔴 TRAVA — a versão anterior era FROUXA e mentia: exigia só "fórmula" +
-      // "farmácia", o que ACEITA concorrente ("Companhia da Fórmula Alecrim -
-      // Farmácia de Manipulação", flagrado pelo operador). Aferido nos 75 nomes
-      // reais colhidos: 70/70 dos legítimos começam com "A Fórmula".
-      // Regra: o nome tem de COMEÇAR com "a formula" (sem acento, minúsculo).
+      // 🔴 TRAVA — DOIS sinais independentes. Histórico de erros nos dois sentidos:
+      //  v1 frouxa: exigia só "fórmula" + "farmácia" → ACEITAVA concorrente
+      //             ("Companhia da Fórmula Alecrim", flagrado pelo operador).
+      //  v2 estrita: exigia COMEÇAR com "A Fórmula" → REJEITAVA loja legítima
+      //             (Rio Branco chama "Farmácia de Manipulação - a Fórmula").
+      //  v3 (esta): token da marca em qualquer posição + PROXIMIDADE da coordenada
+      //             do cadastro (lat/lng tem 85/85 de cobertura). Aferido: 70/75
+      //             ficaram a <400m, o que confirma a coleta por nome.
       const nomeN = String(d.nomeGoogle || '').normalize('NFD')
         .replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
-      const confere = /^a formula\b/.test(nomeN);
+      const temMarca = /\ba formula\b/.test(nomeN);
+
+      const mc = String(d.urlPerfil || '').match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+      let km = null;
+      if (mc && u.lat != null) {
+        const R = 6371, rad = (x) => (x * Math.PI) / 180;
+        const dLat = rad(+mc[1] - u.lat), dLng = rad(+mc[2] - u.lng);
+        const h = Math.sin(dLat / 2) ** 2 +
+          Math.cos(rad(u.lat)) * Math.cos(rad(+mc[1])) * Math.sin(dLng / 2) ** 2;
+        km = 2 * R * Math.asin(Math.sqrt(h));
+      }
+      d.kmDoCadastro = km == null ? null : Math.round(km * 1000) / 1000;
+      const perto = km != null && km <= 0.6;
+
+      // 2º sinal de identidade, para quando a COORDENADA DO CADASTRO é que está
+      // errada: mesmo nº de logradouro + mesma rua. Medido em belo-jardim — perfil
+      // correto (Av. Dep. José Mendonça Bezerra, 307A x cadastro 307) a 1,59 km da
+      // coordenada cadastrada. Aceitar por endereço e SINALIZAR a coordenada.
+      const soNum = (s) => {
+        const t = String(s || '').replace(/\b\d{5}-?\d{3}\b/g, ' ').replace(/\bkm\s*\d+/gi, ' ');
+        const m = t.match(/,\s*(?:n[ºo]\.?\s*)?(\d{1,5})\s*[a-z]?\b/i) || t.match(/\b(\d{1,5})\s*[a-z]?\b/);
+        return m ? m[1] : null;
+      };
+      const palavras = (s) => new Set(String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
+        .toLowerCase().match(/[a-z]{4,}/g) || []);
+      const numIgual = soNum(d.enderecoGoogle) && soNum(d.enderecoGoogle) === soNum(u.endereco);
+      const comuns = [...palavras(d.enderecoGoogle)].filter((w) => palavras(u.endereco).has(w)).length;
+      const mesmoEndereco = !!numIgual && comuns >= 2;
+
+      const confere = temMarca && (perto || mesmoEndereco);
+      if (confere && !perto && km != null) d.coordenadaSuspeita = `cadastro a ${km.toFixed(2)} km do perfil`;
+      d.motivoRejeicao = confere ? undefined
+        : [!temMarca ? 'nome sem o token "a fórmula"' : null,
+           !perto ? (km == null ? 'sem coordenada no resultado' : `a ${km.toFixed(2)} km do cadastro e endereço não bate`) : null]
+          .filter(Boolean).join(' · ');
 
       const rec = {
         slug: u.slug, cidade: u.cidade, estado: u.estado,
