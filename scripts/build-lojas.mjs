@@ -92,7 +92,10 @@ const CSS = `<style id="loja-css">
 .loja-crumb a:hover{color:#fff;text-decoration:underline}
 .loja-crumb span{margin:0 7px}
 .loja-kicker{font-size:12px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:var(--brand-tint);margin:0 0 10px}
-.loja-hero h1{font-family:'Playfair Display',Georgia,serif;font-weight:400;font-size:clamp(30px,4.1vw,50px);line-height:1.12;margin:0 0 16px;max-width:22ch}
+/* H1 em sans (Avenir), não no serif do resto do site: pedido do operador —
+   página de unidade é informação direta, não editorial. */
+.loja-hero h1{font-family:var(--sans);font-weight:900;font-size:clamp(27px,3.4vw,40px);
+  line-height:1.18;letter-spacing:-.015em;margin:0 0 16px;max-width:26ch}
 .loja-lead{font-size:17px;line-height:1.65;color:rgba(255,255,255,.85);max-width:58ch;margin:0}
 
 .loja-wrap{padding:0 0 88px;background:var(--paper)}
