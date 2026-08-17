@@ -344,6 +344,18 @@ async function main() {
     const img = p.cover ? `<image:image><image:loc>${xmlEsc(absUrl(p.cover))}</image:loc></image:image>` : '';
     return `<url><loc>${BASE}${p.path}</loc><lastmod>${(p.modifiedAt||p.publishedAt).slice(0,10)}</lastmod>${img}</url>`;
   });
+  // Páginas de unidade (geradas à mão por scripts/build-lojas.mjs e commitadas).
+  // Lidas do DISCO, não do lojas.json: só entra no sitemap o que existe de fato.
+  try {
+    const dirLojas = path.join(ROOT,'encontre-uma-loja');
+    if (fs.existsSync(dirLojas)) {
+      const slugs = fs.readdirSync(dirLojas, { withFileTypes:true })
+        .filter(d=>d.isDirectory() && fs.existsSync(path.join(dirLojas,d.name,'index.html')))
+        .map(d=>d.name).sort();
+      slugs.forEach(s=>urls.push(`<url><loc>${BASE}/encontre-uma-loja/${s}</loc></url>`));
+      if (slugs.length) console.log(`[build] ${slugs.length} pagina(s) de unidade no sitemap`);
+    }
+  } catch (e) { console.warn('[build] sitemap de unidades falhou:', e.message); }
   ['/','/sobre-nos','/blog','/area-do-prescritor','/encontre-uma-loja','/contato','/pet','/receita'].reverse().forEach(pg=>urls.unshift(`<url><loc>${BASE}${pg}</loc></url>`));
   fs.writeFileSync(path.join(ROOT,'sitemap.xml'), '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+urls.join('\n')+'\n</urlset>');
 
