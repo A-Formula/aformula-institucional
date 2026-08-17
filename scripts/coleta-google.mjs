@@ -18,12 +18,17 @@
 // nota do SHOPPING (4,5 / 35.912 avaliações) no lugar da farmácia (4,2). Por isso
 // a entrada é por BUSCA DE NOME + trava de validação (`confere`).
 //
-// ⚠️ LIMITE CONHECIDO: sem login, o Maps serve "visualização limitada" e expõe
-// apenas o horário de HOJE — a semana inteira não abre (testado: botão de expandir
-// não existe nessa view). O `google.com/search` devolve CAPTCHA. Para a semana
-// completa o caminho é a API oficial do Places (chave + billing).
-// Como toda a coleta roda no mesmo dia, o campo `horarioHoje` é comparável entre
-// unidades — e já basta para provar divergência com o horário publicado.
+// 🔴 COMO A SEMANA INTEIRA SAI (não mudar sem reler):
+// O Maps só entrega os 7 dias para sessão LOGADA em JANELA REAL. Medido:
+//   headless novo, sem login          → "visualização limitada", 1 dia
+//   headless + perfil logado          → "visualização limitada", 1 dia
+//   headless:false + perfil logado    → LOGADO, 7 dias ✅
+// Ou seja, headless é o que dispara a view limitada, não a falta de login.
+// `google.com/search` devolve CAPTCHA e não é alternativa.
+//
+// ⚠️ Por isso este script abre uma JANELA VISÍVEL e usa o perfil do Playwright MCP.
+// O navegador do MCP precisa estar FECHADO durante a execução (perfil é
+// instância única) — senão dá "Browser is already in use".
 
 import { chromium } from 'file:///C:/dev/chatgpt-img-bridge/node_modules/playwright/index.mjs';
 import fs from 'node:fs';
@@ -46,9 +51,37 @@ async function colhe(page, u) {
     { waitUntil: 'domcontentloaded', timeout: 60000 });
   await sleep(5000);
 
+  // 🔴 NÃO clicar no primeiro resultado: a lista traz ANÚNCIO ("Patrocinado") de
+  // concorrente com nome parecido — o operador flagrou "Companhia da Fórmula
+  // Alecrim - Farmácia de Manipulação" aparecendo na tela. Escolher pelo NOME.
   if (!/\/maps\/place\//.test(page.url())) {
-    const first = await page.$('a[href*="/maps/place/"]');
-    if (first) { await first.click().catch(() => {}); await sleep(4500); }
+    const alvo = await page.evaluate(() => {
+      const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
+        .toLowerCase().replace(/\s+/g, ' ').trim();
+      const links = [...document.querySelectorAll('a[href*="/maps/place/"]')];
+      for (const a of links) {
+        // texto do card que contém o link
+        const card = a.closest('[jsaction], div');
+        const rotulo = norm(a.getAttribute('aria-label') || card?.innerText || '');
+        // descarta anúncio
+        if (/patrocinado|sponsored|an[uú]ncio/.test(norm(card?.innerText || ''))) continue;
+        // exige a marca no INÍCIO do nome
+        if (/^a formula\b/.test(rotulo)) { a.setAttribute('data-alvo-af', '1'); return rotulo.slice(0, 70); }
+      }
+      return null;
+    });
+    if (alvo) {
+      await page.click('a[data-alvo-af="1"]').catch(() => {});
+      await sleep(4500);
+    }
+    // sem match de nome: NÃO clica em nada. Fica em "Resultados" e cai na trava.
+  }
+
+  // expandir o painel de horários (na view logada isso abre os 7 dias)
+  for (const sel of ['[aria-label*="Mostrar horári" i]', '[jsaction*="openhours"]',
+                     'button[data-item-id*="oh"]', '[aria-label*="Horário de funcionamento" i]']) {
+    const el = await page.$(sel);
+    if (el) { await el.click({ timeout: 3000 }).catch(() => {}); await sleep(1800); }
   }
 
   return await page.evaluate(() => {
@@ -85,7 +118,20 @@ async function colhe(page, u) {
     const mCat = texto.match(/\n(Farmácia[^\n·]*)/i);
     out.categoria = mCat ? clean(mCat[1].replace(/·$/, '')) : null;
 
-    // horário de HOJE (a view sem login só expõe este)
+    // SEMANA INTEIRA (só sai em sessão logada + janela real)
+    const semana = {};
+    document.querySelectorAll('table tr').forEach((tr) => {
+      const td = tr.querySelectorAll('td, th');
+      if (td.length >= 2) {
+        const d = clean(td[0].textContent), v = clean(td[1].textContent);
+        if (d && v && /segunda|terça|quarta|quinta|sexta|sábado|domingo/i.test(d)) semana[d.toLowerCase()] = v;
+      }
+    });
+    out.horarios = semana;
+    out.diasCapturados = Object.keys(semana).length;
+    out.viewLimitada = /visualização limitada/i.test(document.body.innerText) || undefined;
+
+    // horário de hoje (fallback / conferência)
     const lab = [...document.querySelectorAll('[aria-label]')]
       .map((e) => e.getAttribute('aria-label'))
       .find((l) => l && /(segunda|terça|quarta|quinta|sexta|sábado|domingo)/i.test(l) && /\d{1,2}:\d{2}/.test(l));
@@ -128,12 +174,13 @@ async function main() {
   if (!alvo.length) { console.error('[coleta] nada a fazer'); process.exit(1); }
 
   fs.mkdirSync(OUT, { recursive: true });
-  const browser = await chromium.launch({ headless: true });
-  const ctx = await browser.newContext({
+  // perfil logado + janela REAL: é a única combinação que entrega os 7 dias (ver topo)
+  const PERFIL = 'C:/Users/aform/AppData/Local/ms-playwright-mcp/mcp-chrome-82f3a99';
+  const ctx = await chromium.launchPersistentContext(PERFIL, {
+    headless: false, channel: 'chrome',
     viewport: { width: 1400, height: 1000 }, locale: 'pt-BR',
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36',
   });
-  const page = await ctx.newPage();
+  const page = ctx.pages()[0] || await ctx.newPage();
 
   let ok = 0, suspeitos = 0, falha = 0, pulados = 0;
   for (const u of alvo) {
@@ -142,10 +189,14 @@ async function main() {
     try {
       const d = await colhe(page, u);
 
-      // TRAVA: o lugar encontrado precisa ser mesmo uma A Fórmula.
-      const nome = (d.nomeGoogle || '').toLowerCase();
-      const cat = (d.categoria || '').toLowerCase();
-      const confere = /f[óo]rmula/.test(nome) && (/farm[áa]cia|drogaria|manipula/.test(nome + ' ' + cat));
+      // 🔴 TRAVA — a versão anterior era FROUXA e mentia: exigia só "fórmula" +
+      // "farmácia", o que ACEITA concorrente ("Companhia da Fórmula Alecrim -
+      // Farmácia de Manipulação", flagrado pelo operador). Aferido nos 75 nomes
+      // reais colhidos: 70/70 dos legítimos começam com "A Fórmula".
+      // Regra: o nome tem de COMEÇAR com "a formula" (sem acento, minúsculo).
+      const nomeN = String(d.nomeGoogle || '').normalize('NFD')
+        .replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+      const confere = /^a formula\b/.test(nomeN);
 
       const rec = {
         slug: u.slug, cidade: u.cidade, estado: u.estado,
@@ -170,7 +221,7 @@ async function main() {
     await sleep(2600 + (Date.now() % 1700));
   }
 
-  await browser.close();
+  await ctx.close();
   console.log(`\n[coleta] ${ok} confirmadas · ${suspeitos} suspeitas (revisar) · ${falha} falha · ${pulados} ja tinham arquivo`);
 }
 
