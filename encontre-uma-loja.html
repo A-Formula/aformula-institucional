@@ -970,14 +970,14 @@ a.railcard__wanum:hover{text-decoration:underline}
 .railcard__acts a{font-size:11.5px;font-weight:700;padding:6px 12px;border-radius:999px;border:1.5px solid var(--line,#dbe6e6);
   color:var(--teal-800,#0a3f45);text-decoration:none;transition:background .2s,color .2s,border-color .2s}
 .railcard__acts a:hover{background:var(--brand,#008896);border-color:var(--brand,#008896);color:#fff}
-/* "Ver a loja" — ação primária do card: leva pra página própria da unidade (v4).
-   nowrap porque quebrado em 2 linhas ele cresce a altura de todos os cards do trilho. */
-.railcard__acts a.unidade,.af-pop__acts a.unidade{background:var(--brand,#008896);
-  border-color:var(--brand,#008896);color:#fff;white-space:nowrap}
-.railcard__acts a.unidade:hover,.af-pop__acts a.unidade:hover{background:var(--teal-850,#06343a);
-  border-color:var(--teal-850,#06343a);color:#fff}
+/* v5 (2026-08-18): o card INTEIRO abre a página da unidade — o botão "Ver a loja" saiu.
+   O card já nascia com cursor:pointer e borda transparente (era clicável pra mover o mapa),
+   então aqui só se acrescenta o sinal de que o destino agora é a PÁGINA: borda de marca e
+   título realçado no hover. */
+.railcard:hover{border-color:var(--brand,#008896)}
+.railcard:hover .railcard__top h3{color:var(--brand,#008896)}
 .railcard__link{color:inherit;text-decoration:none}
-.railcard__link:hover{color:var(--brand,#008896);text-decoration:underline}
+.railcard:hover .railcard__link{text-decoration:underline}
 .railcard__acts a.wa{background:#25d366;border-color:#25d366;color:#fff}
 .railcard__acts a.wa:hover{background:#1eb85a;border-color:#1eb85a}
 .railcard__soon{font-size:11.5px;font-weight:700;padding:6px 13px;border-radius:999px;
@@ -3616,7 +3616,7 @@ a.railcard__wanum:hover{text-decoration:underline}
   function carregar(){
     if (disparado) return; disparado = true;
     limpar();
-    ['encontre-uma-loja_assets/maplibre-gl.js','encontre-uma-loja_assets/finder3d.v4.js']
+    ['encontre-uma-loja_assets/maplibre-gl.js','encontre-uma-loja_assets/finder3d.v5.js']
       .reduce(function(p, src){
         return p.then(function(){
           return new Promise(function(ok, falha){
