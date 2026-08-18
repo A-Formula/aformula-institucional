@@ -5,6 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { PAGES, applyPageCms } from './cms-pages.mjs';
+import * as indiceUnidades from './unidades-index.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -221,7 +222,7 @@ ${parts.footer}
 <script id="art-copy-js">(function(){var b=document.querySelector(".art-copy");if(!b)return;b.addEventListener("click",function(){var u=b.getAttribute("data-copy"),ok=document.getElementById("art-copy-ok");function done(){if(ok){ok.hidden=false;setTimeout(function(){ok.hidden=true;},2600);}}if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(u).then(done).catch(done);}else{var t=document.createElement("textarea");t.value=u;document.body.appendChild(t);t.select();try{document.execCommand("copy");}catch(_){}document.body.removeChild(t);done();}});})();</script>
 <script src="/index_assets/a28.js"></script>
 <script src="/index_assets/a31.js"></script>
-<script src="/index_assets/af-contato.v1.js"></script>
+<script src="/index_assets/af-contato.v2.js"></script>
 </body></html>`;
 }
 
@@ -392,6 +393,10 @@ ${INST.map(([n,u,d])=>`- [${n}](${BASE}${u}): ${d}`).join('\n')}
 
 ## Blog — artigos recentes
 ${posts.slice(0,30).map(p=>`- [${p.title}](${BASE}${p.path})${p.excerpt?`: ${p.excerpt}`:''}`).join('\n')}
+
+[//]: # (UNIDADES:INICIO)
+${indiceUnidades.llms(indiceUnidades.unidades(ROOT), BASE)}
+[//]: # (UNIDADES:FIM)
 
 ## Recursos
 - [Sitemap](${BASE}/sitemap.xml)

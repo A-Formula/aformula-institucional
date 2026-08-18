@@ -36,12 +36,17 @@
 // aggregateRating — marcar avaliação de terceiro como do próprio site viola a
 // diretriz de dados estruturados do Google.
 //
+// og:image (2026-08-18): usa o MESMO ativo de marca das outras páginas do site
+// (index_assets/a18.jpg). Antes o `twitter:card` era `summary_large_image` SEM imagem
+// nenhuma — o card saía em branco em WhatsApp/LinkedIn/X.
+//
 // Fotos: o JSON traz `fotos`, mas são hospedadas pelo Google e pertencem a quem
 // postou. Hotlink fere os termos e some sem aviso. Campo IGNORADO de propósito.
 
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import * as indice from './unidades-index.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
@@ -127,6 +132,52 @@ function notaGoogle(coleta) {
   return { nota: n.toFixed(1).replace('.', ','), avaliacoes: av, url: coleta.urlPerfil };
 }
 
+// Bairro, extraído do endereço DO GOOGLE (que é estruturado), nunca do cadastro.
+// O cabeçalho deste arquivo registra a tentativa antiga, pelo cadastro: 20/85 de falha e,
+// pior, acerto errado. Pelo endereço do Google dá 73/75 — e as 2 falhas devolvem null.
+// LISTA DE EXCLUSÃO obrigatória: em `sao-paulo-tatuape` o campo traz "Térreo", que é ANDAR,
+// não bairro ("R. Emílio Mallet, 964 - Térreo, São Paulo - SP"). Sem isto a página diria
+// "no bairro Térreo".
+const NAO_BAIRRO = /^(terreo|térreo|loja|lojas|sala|andar|bloco|luc|piso|quadra|lote|km|s\/n|galeria|shopping|ed\.?|edificio|edifício)\b/i;
+
+// Abreviações que o Google usa e o cadastro não (ou o contrário). Sem expandir, "Nossa
+// Sra. da Penha" x "Nossa Senhora da Penha" pareceria conflito de bairro, e não é.
+// ⚠️ As fronteiras \b são ESSENCIAIS: sem elas /v\.?/ trocaria o "v" de "oliveira" por
+// "vila". Já aconteceu — um heredoc comeu os \b e virou caractere de backspace invisível.
+const ABREV = [
+  [/\bsra\.?\b/gi, 'senhora'], [/\bsr\.?\b/gi, 'senhor'],
+  [/\bsto\.?\b/gi, 'santo'], [/\bsta\.?\b/gi, 'santa'],
+  [/\bjd\.?\b/gi, 'jardim'], [/\bvl\.?\b/gi, 'vila'],
+  [/\bpq\.?\b/gi, 'parque'], [/\bn\.? ?s\.?\b/gi, 'nossa senhora'],
+];
+const paraComparar = (s) => ABREV.reduce((x, [re, sub]) => x.replace(re, sub), norm(s))
+  .replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+
+function bairroDoGoogle(coleta, enderecoExibido) {
+  const bruto = String((coleta || {}).enderecoGoogle || '');
+  if (!bruto) return null;
+  let e = bruto.replace(/,\s*\d{5}-?\d{3}\s*$/, '').trim();   // fora o CEP
+  e = e.replace(/,\s*[^,]*\s-\s[A-Z]{2}\s*$/, '');            // fora ", Cidade - UF"
+  const m = e.match(/\s-\s([^,\-]{2,40})$/);
+  if (!m) return null;
+  const b = m[1].trim().replace(/^bairro\s+/i, '');            // "Bairro Centro" → "Centro"
+  if (!b || b.length < 3 || NAO_BAIRRO.test(b)) return null;
+
+  // COERÊNCIA OBRIGATÓRIA com o endereço que a página exibe. Sem isto a frase se
+  // contradiz sozinha: em salvador-shopping-paralela o Google diz "Cajazeiras" e o
+  // endereço do cadastro diz "Paralela"; em olinda-centro o Google diz "Casa Caiada" e
+  // o cadastro (e o slug) dizem "Centro". Quando divergem, quem manda é o endereço
+  // publicado — e o bairro simplesmente não é citado. 7 unidades caem aqui, e a
+  // divergência virou pergunta pro operador em vez de texto inventado.
+  if (!paraComparar(enderecoExibido).includes(paraComparar(b))) return null;
+
+  // Grafia: vale a do ENDEREÇO PUBLICADO, não a do Google. Sem isto a página escrevia
+  // "no bairro Nossa Sra. da Penha" colado num endereço que diz "Nossa Senhora da Penha"
+  // — mesmo bairro, duas grafias lado a lado.
+  const pedacos = String(enderecoExibido).split(/,|\s-\s/).map((x) => x.trim()).filter(Boolean);
+  return pedacos.find((x) => paraComparar(x) === paraComparar(b)) || b;
+}
+
 const E = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
   .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -156,8 +207,11 @@ function distintivo(u) {
 }
 
 const rotulo = (u) => {
+  // cidade aparada: o cadastro tem "João Pessoa " com espaco no fim e o rotulo saia com
+  // espaco duplo antes do travessao. Aparar espaco nao recompoe dado.
+  const cidade = String(u.cidade || '').trim();
   const d = distintivo(u);
-  return d ? `${u.cidade} — ${d}` : u.cidade;
+  return d ? `${cidade} — ${d}` : cidade;
 };
 
 function distanciaKm(a, b) {
@@ -308,12 +362,15 @@ function render(u0, todas, parts, coleta) {
     .map((g) => `${g.rotulo.toLowerCase()}, ${txtFaixas(g.faixas)}`).join('; ');
   const fechaDomingo = !!(dias && !dias[6].faixas.length);
   const rating = notaGoogle(coleta);
+  const bairro = bairroDoGoogle(coleta, u.endereco);
 
   // ---------- meta ----------
   const title = dist
     ? `Farmácia de Manipulação em ${u.cidade} — ${dist} | A Fórmula`
     : `Farmácia de Manipulação em ${u.cidade} | A Fórmula`;
-  const desc = `A Fórmula em ${u.cidade} (${u.estado}): ${u.endereco}. ` +
+  // bairro na description: é como a busca local é escrita ("manipulação no Tatuapé")
+  const desc = `A Fórmula em ${u.cidade} (${u.estado})` +
+    (bairro ? `, no bairro ${bairro}` : '') + `: ${u.endereco}. ` +
     (resumoHoras ? `Atende ${resumoHoras}. ` : '') +
     `Envie a receita pelo WhatsApp e receba o orçamento.`;
 
@@ -330,7 +387,12 @@ function render(u0, todas, parts, coleta) {
 <meta property="og:title" content="${E(nomeCompleto)} — Farmácia de Manipulação">
 <meta property="og:description" content="${E(desc)}">
 <meta property="og:url" content="${url}">
-<meta name="twitter:card" content="summary_large_image">`;
+<meta property="og:image" content="${BASE}/index_assets/a18.jpg">
+<meta property="og:image:width" content="1537">
+<meta property="og:image:height" content="1023">
+<meta property="og:image:alt" content="Farmacêutica da A Fórmula manipulando em laboratório">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="${BASE}/index_assets/a18.jpg">`;
 
   // ---------- perguntas (respostas AUTOSSUFICIENTES: cada uma repete o sujeito,
   // porque LLM extrai a frase isolada e sem o sujeito ela não serve de citação) ----------
@@ -349,6 +411,12 @@ function render(u0, todas, parts, coleta) {
     q: `Onde fica a ${nomeCompleto}?`,
     a: `${nomeCompleto} fica em ${u.endereco}${u.cep ? `, CEP ${u.cep}` : ''}. ` +
        `Nesta página você abre a rota direto no Google Maps.`,
+  });
+  if (bairro) faq.push({
+    q: `Em que bairro fica a ${nomeCompleto}?`,
+    a: `${nomeCompleto} fica no bairro ${bairro}, em ${u.cidade} (${u.estado}), em ${u.endereco}. ` +
+       `É a unidade da A Fórmula que atende quem procura farmácia de manipulação ${
+         /^(centro)$/i.test(bairro) ? `no centro de ${u.cidade}` : `no ${bairro} e na região`}.`,
   });
   if (tel) faq.push({
     q: `Qual o telefone e o WhatsApp da ${nomeCompleto}?`,
@@ -374,8 +442,10 @@ function render(u0, todas, parts, coleta) {
   });
   if (irmas.length) faq.push({
     q: `A Fórmula tem outras unidades em ${u.cidade}?`,
-    a: `Sim. Além da unidade ${dist || u.cidade}, a A Fórmula tem ${irmas.length === 1 ? 'mais uma unidade' : `mais ${irmas.length} unidades`} ` +
-       `em ${u.cidade}: ${irmas.map((o) => distintivo(o) || o.cidade).join(', ')}. ` +
+    // sem contagem, só os nomes: o cadastro não tem todas as lojas, então dizer "mais 3
+    // unidades" publica número que pode estar errado (decisão do operador 2026-08-18)
+    a: `Sim. Além da unidade ${dist || u.cidade}, a A Fórmula atende ${u.cidade} ` +
+       `também em: ${irmas.map((o) => distintivo(o) || o.cidade).join(', ')}. ` +
        `Todas aparecem em <a href="/encontre-uma-loja">Encontre uma loja</a>.`,
   });
 
@@ -443,6 +513,10 @@ function render(u0, todas, parts, coleta) {
         '@id': `${BASE}/#organizacao`,
         name: 'A Fórmula',
         url: BASE + '/',
+        // logo é a marca, e isso é verdade. Já `image` do Pharmacy fica FORA de propósito:
+        // o único ativo disponível é foto de marca genérica, e usá-la diria que as 75 lojas
+        // têm a mesma fachada. Entra quando houver foto real de cada unidade.
+        logo: `${BASE}/index_assets/a27.webp`,
         description: 'Rede de farmácias de manipulação com 37 anos de atuação no Brasil.',
       },
       {
@@ -455,6 +529,17 @@ function render(u0, todas, parts, coleta) {
         isPartOf: { '@id': `${BASE}/#site` },
         about: { '@id': `${url}#unidade` },
         primaryTopic: { '@id': `${url}#unidade` },
+        // speakable: aponta pro que responde "onde fica e quando abre" em voz alta.
+        // Ganho pequeno e incerto (o Google restringe speakable a notícia), mas é barato,
+        // não mente e serve assistente de voz que respeite a anotação.
+        speakable: {
+          '@type': 'SpeakableSpecification',
+          cssSelector: ['.loja-hero h1', '.loja-lead', '.loja-horas'],
+        },
+        // SEM lastmod no sitemap de propósito: na Vercel o checkout nasce com a data do
+        // BUILD, então todo deploy marcaria as 75 como atualizadas — é o lastmod que mente,
+        // e o Google aprende a ignorar. Voltar a considerar quando houver data por unidade.
+
       },
       {
         '@type': 'WebSite',
@@ -628,6 +713,7 @@ ${faqHtml}
 ${parts.footer}
 <script src="/index_assets/a28.js"></script>
 <script src="/index_assets/a31.js"></script>
+<script src="/index_assets/af-contato.v2.js"></script>
 </body></html>`;
 }
 
@@ -679,6 +765,48 @@ function main() {
     console.log(src);
     fs.writeFileSync(path.join(ROOT, '_coleta-google', '_vercel-lookahead.txt'), src + '\n');
     console.log('\n[lojas] tambem salvo em _coleta-google/_vercel-lookahead.txt');
+  }
+
+  // ---------- indice estatico (a PORTA de entrada das paginas) ----------
+  // Sem isto, /encontre-uma-loja nao tem NENHUM link em HTML pras unidades: o trilho de
+  // cards e montado por JS, e crawler de LLM nao executa JS. Medido em 2026-08-18.
+  const us = indice.unidades(ROOT);
+
+  const pMapa = path.join(ROOT, 'encontre-uma-loja.html');
+  const mapa = fs.readFileSync(pMapa, 'utf8');
+  const mapaNovo = indice.entreMarcadores(
+    mapa,
+    '<!-- INDICE-UNIDADES:INICIO — gerado por scripts/build-lojas.mjs (nao editar a mao) -->',
+    '<!-- INDICE-UNIDADES:FIM -->',
+    '  ' + indice.html(us)
+  );
+  if (!mapaNovo) {
+    console.warn('[lojas] AVISO: marcadores INDICE-UNIDADES nao achados em encontre-uma-loja.html');
+  } else if (mapaNovo !== mapa) {
+    fs.writeFileSync(pMapa, mapaNovo);
+    console.log(`[lojas] indice estatico atualizado em encontre-uma-loja.html (${us.length} links)`);
+  } else {
+    console.log('[lojas] indice estatico ja estava em dia');
+  }
+
+  // llms.txt: o indice p/ LLM nao citava nenhuma unidade. O deploy regenera o arquivo
+  // (build-site.mjs tambem insere este bloco) — aqui se atualiza a copia do disco, pra
+  // dar pra conferir localmente sem Firestore.
+  const pLlms = path.join(ROOT, 'llms.txt');
+  if (fs.existsSync(pLlms)) {
+    const llms = fs.readFileSync(pLlms, 'utf8');
+    const bloco = indice.llms(us, BASE);
+    const INI = '[//]: # (UNIDADES:INICIO)';
+    const FIM = '[//]: # (UNIDADES:FIM)';
+    const SALTO = String.fromCharCode(10);   // sem barra invertida de proposito: o heredoc
+                                             // que gerou este arquivo colapsava a escapada
+    const novo = (llms.includes(INI) && llms.includes(FIM))
+      ? indice.entreMarcadores(llms, INI, FIM, bloco)
+      : llms.replace('## Recursos', [INI, bloco, FIM, '', '## Recursos'].join(SALTO));
+    if (novo && novo !== llms) {
+      fs.writeFileSync(pLlms, novo);
+      console.log(`[lojas] llms.txt: bloco de unidades atualizado (${us.length} entradas)`);
+    }
   }
 }
 

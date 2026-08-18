@@ -966,9 +966,26 @@ ol,ul{margin:0;padding:0;list-style:none}
 a.railcard__wanum:hover{text-decoration:underline}
 .railcard__addr{font-size:12px;color:var(--muted,#5c7075);line-height:1.4;margin:5px 0 0;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.railcard__acts{display:flex;gap:7px;margin-top:11px}
-.railcard__acts a{font-size:11.5px;font-weight:700;padding:6px 12px;border-radius:999px;border:1.5px solid var(--line,#dbe6e6);
-  color:var(--teal-800,#0a3f45);text-decoration:none;transition:background .2s,color .2s,border-color .2s}
+.railcard__acts{display:flex;align-items:center;gap:7px;margin-top:11px}
+/* inline-flex + center: em flex o filho <a> era blockificado e ESTICAVA na altura do vizinho
+   mais alto (o "Como chegar" de 2 linhas), e o rótulo de 1 linha grudava no TOPO da pílula.
+   nowrap: o rótulo não quebra mais. Medido em 390px: os 3 botões somavam exatos 216px de 216
+   disponíveis — folga zero, daí a quebra. */
+.railcard__acts a{display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  font-size:11.5px;font-weight:700;line-height:1;white-space:nowrap;padding:8px 13px;border-radius:999px;
+  border:1.5px solid var(--line,#dbe6e6);color:var(--teal-800,#0a3f45);text-decoration:none;
+  transition:background .2s,color .2s,border-color .2s}
+.railcard__acts a svg{width:14px;height:14px;flex:0 0 14px}
+.railcard__acts a.wa svg{fill:#fff;stroke:none;width:15px;height:15px;flex:0 0 15px}
+/* MESMA altura nos três (medido: eram 34 / 33 / 29 e ficavam desalinhados na base).
+   Altura fixa + padding só na horizontal, e o compartilhar vira quadrado de mesmo lado. */
+.railcard__acts a,.railcard__acts .railcard__share{height:32px;padding:0 13px;box-sizing:border-box}
+.railcard__acts .railcard__share{width:32px;padding:0}
+/* No mobile o rótulo da rota sai e fica só o pino: é o que faz os 3 botões caberem numa linha
+   só, com a mesma altura. O aria-label no <a> mantém a ação nomeada pro leitor de tela. */
+@media(max-width:767px){.railcard__acts a.rota .railcard__rot{display:none}
+  .railcard__acts a.rota{width:32px;padding:0}
+  .railcard__acts a.rota svg{width:16px;height:16px;flex:0 0 16px}}
 .railcard__acts a:hover{background:var(--brand,#008896);border-color:var(--brand,#008896);color:#fff}
 /* v5 (2026-08-18): o card INTEIRO abre a página da unidade — o botão "Ver a loja" saiu.
    O card já nascia com cursor:pointer e borda transparente (era clicável pra mover o mapa),
@@ -978,6 +995,42 @@ a.railcard__wanum:hover{text-decoration:underline}
 .railcard:hover .railcard__top h3{color:var(--brand,#008896)}
 .railcard__link{color:inherit;text-decoration:none}
 .railcard:hover .railcard__link{text-decoration:underline}
+/* Índice estático das unidades (18/08). Existe para o crawler que NÃO roda JS: o trilho de
+   cards é montado em JS, e GPTBot/ClaudeBot/PerplexityBot veriam a página sem nenhum link
+   pras páginas de unidade. Fica FECHADO por padrão (o operador achou a lista aberta feia): o
+   conteúdo está no HTML — crawler lê sem clicar — e o visitante vê uma linha só.
+   Esconder do visitante e mostrar ao robô seria cloaking, e isso não se faz. */
+.unidades-indice{background:var(--paper,#f4f7f7);padding:26px 0 34px;border-top:1px solid var(--line,#dbe6e6)}
+.unidades-det{max-width:1100px}
+.unidades-det>summary{list-style:none;cursor:pointer;display:flex;flex-wrap:wrap;align-items:baseline;
+  gap:4px 12px;padding:14px 40px 14px 0;position:relative;border-bottom:1px solid transparent}
+.unidades-det>summary::-webkit-details-marker{display:none}
+.unidades-det>summary:hover .unidades-det__t{color:var(--brand,#008896)}
+.unidades-det>summary::after{content:"";position:absolute;right:8px;top:50%;width:9px;height:9px;
+  margin-top:-7px;border-right:2px solid var(--brand,#008896);border-bottom:2px solid var(--brand,#008896);
+  transform:rotate(45deg);transition:transform .2s}
+.unidades-det[open]>summary::after{transform:rotate(225deg)}
+.unidades-det[open]>summary{border-bottom-color:var(--line,#dbe6e6);margin-bottom:26px}
+.unidades-det__t{font-size:clamp(17px,1.6vw,20px);font-weight:700;color:var(--teal-850,#06343a)}
+.unidades-det__h{font-size:14px;color:var(--muted,#5b7075)}
+.unidades-det>summary:focus-visible{outline:3px solid var(--brand,#008896);outline-offset:3px}
+
+/* multi-coluna, nao grid: o estado com mais lojas esticava a LINHA inteira no grid,
+   deixando buracos gigantes ao lado. Com `columns` os blocos fluem e preenchem. */
+.unidades-grid{columns:1;column-gap:34px}
+@media(min-width:640px){.unidades-grid{columns:2}}
+@media(min-width:1000px){.unidades-grid{columns:3}}
+@media(min-width:1280px){.unidades-grid{columns:4}}
+.unidades-uf{break-inside:avoid;margin:0 0 26px}
+.unidades-uf h3{display:flex;align-items:baseline;gap:8px;margin:0 0 10px;padding-bottom:8px;
+  border-bottom:1px solid var(--line,#dbe6e6);font-size:13px;font-weight:900;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--brand,#008896)}
+.unidades-uf h3 span{font-size:11px;font-weight:700;letter-spacing:0;color:var(--muted,#5b7075)}
+.unidades-uf ul{list-style:none;margin:0;padding:0}
+.unidades-uf li+li{margin-top:2px}
+.unidades-uf a{display:block;padding:5px 0;font-size:15px;line-height:1.45;
+  color:var(--teal-800,#0a3f45);text-decoration:none}
+.unidades-uf a:hover{color:var(--brand,#008896);text-decoration:underline}
 .railcard__acts a.wa{background:#25d366;border-color:#25d366;color:#fff}
 .railcard__acts a.wa:hover{background:#1eb85a;border-color:#1eb85a}
 .railcard__soon{font-size:11.5px;font-weight:700;padding:6px 13px;border-radius:999px;
@@ -1013,9 +1066,14 @@ a.railcard__wanum:hover{text-decoration:underline}
 .af-pop__in strong{display:block;font-size:15.5px;color:var(--teal-850,#06343a);font-weight:700}
 .af-pop__loc{display:block;font-size:11.5px;font-weight:700;color:var(--brand,#008896);margin-top:3px;letter-spacing:.02em}
 .af-pop__in p{font-size:12.5px;color:var(--muted,#5c7075);line-height:1.45;margin:7px 0 0}
-.af-pop__acts{display:flex;gap:7px;margin-top:12px}
-.af-pop__acts a{font-size:11.5px;font-weight:700;padding:6px 12px;border-radius:999px;border:1.5px solid var(--line,#dbe6e6);
-  color:var(--teal-800,#0a3f45);text-decoration:none}
+.af-pop__acts{display:flex;align-items:center;gap:7px;margin-top:12px}
+.af-pop__acts a{display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  font-size:11.5px;font-weight:700;line-height:1;white-space:nowrap;padding:8px 13px;border-radius:999px;
+  border:1.5px solid var(--line,#dbe6e6);color:var(--teal-800,#0a3f45);text-decoration:none}
+.af-pop__acts a svg{width:14px;height:14px;flex:0 0 14px}
+.af-pop__acts a.wa svg{fill:#fff;stroke:none;width:15px;height:15px;flex:0 0 15px}
+.af-pop__acts a,.af-pop__acts .af-pop__share{height:32px;padding:0 13px;box-sizing:border-box}
+.af-pop__acts .af-pop__share{width:32px;padding:0}
 .af-pop__acts a:hover{background:var(--brand,#008896);border-color:var(--brand,#008896);color:#fff}
 .af-pop__acts a.wa{background:#25d366;border-color:#25d366;color:#fff}
 .af-pop .maplibregl-popup-tip{border-top-color:#fff}
@@ -3486,6 +3544,206 @@ a.railcard__wanum:hover{text-decoration:underline}
       <div class="mapx__rail" id="rail" aria-label="Lista de unidades"></div>
     </div>
   </section>
+
+  <!-- INDICE-UNIDADES:INICIO — gerado por scripts/build-lojas.mjs (nao editar a mao) -->
+  <section class="unidades-indice" aria-labelledby="todas-unidades">
+      <div class="container">
+        <details class="unidades-det">
+          <summary id="todas-unidades">
+            <span class="unidades-det__t">Todas as unidades, por estado</span>
+            <span class="unidades-det__h">endereço, horário e WhatsApp de cada loja</span>
+          </summary>
+          <div class="unidades-grid">
+          <div class="unidades-uf">
+            <h3>AC</h3>
+            <ul>
+              <li><a href="/encontre-uma-loja/rio-branco">Rio Branco</a></li>
+            </ul>
+          </div>
+          <div class="unidades-uf">
+            <h3>AL</h3>
+            <ul>
+              <li><a href="/encontre-uma-loja/arapiraca">Arapiraca</a></li>
+              <li><a href="/encontre-uma-loja/maceio-centro">Maceió — Centro</a></li>
+              <li><a href="/encontre-uma-loja/maceio-farol">Maceió — Farol</a></li>
+              <li><a href="/encontre-uma-loja/maceio-hiper-galeria">Maceió — Hiper Galeria</a></li>
+              <li><a href="/encontre-uma-loja/maceio-mangabeiras">Maceió — Mangabeiras</a></li>
+              <li><a href="/encontre-uma-loja/maceio-rotary">Maceió — Rotary</a></li>
+            </ul>
+          </div>
+          <div class="unidades-uf">
+            <h3>AP</h3>
+            <ul>
+              <li><a href="/encontre-uma-loja/macapa-amapa">Macapá</a></li>
+            </ul>
+          </div>
+          <div class="unidades-uf">
+            <h3>BA</h3>
+            <ul>
+              <li><a href="/encontre-uma-loja/alagoinhas">Alagoinhas</a></li>
+              <li><a href="/encontre-uma-loja/brumado">Brumado</a></li>
+              <li><a href="/encontre-uma-loja/camacari-shopping-rivieira">Camaçari — Shopping Rivieira</a></li>
+              <li><a href="/encontre-uma-loja/candeias">Candeias</a></li>
+              <li><a href="/encontre-uma-loja/eunapolis">Eunápolis</a></li>
+              <li><a href="/encontre-uma-loja/feira-de-santana-maison">Feira de Santana — Maison</a></li>
+              <li><a href="/encontre-uma-loja/feira-de-santana">Feira de Santana — Ponto Central</a></li>
+              <li><a href="/encontre-uma-loja/ipiau">Ipiaú</a></li>
+              <li><a href="/encontre-uma-loja/irece">Irecê</a></li>
+              <li><a href="/encontre-uma-loja/itabuna">Itabuna</a></li>
+              <li><a href="/encontre-uma-loja/jacobina">Jacobina</a></li>
+              <li><a href="/encontre-uma-loja/jequie">Jequié</a></li>
+              <li><a href="/encontre-uma-loja/juazeiro">Juazeiro</a></li>
+              <li><a href="/encontre-uma-loja/macaubas">Macaúbas</a></li>
+              <li><a href="/encontre-uma-loja/paulo-afonso">Paulo Afonso</a></li>
+              <li><a href="/encontre-uma-loja/pocoes">Poções</a></li>
+              <li><a href="/encontre-uma-loja/salvador-caminho-de-areia">Salvador — Caminho de Areia</a></li>
+              <li><a href="/encontre-uma-loja/salvador-manoel-dias">Salvador — Manoel Dias</a></li>
+              <li><a href="/encontre-uma-loja/salvador-shopping-barra-bahia">Salvador — Shopping Barra — Bahia</a></li>
+              <li><a href="/encontre-uma-loja/salvador-shopping-paralela">Salvador — Shopping Paralela</a></li>
+              <li><a href="/encontre-uma-loja/santo-antonio-de-jesus">Santo Antônio de Jesus</a></li>
+              <li><a href="/encontre-uma-loja/seabra">Seabra</a></li>
+              <li><a href="/encontre-uma-loja/senhor-do-bonfim">Senhor do Bonfim</a></li>
+              <li><a href="/encontre-uma-loja/vitoria-da-conquista-centro">Vitória da Conquista — Centro</a></li>
+            </ul>
+          </div>
+          <div class="unidades-uf">
+            <h3>CE</h3>
+            <ul>
+              <li><a href="/encontre-uma-loja/crateus">Crateús</a></li>
+              <li><a href="/encontre-uma-loja/fortaleza-aldeota">Fortaleza — Aldeota</a></li>
+              <li><a href="/encontre-uma-loja/fortaleza-fatima">Fortaleza — Fátima</a></li>
+              <li><a href="/encontre-uma-loja/juazeiro-do-norte">Juazeiro do Norte</a></li>
+            </ul>
+          </div>
+          <div class="unidades-uf">
+            <h3>DF</h3>
+            <ul>
+              <li><a href="/encontre-uma-loja/brasilia">Brasília | Asa Sul</a></li>
+            </ul>
+          </div>
+          <div class="unidades-uf">
+            <h3>MG</h3>
+            <ul>
+              <li><a href="/encontre-uma-loja/belo-horizonte">Belo Horizonte</a></li>
+            </ul>
+          </div>
+          <div class="unidades-uf">
+            <h3>MT</h3>
+            <ul>
+              <li><a href="/encontre-uma-loja/sinop">SINOP</a></li>
+            </ul>
+          </div>
+          <div class="unidades-uf">
+            <h3>PA</h3>
+            <ul>
+              <li><a href="/encontre-uma-loja/belem-br">Belém — Ananindeua</a></li>
+              <li><a href="/encontre-uma-loja/belem">Belém — Doca</a></li>
+              <li><a href="/encontre-uma-loja/belem-duque">Belém — Duque</a></li>
+              <li><a href="/encontre-uma-loja/redencao-pa-em-breve">Redenção</a></li>
+            </ul>
+          </div>
+          <div class="unidades-uf">
+            <h3>PB</h3>
+            <ul>
+              <li><a href="/encontre-uma-loja/campina-grande">Campina Grande</a></li>
+              <li><a href="/encontre-uma-loja/joao-pessoa-jaguaribe">João Pessoa — Jaguaribe</a></li>
+              <li><a href="/encontre-uma-loja/joao-pessoa-manaira">João Pessoa — Manaíra</a></li>
+            </ul>
+          </div>
+          <div class="unidades-uf">
+            <h3>PE</h3>
+            <ul>
+              <li><a href="/encontre-uma-loja/arcoverde">Arcoverde</a></li>
+              <li><a href="/encontre-uma-loja/belo-jardim">Belo Jardim</a></li>
+              <li><a href="/encontre-uma-loja/caruaru">Caruaru</a></li>
+              <li><a href="/encontre-uma-loja/custodia">Custódia</a></li>
+              <li><a href="/encontre-uma-loja/olinda-centro">Olinda</a></li>
+              <li><a href="/encontre-uma-loja/petrolina-centro">Petrolina — Centro</a></li>
+              <li><a href="/encontre-uma-loja/petrolina-cidade-universitaria">Petrolina — Cidade Universitária</a></li>
+              <li><a href="/encontre-uma-loja/recife-gracas">Recife — Graças</a></li>
+              <li><a href="/encontre-uma-loja/recife-shopping-recife">Recife — Shopping Recife</a></li>
+              <li><a href="/encontre-uma-loja/salgueiro">Salgueiro</a></li>
+              <li><a href="/encontre-uma-loja/serra-talhada">Serra Talhada</a></li>
+            </ul>
+          </div>
+          <div class="unidades-uf">
+            <h3>PI</h3>
+            <ul>
+              <li><a href="/encontre-uma-loja/picos">Picos</a></li>
+            </ul>
+          </div>
+          <div class="unidades-uf">
+            <h3>PR</h3>
+            <ul>
+              <li><a href="/encontre-uma-loja/foz-do-iguacu-parana">Foz do Iguaçu</a></li>
+            </ul>
+          </div>
+          <div class="unidades-uf">
+            <h3>RJ</h3>
+            <ul>
+              <li><a href="/encontre-uma-loja/rio-de-janeiro">Rio de Janeiro</a></li>
+            </ul>
+          </div>
+          <div class="unidades-uf">
+            <h3>RN</h3>
+            <ul>
+              <li><a href="/encontre-uma-loja/mossoro-medical-center">Mossoró</a></li>
+              <li><a href="/encontre-uma-loja/natal">Natal</a></li>
+            </ul>
+          </div>
+          <div class="unidades-uf">
+            <h3>RO</h3>
+            <ul>
+              <li><a href="/encontre-uma-loja/porto-velho">Porto Velho</a></li>
+            </ul>
+          </div>
+          <div class="unidades-uf">
+            <h3>RR</h3>
+            <ul>
+              <li><a href="/encontre-uma-loja/boa-vista">Boa Vista</a></li>
+            </ul>
+          </div>
+          <div class="unidades-uf">
+            <h3>RS</h3>
+            <ul>
+              <li><a href="/encontre-uma-loja/santa-cruz-do-sul">Santa Cruz do Sul</a></li>
+            </ul>
+          </div>
+          <div class="unidades-uf">
+            <h3>SC</h3>
+            <ul>
+              <li><a href="/encontre-uma-loja/florianopolis">Florianópolis</a></li>
+            </ul>
+          </div>
+          <div class="unidades-uf">
+            <h3>SE</h3>
+            <ul>
+              <li><a href="/encontre-uma-loja/aracaju">Aracajú</a></li>
+            </ul>
+          </div>
+          <div class="unidades-uf">
+            <h3>SP</h3>
+            <ul>
+              <li><a href="/encontre-uma-loja/santo-andre">Santo André</a></li>
+              <li><a href="/encontre-uma-loja/sao-paulo-brooklin">São Paulo — Brooklin</a></li>
+              <li><a href="/encontre-uma-loja/sao-paulo-morumbi">São Paulo — Morumbi</a></li>
+              <li><a href="/encontre-uma-loja/sao-paulo-perdizes">São Paulo — Perdizes</a></li>
+              <li><a href="/encontre-uma-loja/sao-paulo-tatuape">São Paulo — Tatuapé</a></li>
+              <li><a href="/encontre-uma-loja/sao-paulo-sorocaba-em-breve">Sorocaba</a></li>
+            </ul>
+          </div>
+          <div class="unidades-uf">
+            <h3>TO</h3>
+            <ul>
+              <li><a href="/encontre-uma-loja/araguaina">Araguaína</a></li>
+              <li><a href="/encontre-uma-loja/palmas-to">Palmas</a></li>
+            </ul>
+          </div>
+          </div>
+        </details>
+      </div>
+    </section>
+<!-- INDICE-UNIDADES:FIM -->
 </main>
 
 <footer class="footer">
@@ -3616,7 +3874,7 @@ a.railcard__wanum:hover{text-decoration:underline}
   function carregar(){
     if (disparado) return; disparado = true;
     limpar();
-    ['encontre-uma-loja_assets/maplibre-gl.js','encontre-uma-loja_assets/finder3d.v5.js']
+    ['encontre-uma-loja_assets/maplibre-gl.js','encontre-uma-loja_assets/finder3d.v6.js']
       .reduce(function(p, src){
         return p.then(function(){
           return new Promise(function(ok, falha){
@@ -3664,5 +3922,5 @@ var any=document.querySelector(".reveal.is-in,.ani-in");
 document.querySelectorAll(".reveal:not(.is-in)").forEach(function(el){
  if(!any||el.getBoundingClientRect().top<innerHeight)el.classList.add("is-in");});
 },3000);</script>
-<script src="/index_assets/af-contato.v1.js"></script>
+<script src="/index_assets/af-contato.v2.js"></script>
 </body></html>
