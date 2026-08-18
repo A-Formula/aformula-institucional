@@ -679,7 +679,7 @@
            as 5 mais próximas de você. Sem esse corte, uma unidade a 40 km entraria no
            quadro e obrigaria o mapa a abrir demais, escondendo a rua que interessa.
 
-           Por que 2 km e não 1: medindo as 85 unidades, só 2 têm vizinha a ≤1 km (o par
+           Por que 2 km e não 1: medindo a rede inteira, só 2 unidades têm vizinha a ≤1 km (o par
            de Brasília, e uma delas é "Em Breve"). A 2 km entram Feira de Santana (1,43) e
            as 5 de Maceió (1,49–1,89) — 10% da rede, nas cidades onde a pessoa de fato
            escolhe entre unidades. Medido em 07/08/2026 sobre encontre-uma-loja_assets/lojas.json. */

@@ -129,7 +129,9 @@ const pharmacyList = {
   '@type': 'ItemList',
   name: 'Unidades A Fórmula',
   description: 'Farmácias de manipulação da rede A Fórmula por cidade.',
-  numberOfItems: pharmacyItems.length,
+  // SEM numberOfItems (decisao do operador 2026-08-18): o cadastro nao tem todas as
+  // lojas, e o numero explicito no JSON-LD e exatamente o vazamento que ele vetou.
+  // A lista em si fica — e conteudo, nao contagem declarada.
   itemListElement: pharmacyItems,
 };
 
