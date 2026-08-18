@@ -4,107 +4,363 @@
   "outputDirectory": ".",
   "cleanUrls": true,
   "crons": [
-    { "path": "/api/cron-email-flows", "schedule": "0 13 * * *" }
+    {
+      "path": "/api/cron-email-flows",
+      "schedule": "0 13 * * *"
+    }
   ],
   "redirects": [
-    { "source": "/blog/saude/saiba-a-importancia-da-imunidade", "destination": "/blog/saude/suplementos-para-aumentar-a-imunidade", "permanent": true },
-    { "source": "/blog/saude/saiba-a-importancia-da-imunidade/", "destination": "/blog/saude/suplementos-para-aumentar-a-imunidade", "permanent": true },
-    { "source": "/blog/saude/como-aumentar-a-imunidade-com-habitos-saudaveis", "destination": "/blog/saude/suplementos-para-aumentar-a-imunidade", "permanent": true },
-    { "source": "/blog/saude/como-aumentar-a-imunidade-com-habitos-saudaveis/", "destination": "/blog/saude/suplementos-para-aumentar-a-imunidade", "permanent": true },
-    { "source": "/blog/saude/conheca-suplementos-que-vao-te-ajudar-a-perder-peso", "destination": "/blog/saude/como-perder-peso-com-ajuda-de-suplementos-naturais", "permanent": true },
-    { "source": "/blog/saude/conheca-suplementos-que-vao-te-ajudar-a-perder-peso/", "destination": "/blog/saude/como-perder-peso-com-ajuda-de-suplementos-naturais", "permanent": true },
-    { "source": "/blog/saude/bcaa-tem-beneficios-que-vao-alem-da-melhora-nos-exercicios", "destination": "/blog/saude/o-poder-do-bcaa-conheca-os-impactos-positivos-no-seu-corpo", "permanent": true },
-    { "source": "/blog/saude/bcaa-tem-beneficios-que-vao-alem-da-melhora-nos-exercicios/", "destination": "/blog/saude/o-poder-do-bcaa-conheca-os-impactos-positivos-no-seu-corpo", "permanent": true },
-    { "source": "/blog/saude/conheca-os-beneficios-do-bcaa", "destination": "/blog/saude/o-poder-do-bcaa-conheca-os-impactos-positivos-no-seu-corpo", "permanent": true },
-    { "source": "/blog/saude/conheca-os-beneficios-do-bcaa/", "destination": "/blog/saude/o-poder-do-bcaa-conheca-os-impactos-positivos-no-seu-corpo", "permanent": true },
-    { "source": "/blog/saude/beneficios-do-cha-no-verao", "destination": "/blog/cuidados-com-o-corpo/chas-para-desintoxicar-conheca-os-beneficios-dessa-bebida-para-o-verao", "permanent": true },
-    { "source": "/blog/saude/beneficios-do-cha-no-verao/", "destination": "/blog/cuidados-com-o-corpo/chas-para-desintoxicar-conheca-os-beneficios-dessa-bebida-para-o-verao", "permanent": true },
-    { "source": "/blog/mercado/franquias-destaques-para-investimento-2021", "destination": "/blog/mercado/tudo-o-que-voce-precisa-saber-sobre-franquias", "permanent": true },
-    { "source": "/blog/mercado/franquias-destaques-para-investimento-2021/", "destination": "/blog/mercado/tudo-o-que-voce-precisa-saber-sobre-franquias", "permanent": true },
-    { "source": "/manipule-sua-receita", "destination": "/receita", "permanent": true },
-    { "source": "/manipule-sua-receita/", "destination": "/receita", "permanent": true },
-    { "source": "/fale-conosco", "destination": "/contato", "permanent": true },
-    { "source": "/fale-conosco/", "destination": "/contato", "permanent": true },
-    { "source": "/trabalhe-conosco", "destination": "/contato", "permanent": true },
-    { "source": "/trabalhe-conosco/", "destination": "/contato", "permanent": true },
-    { "source": "/login", "destination": "/area-do-prescritor", "permanent": true },
-    { "source": "/login/", "destination": "/area-do-prescritor", "permanent": true },
-    { "source": "/a-formula", "destination": "/sobre-nos", "permanent": true },
-    { "source": "/a-formula/", "destination": "/sobre-nos", "permanent": true },
-    { "source": "/quem-somos", "destination": "/sobre-nos", "permanent": true },
-    { "source": "/quem-somos/", "destination": "/sobre-nos", "permanent": true },
-    { "source": "/institucional", "destination": "/sobre-nos", "permanent": true },
-    { "source": "/institucional/", "destination": "/sobre-nos", "permanent": true },
-    { "source": "/produtos", "destination": "/encontre-uma-loja", "permanent": true },
-    { "source": "/produtos/", "destination": "/encontre-uma-loja", "permanent": true },
-    { "source": "/manipulados", "destination": "/receita", "permanent": true },
-    { "source": "/manipulados/", "destination": "/receita", "permanent": true },
-    { "source": "/unidade-boa-vista", "destination": "/encontre-uma-loja", "permanent": true },
-    { "source": "/unidade-boa-vista/", "destination": "/encontre-uma-loja", "permanent": true },
-    { "source": "/unidade-:slug", "destination": "/encontre-uma-loja", "permanent": true },
-    { "source": "/unidade-:slug/", "destination": "/encontre-uma-loja", "permanent": true },
-    { "source": "/nossas-lojas", "destination": "/encontre-uma-loja", "permanent": true },
-    { "source": "/nossas-lojas/", "destination": "/encontre-uma-loja", "permanent": true },
-    { "source": "/lojas", "destination": "/encontre-uma-loja", "permanent": true },
-    { "source": "/lojas/", "destination": "/encontre-uma-loja", "permanent": true },
-    { "source": "/unidades", "destination": "/encontre-uma-loja", "permanent": true },
-    { "source": "/unidades/", "destination": "/encontre-uma-loja", "permanent": true },
-    { "source": "/onde-estamos", "destination": "/encontre-uma-loja", "permanent": true },
-    { "source": "/onde-estamos/", "destination": "/encontre-uma-loja", "permanent": true },
-    { "source": "/lojas-fisicas", "destination": "/encontre-uma-loja", "permanent": true },
-    { "source": "/lojas-fisicas/", "destination": "/encontre-uma-loja", "permanent": true },
-    { "source": "/lojas-fisicas/:slug", "destination": "/encontre-uma-loja", "permanent": false },
-    { "source": "/encontre-uma-loja/:slug((?!rio-branco$|arapiraca$|maceio-hiper-galeria$|maceio-centro$|maceio-farol$|maceio-mangabeiras$|maceio-rotary$|macapa-amapa$|alagoinhas$|brumado$|camacari-shopping-rivieira$|candeias$|eunapolis$|feira-de-santana-maison$|feira-de-santana$|ipiau$|irece$|itabuna$|jacobina$|jequie$|juazeiro$|macaubas$|paulo-afonso$|pocoes$|salvador-caminho-de-areia$|salvador-manoel-dias$|salvador-shopping-barra-bahia$|salvador-shopping-paralela$|santo-antonio-de-jesus$|seabra$|senhor-do-bonfim$|vitoria-da-conquista-centro$|crateus$|fortaleza-aldeota$|fortaleza-fatima$|juazeiro-do-norte$|brasilia$|belo-horizonte$|sinop$|belem-br$|belem$|belem-duque$|redencao-pa-em-breve$|campina-grande$|joao-pessoa-jaguaribe$|joao-pessoa-manaira$|arcoverde$|belo-jardim$|caruaru$|custodia$|olinda-centro$|petrolina-centro$|petrolina-cidade-universitaria$|recife-gracas$|recife-shopping-recife$|salgueiro$|serra-talhada$|picos$|foz-do-iguacu-parana$|rio-de-janeiro$|mossoro-medical-center$|natal$|porto-velho$|boa-vista$|santa-cruz-do-sul$|florianopolis$|aracaju$|santo-andre$|sao-paulo-sorocaba-em-breve$|sao-paulo-brooklin$|sao-paulo-morumbi$|sao-paulo-perdizes$|sao-paulo-tatuape$|araguaina$|palmas-to$).*)", "destination": "/encontre-uma-loja", "permanent": false },
-    { "source": "/scripts/:path*", "destination": "/404", "permanent": false },
-    { "source": "/vercel.json", "destination": "/404", "permanent": false }
+    {
+      "source": "/blog/saude/saiba-a-importancia-da-imunidade",
+      "destination": "/blog/saude/suplementos-para-aumentar-a-imunidade",
+      "permanent": true
+    },
+    {
+      "source": "/blog/saude/saiba-a-importancia-da-imunidade/",
+      "destination": "/blog/saude/suplementos-para-aumentar-a-imunidade",
+      "permanent": true
+    },
+    {
+      "source": "/blog/saude/como-aumentar-a-imunidade-com-habitos-saudaveis",
+      "destination": "/blog/saude/suplementos-para-aumentar-a-imunidade",
+      "permanent": true
+    },
+    {
+      "source": "/blog/saude/como-aumentar-a-imunidade-com-habitos-saudaveis/",
+      "destination": "/blog/saude/suplementos-para-aumentar-a-imunidade",
+      "permanent": true
+    },
+    {
+      "source": "/blog/saude/conheca-suplementos-que-vao-te-ajudar-a-perder-peso",
+      "destination": "/blog/saude/como-perder-peso-com-ajuda-de-suplementos-naturais",
+      "permanent": true
+    },
+    {
+      "source": "/blog/saude/conheca-suplementos-que-vao-te-ajudar-a-perder-peso/",
+      "destination": "/blog/saude/como-perder-peso-com-ajuda-de-suplementos-naturais",
+      "permanent": true
+    },
+    {
+      "source": "/blog/saude/bcaa-tem-beneficios-que-vao-alem-da-melhora-nos-exercicios",
+      "destination": "/blog/saude/o-poder-do-bcaa-conheca-os-impactos-positivos-no-seu-corpo",
+      "permanent": true
+    },
+    {
+      "source": "/blog/saude/bcaa-tem-beneficios-que-vao-alem-da-melhora-nos-exercicios/",
+      "destination": "/blog/saude/o-poder-do-bcaa-conheca-os-impactos-positivos-no-seu-corpo",
+      "permanent": true
+    },
+    {
+      "source": "/blog/saude/conheca-os-beneficios-do-bcaa",
+      "destination": "/blog/saude/o-poder-do-bcaa-conheca-os-impactos-positivos-no-seu-corpo",
+      "permanent": true
+    },
+    {
+      "source": "/blog/saude/conheca-os-beneficios-do-bcaa/",
+      "destination": "/blog/saude/o-poder-do-bcaa-conheca-os-impactos-positivos-no-seu-corpo",
+      "permanent": true
+    },
+    {
+      "source": "/blog/saude/beneficios-do-cha-no-verao",
+      "destination": "/blog/cuidados-com-o-corpo/chas-para-desintoxicar-conheca-os-beneficios-dessa-bebida-para-o-verao",
+      "permanent": true
+    },
+    {
+      "source": "/blog/saude/beneficios-do-cha-no-verao/",
+      "destination": "/blog/cuidados-com-o-corpo/chas-para-desintoxicar-conheca-os-beneficios-dessa-bebida-para-o-verao",
+      "permanent": true
+    },
+    {
+      "source": "/blog/mercado/franquias-destaques-para-investimento-2021",
+      "destination": "/blog/mercado/tudo-o-que-voce-precisa-saber-sobre-franquias",
+      "permanent": true
+    },
+    {
+      "source": "/blog/mercado/franquias-destaques-para-investimento-2021/",
+      "destination": "/blog/mercado/tudo-o-que-voce-precisa-saber-sobre-franquias",
+      "permanent": true
+    },
+    {
+      "source": "/manipule-sua-receita",
+      "destination": "/receita",
+      "permanent": true
+    },
+    {
+      "source": "/manipule-sua-receita/",
+      "destination": "/receita",
+      "permanent": true
+    },
+    {
+      "source": "/fale-conosco",
+      "destination": "/contato",
+      "permanent": true
+    },
+    {
+      "source": "/fale-conosco/",
+      "destination": "/contato",
+      "permanent": true
+    },
+    {
+      "source": "/trabalhe-conosco",
+      "destination": "/contato",
+      "permanent": true
+    },
+    {
+      "source": "/trabalhe-conosco/",
+      "destination": "/contato",
+      "permanent": true
+    },
+    {
+      "source": "/login",
+      "destination": "/area-do-prescritor",
+      "permanent": true
+    },
+    {
+      "source": "/login/",
+      "destination": "/area-do-prescritor",
+      "permanent": true
+    },
+    {
+      "source": "/a-formula",
+      "destination": "/sobre-nos",
+      "permanent": true
+    },
+    {
+      "source": "/a-formula/",
+      "destination": "/sobre-nos",
+      "permanent": true
+    },
+    {
+      "source": "/quem-somos",
+      "destination": "/sobre-nos",
+      "permanent": true
+    },
+    {
+      "source": "/quem-somos/",
+      "destination": "/sobre-nos",
+      "permanent": true
+    },
+    {
+      "source": "/institucional",
+      "destination": "/sobre-nos",
+      "permanent": true
+    },
+    {
+      "source": "/institucional/",
+      "destination": "/sobre-nos",
+      "permanent": true
+    },
+    {
+      "source": "/produtos",
+      "destination": "/encontre-uma-loja",
+      "permanent": true
+    },
+    {
+      "source": "/produtos/",
+      "destination": "/encontre-uma-loja",
+      "permanent": true
+    },
+    {
+      "source": "/manipulados",
+      "destination": "/receita",
+      "permanent": true
+    },
+    {
+      "source": "/manipulados/",
+      "destination": "/receita",
+      "permanent": true
+    },
+    {
+      "source": "/unidade-boa-vista",
+      "destination": "/encontre-uma-loja",
+      "permanent": true
+    },
+    {
+      "source": "/unidade-boa-vista/",
+      "destination": "/encontre-uma-loja",
+      "permanent": true
+    },
+    {
+      "source": "/unidade-:slug",
+      "destination": "/encontre-uma-loja",
+      "permanent": true
+    },
+    {
+      "source": "/unidade-:slug/",
+      "destination": "/encontre-uma-loja",
+      "permanent": true
+    },
+    {
+      "source": "/nossas-lojas",
+      "destination": "/encontre-uma-loja",
+      "permanent": true
+    },
+    {
+      "source": "/nossas-lojas/",
+      "destination": "/encontre-uma-loja",
+      "permanent": true
+    },
+    {
+      "source": "/lojas",
+      "destination": "/encontre-uma-loja",
+      "permanent": true
+    },
+    {
+      "source": "/lojas/",
+      "destination": "/encontre-uma-loja",
+      "permanent": true
+    },
+    {
+      "source": "/unidades",
+      "destination": "/encontre-uma-loja",
+      "permanent": true
+    },
+    {
+      "source": "/unidades/",
+      "destination": "/encontre-uma-loja",
+      "permanent": true
+    },
+    {
+      "source": "/onde-estamos",
+      "destination": "/encontre-uma-loja",
+      "permanent": true
+    },
+    {
+      "source": "/onde-estamos/",
+      "destination": "/encontre-uma-loja",
+      "permanent": true
+    },
+    {
+      "source": "/lojas-fisicas",
+      "destination": "/encontre-uma-loja",
+      "permanent": true
+    },
+    {
+      "source": "/lojas-fisicas/",
+      "destination": "/encontre-uma-loja",
+      "permanent": true
+    },
+    {
+      "source": "/lojas-fisicas/:slug",
+      "destination": "/encontre-uma-loja",
+      "permanent": false
+    },
+    {
+      "source": "/encontre-uma-loja/:slug/",
+      "destination": "/encontre-uma-loja/:slug",
+      "permanent": false
+    },
+    {
+      "source": "/encontre-uma-loja/:slug((?!rio-branco$|arapiraca$|maceio-hiper-galeria$|maceio-centro$|maceio-farol$|maceio-mangabeiras$|maceio-rotary$|macapa-amapa$|alagoinhas$|brumado$|camacari-shopping-rivieira$|candeias$|eunapolis$|feira-de-santana-maison$|feira-de-santana$|ipiau$|irece$|itabuna$|jacobina$|jequie$|juazeiro$|macaubas$|paulo-afonso$|pocoes$|salvador-caminho-de-areia$|salvador-manoel-dias$|salvador-shopping-barra-bahia$|salvador-shopping-paralela$|santo-antonio-de-jesus$|seabra$|senhor-do-bonfim$|vitoria-da-conquista-centro$|crateus$|fortaleza-aldeota$|fortaleza-fatima$|juazeiro-do-norte$|brasilia$|belo-horizonte$|sinop$|belem-br$|belem$|belem-duque$|redencao-pa-em-breve$|campina-grande$|joao-pessoa-jaguaribe$|joao-pessoa-manaira$|arcoverde$|belo-jardim$|caruaru$|custodia$|olinda-centro$|petrolina-centro$|petrolina-cidade-universitaria$|recife-gracas$|recife-shopping-recife$|salgueiro$|serra-talhada$|picos$|foz-do-iguacu-parana$|rio-de-janeiro$|mossoro-medical-center$|natal$|porto-velho$|boa-vista$|santa-cruz-do-sul$|florianopolis$|aracaju$|santo-andre$|sao-paulo-sorocaba-em-breve$|sao-paulo-brooklin$|sao-paulo-morumbi$|sao-paulo-perdizes$|sao-paulo-tatuape$|araguaina$|palmas-to$).*)",
+      "destination": "/encontre-uma-loja",
+      "permanent": false
+    },
+    {
+      "source": "/scripts/:path*",
+      "destination": "/404",
+      "permanent": false
+    },
+    {
+      "source": "/vercel.json",
+      "destination": "/404",
+      "permanent": false
+    }
   ],
   "rewrites": [
-    { "source": "/download/:path*", "destination": "/download" },
-    { "source": "/rj", "destination": "https://a-formula-br.vercel.app/rj" },
-    { "source": "/rj/:path*", "destination": "https://a-formula-br.vercel.app/rj/:path*" },
-    { "source": "/bh", "destination": "https://a-formula-br.vercel.app/bh" },
-    { "source": "/bh/:path*", "destination": "https://a-formula-br.vercel.app/bh/:path*" }
+    {
+      "source": "/download/:path*",
+      "destination": "/download"
+    },
+    {
+      "source": "/rj",
+      "destination": "https://a-formula-br.vercel.app/rj"
+    },
+    {
+      "source": "/rj/:path*",
+      "destination": "https://a-formula-br.vercel.app/rj/:path*"
+    },
+    {
+      "source": "/bh",
+      "destination": "https://a-formula-br.vercel.app/bh"
+    },
+    {
+      "source": "/bh/:path*",
+      "destination": "https://a-formula-br.vercel.app/bh/:path*"
+    }
   ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(self), payment=()" },
-        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' blob: https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ https://www.googletagmanager.com; worker-src 'self' blob:; child-src 'self' blob: https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/ https://maps.google.com https://www.google.com/maps/; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-ancestors 'self'; base-uri 'self'; form-action 'self' mailto:; object-src 'none'; upgrade-insecure-requests" }
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=(self), payment=()"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=63072000; includeSubDomains; preload"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' blob: https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ https://www.googletagmanager.com; worker-src 'self' blob:; child-src 'self' blob: https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/ https://maps.google.com https://www.google.com/maps/; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-ancestors 'self'; base-uri 'self'; form-action 'self' mailto:; object-src 'none'; upgrade-insecure-requests"
+        }
       ]
     },
     {
       "source": "/(.*)_assets/(.*).(webp|avif|jpg|jpeg|png|gif|svg|ico|woff2|woff|ttf|mp4|webm)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
       ]
     },
     {
       "source": "/assets/(.*).(webp|avif|jpg|jpeg|png|gif|svg|ico|woff2|woff|ttf|mp4|webm)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
       ]
     },
     {
       "source": "/(.*)_assets/(.*).(js|css|json|map)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
       ]
     },
     {
       "source": "/assets/(.*).(js|css|json|map)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
       ]
     },
     {
       "source": "/(.*).html",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
       ]
     }
   ]
