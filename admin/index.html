@@ -1276,6 +1276,7 @@ const CLK_ROTULO = {
   clique_telefone:    'Telefone',
   clique_cta:         'Botões marcados (CTA)',
   clique_fab_contato: 'Botão flutuante “Fale conosco”',
+  clique_fab_whatsapp:'Botão flutuante WhatsApp (página da loja)',
 };
 let clkDias = 30;
 async function vCliques(){
@@ -1316,7 +1317,7 @@ async function vCliques(){
     porEvento[d.evento]=(porEvento[d.evento]||0)+n;
     porDia[d.dia]=(porDia[d.dia]||0)+n;
     soma(porRotulo,d.rotulos); soma(porPagina,d.paginas);
-    if(d.evento==='clique_whatsapp') soma(waPorUnidade,d.rotulos);
+    if(d.evento==='clique_whatsapp'||d.evento==='clique_fab_whatsapp') soma(waPorUnidade,d.rotulos);
   });
   const ord=o=>Object.entries(o).sort((a,b)=>b[1]-a[1]);
   const barras=(lista,tot,vazio)=>{
@@ -1338,7 +1339,7 @@ async function vCliques(){
       <div class="hero-head"><h3>Volume de cliques</h3>${seletor}</div>
       <div class="hero-stats">
         <div><div class="n">${total}</div><div class="l">cliques em ${clkDias} dias</div></div>
-        ${mini(porEvento.clique_whatsapp||0,'no WhatsApp<br>(site + Encontre uma loja)')}
+        ${mini((porEvento.clique_whatsapp||0)+(porEvento.clique_fab_whatsapp||0),'no WhatsApp<br>(links + botão flutuante)')}
         ${mini(porEvento.clique_fab_contato||0,'no botão flutuante<br>“Fale conosco”')}
         ${mini(Math.round(total/dias),`por dia, em média<br>${dias} dia(s) com registro`)}
       </div>
@@ -1348,7 +1349,7 @@ async function vCliques(){
         <p class="ph">Onde a pessoa clicou para falar com a A Fórmula.</p>
         ${barras(ord(porEvento).map(([k,n])=>[CLK_ROTULO[k]||k,n]),total,'Sem cliques no período.')}</div>
       <div class="panel"><h3>WhatsApp por unidade <span class="cnt">${Object.keys(waPorUnidade).length} origem(ns)</span></h3>
-        <p class="ph">Nome do card clicado na Encontre uma loja. “—” = clique num link de WhatsApp fora do localizador.</p>
+        <p class="ph">Nome do card clicado na Encontre uma loja. Card do localizador, botão da página da loja ou o flutuante. “—” = link de WhatsApp fora dessas origens.</p>
         ${barras(ord(waPorUnidade),porEvento.clique_whatsapp||0,'Nenhum clique em WhatsApp ainda.')}</div>
       <div class="panel span2"><h3>Páginas que mais geram clique <span class="cnt">${Object.keys(porPagina).length} página(s)</span></h3>
         <p class="ph">Em que página a pessoa estava quando clicou.</p>

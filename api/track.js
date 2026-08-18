@@ -19,6 +19,7 @@ const EVENTOS = new Set([
   "clique_telefone",       // links tel:
   "clique_cta",            // links marcados com data-track no HTML
   "clique_fab_contato",    // botão flutuante "Fale conosco"
+  "clique_fab_whatsapp",   // botão flutuante nas páginas de unidade (abre o wa.me da loja; rótulo = slug)
 ]);
 
 // Rate limit por IP, em memória da instância (mesmo padrão do _lib/backend.js). Folgado de
