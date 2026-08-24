@@ -20,6 +20,13 @@ const EVENTOS = new Set([
   "clique_cta",            // links marcados com data-track no HTML
   "clique_fab_contato",    // botão flutuante "Fale conosco"
   "clique_fab_whatsapp",   // botão flutuante nas páginas de unidade (abre o wa.me da loja; rótulo = slug)
+  // NÃO é clique: é o redirect automático que o /contato dispara depois de gravar o lead, levando
+  // a pessoa ao wa.me da unidade roteada pelo CEP. Existe porque esse encaminhamento era o único
+  // trecho do funil sem medição nenhuma — o `generate_lead` do GA4 dispara no submit, ANTES daqui,
+  // e o listener de cliques não alcança uma navegação por location.href. Rótulo = nome da unidade.
+  // Mede o ENCAMINHAMENTO, não a entrega: se a pessoa aperta "enviar" dentro do WhatsApp acontece
+  // no app dela, fora do alcance do site.
+  "lead_whatsapp",
 ]);
 
 // Rate limit por IP, em memória da instância (mesmo padrão do _lib/backend.js). Folgado de

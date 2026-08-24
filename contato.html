@@ -1216,17 +1216,23 @@ ol,ul{margin:0;padding:0;list-style:none}
          contagem de repetições, que o navegador não tem como saber. O `nearest()` é RESERVA
          (pré-aquecido no submit, em ident.localP): só decide se a resposta não vier. */
       var texto="Olá! "+ORIGEM+" "+(ident.nome?"Aqui é "+ident.nome+". ":"")+VIA_UNIDADE[assunto]+":\n\n"+(ident.mensagem||"");
-      function abrir(w){
+      function abrir(w,unidade){
+        /* Conta o ENCAMINHAMENTO pro WhatsApp da unidade. Era o único trecho do funil sem medida:
+           o `generate_lead` do GA4 sobe no submit (acima), e o listener de cliques do
+           af-contato.v2.js só pega clique em <a> — isto aqui é navegação por location.href.
+           Sem o número, não dá pra separar "o lead não chega na unidade" de "chega e ninguém
+           atende". afTrack usa sendBeacon, que sobrevive à navegação da linha seguinte. */
+        try{ if(window.afTrack)window.afTrack("lead_whatsapp",unidade||"—"); }catch(e){}
         /* Redirect na MESMA aba: location.href não é barrado por bloqueador de pop-up — o
            window.open pós-fetch era (medido em teste), e a pessoa ficava parada na mensagem.
            Quando chega aqui o lead JÁ está gravado (route() só roda após o ok:true). */
         window.location.href=w+"?text="+encodeURIComponent(texto);
       }
       set(msg,"ok","Mensagem recebida!");
-      if(ident.rota&&ident.rota.waUrl){abrir(ident.rota.waUrl);return;}
+      if(ident.rota&&ident.rota.waUrl){abrir(ident.rota.waUrl,ident.rota.nome);return;}
       (ident.localP||nearest(cep)).then(function(s){
         var w=s&&waLink(s);
-        if(w)abrir(w);
+        if(w)abrir(w,s.nome);
         else setTimeout(function(){window.location.href="encontre-uma-loja.html";},600);
       });
       return;

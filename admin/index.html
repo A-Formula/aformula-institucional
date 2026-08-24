@@ -169,6 +169,60 @@
 
   /* align-items:start — cada cartão tem a altura do seu conteúdo. Esticando, o cartão baixo ao
      lado do mapa abria um vão de ~400px DENTRO dele; espaço entre cartões incomoda menos. */
+  /* ---- FUNIL ----
+     Vive fora do vocabulário .hero/.panel de propósito: aqueles são cards de CONTADOR (label de
+     10.5px, padding de 13px) e o funil é a tela de DECISÃO. Um número que decide não pode ter o
+     mesmo peso visual de um número que informa, senão nada tem destaque. Daí escala própria,
+     respiro próprio. */
+  .funil{background:#fff;border:1px solid var(--line);border-radius:14px;padding:24px 26px 20px;margin-bottom:14px}
+  .funil__head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:22px}
+  .funil__head h3{margin:0;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--teal-700)}
+  .funil__head .seg{margin-left:auto}
+  .funil__head .per{font-size:11.5px;color:var(--mut);font-weight:600}
+  /* Passos e taxas alternados na MESMA faixa: a taxa pertence ao vão entre dois passos, não a um
+     deles. Em telas estreitas a faixa empilha e as setas viram divisores horizontais. */
+  .fsteps{display:flex;align-items:flex-start;gap:0;flex-wrap:wrap}
+  .fstep{flex:1 1 130px;min-width:120px}
+  .fstep .fn{font-size:40px;font-weight:800;color:var(--teal-d);line-height:.9;letter-spacing:-.025em;
+             font-variant-numeric:tabular-nums}
+  .fstep.dim .fn{color:#9fb3b6}
+  .fstep .fl{font-size:11.5px;font-weight:700;color:var(--ink);margin-top:8px;line-height:1.3}
+  .fstep .fs{font-size:11px;color:var(--mut);margin-top:3px;line-height:1.35}
+  .fgap{flex:0 1 88px;min-width:64px;padding:6px 10px 0;text-align:center}
+  .fgap .fpc{display:block;font-size:17px;font-weight:800;color:var(--teal);line-height:1;
+             font-variant-numeric:tabular-nums}
+  .fgap .fpl{display:block;font-size:10.5px;color:var(--mut);font-weight:600;margin-top:4px;line-height:1.3}
+  .fgap .arw{display:block;color:#c7d6d8;font-size:15px;margin-bottom:6px;letter-spacing:-1px}
+  @media(max-width:820px){
+    .fsteps{display:grid;grid-template-columns:1fr;gap:4px}
+    .fgap{text-align:left;padding:2px 0 6px;border-left:2px solid #e8eff0;margin-left:14px;padding-left:14px}
+    .fgap .arw{display:none}
+    .fgap .fpc{display:inline}.fgap .fpl{display:inline;margin-left:6px}
+  }
+  /* Onde o lead parou: linha clicável que ABRE os leads daquele estado. É o vínculo — o número
+     deixa de ser um fato solto e passa a ser a porta pra lista que o produziu. */
+  .leak{margin-top:22px;border-top:1px solid var(--line);padding-top:16px}
+  .leak h4{margin:0 0 10px;font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--teal-700)}
+  .leakrow{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;width:100%;
+           background:none;border:0;border-radius:8px;padding:9px 10px;cursor:pointer;text-align:left;
+           font:inherit;color:var(--ink)}
+  .leakrow:hover{background:#f4f9f9}
+  .leakrow:focus-visible{outline:2px solid var(--teal);outline-offset:-2px}
+  .leakrow[disabled]{cursor:default;opacity:.75}
+  .leakrow[disabled]:hover{background:none}
+  .leakrow .lv{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1;min-width:2.2em}
+  .leakrow .lt{display:block;font-size:12.5px;font-weight:600;line-height:1.35}
+  .leakrow .ld{display:block;font-size:11px;color:var(--mut);font-weight:500;margin-top:2px;line-height:1.35}
+  .leakrow .lg{font-size:11px;color:var(--teal);font-weight:700;white-space:nowrap}
+  .leakrow.ok .lv{color:var(--ok)} .leakrow.warn .lv{color:var(--warn)} .leakrow.err .lv{color:var(--err)}
+  .leakrow.mute .lv{color:#9fb3b6}
+  /* Canal paralelo — deliberadamente NÃO é um passo do funil (ver comentário em vCliques). */
+  .paralelo{display:flex;align-items:center;gap:16px;background:#f7fbfb;border:1px solid var(--line);
+            border-radius:12px;padding:16px 18px;margin-bottom:14px;flex-wrap:wrap}
+  .paralelo>div:last-child{flex:1 1 320px;min-width:0}
+  .paralelo .pn{font-size:28px;font-weight:800;color:var(--teal-d);line-height:1;font-variant-numeric:tabular-nums}
+  .paralelo .pt{font-size:12px;font-weight:700;color:var(--ink)}
+  .paralelo .pd{font-size:11.5px;color:var(--mut);margin-top:3px;max-width:62ch;line-height:1.45}
   .panels{display:grid;grid-template-columns:1fr;gap:12px;align-items:start}
   @media(min-width:1024px){.panels{grid-template-columns:1fr 1fr}.span2{grid-column:1/-1}}
   .pcol{display:flex;flex-direction:column;gap:12px;min-width:0}
@@ -241,7 +295,7 @@
     <button class="nav-item active" data-view="inbox">📥 Mensagens <span class="badge hidden" id="badge-inbox">0</span></button>
     <button class="nav-item" data-view="prescritores">🩺 Prescritores <span class="badge hidden" id="badge-presc">0</span></button>
     <button class="nav-item" data-view="career">💼 Trabalhe conosco <span class="badge hidden" id="badge-career">0</span></button>
-    <button class="nav-item" data-view="cliques">📊 Cliques</button>
+    <button class="nav-item" data-view="cliques">📈 Funil de leads</button>
     <button class="nav-item" data-view="newsletter">✉️ Newsletter</button>
     <button class="nav-item" data-view="preContent">🔬 Conteúdo prescritor</button>
     <button class="nav-item" data-view="settings">⚙️ Configurações</button>
@@ -479,6 +533,15 @@ document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',()=
 // Listener ao vivo da inbox. Cancelado ao trocar de aba — sem isso, ir e voltar em "Mensagens"
 // empilha listeners e cada lead novo dispararia N re-renders.
 let unsubInbox=null;
+/* Filtro que a Inbox deve aplicar assim que abrir. Existe pro funil poder dizer "estes 14 leads"
+   e o operador CHEGAR neles em um clique — número sem caminho de volta pros dados é slide, não
+   painel. Consumido uma única vez (vInbox → consumirPreset) pra não grudar no filtro. */
+let inboxPreset=null;
+function irParaInbox(preset){
+  inboxPreset=preset||null;
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.toggle('active',x.dataset.view==='inbox'));
+  router('inbox');
+}
 function router(v){
   if(unsubInbox){ unsubInbox(); unsubInbox=null; }
   ({inbox:vInbox,prescritores:vPresc,career:vCareer,cliques:vCliques,newsletter:vNews,preContent:vPreContent,settings:vSettings}[v]||vInbox)();
@@ -562,7 +625,22 @@ async function vInbox(){
   const tsDe=m=>{ const t=m.createdAt; if(!t) return 0; const d=t.toDate?t.toDate():new Date(t); const n=d.getTime(); return isNaN(n)?0:n; };
   const absorver=docs=>docs.forEach(d=>porId.set(d.id,Object.assign(porId.get(d.id)||{},{id:d.id},d.data())));
   function reconstruir(){ all=[...porId.values()].sort((a,b)=>tsDe(b)-tsDe(a)); }
-  function refletir(){ if(silenciar) return; sincronizarFiltros(); badgeInbox(); apply(); }
+  /* Depois de sincronizarFiltros (que já criou as <option>) e antes do apply: o preset precisa
+     das opções existindo pra o value pegar. */
+  function consumirPreset(){
+    if(!inboxPreset) return;
+    const p=inboxPreset; inboxPreset=null;
+    // Blindagem: isto roda no caminho de render da tela mais usada do painel. Um preset
+    // malformado nunca pode derrubar a lista de mensagens — no pior caso o filtro não aplica.
+    try{ aplicar(p); }catch(e){ console.error('[inbox] preset ignorado:', e && e.message); }
+  }
+  function aplicar(p){
+    if(p.status!==undefined)  $('#if-status').value=p.status;
+    if(p.assunto!==undefined) $('#if-assunto').value=p.assunto;
+    if(p.unidade!==undefined) $('#if-unidade').value=p.unidade;
+    if(p.uf!==undefined)      $('#if-uf').value=p.uf;
+  }
+  function refletir(){ if(silenciar) return; sincronizarFiltros(); consumirPreset(); badgeInbox(); apply(); }
 
   const fill=(sel,vals)=>{const s=$(sel);[...new Set(vals.filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt')).forEach(x=>{const o=document.createElement('option');o.value=x;o.textContent=x;s.appendChild(o);});};
   // Idempotente: roda a cada atualização ao vivo. Preserva a seleção do operador — um lead novo
@@ -1264,99 +1342,176 @@ async function vNews(){
   apply();
 }
 
-/* ---------- CLIQUES ----------
-   Mede o MEIO do funil, que o painel não enxergava: quantas pessoas clicam em WhatsApp, telefone
-   e no botão flutuante. Sem isso, um mês com poucos leads é ambíguo — pode ser pouca gente
-   clicando (problema de tráfego/CTA) ou muita gente clicando e ninguém convertendo (problema de
-   atendimento). São diagnósticos opostos.
-   Fonte: coleção `clicks`, um doc por dia POR evento, gravado pela /api/track. Contador agregado,
-   sem PII — por isso aqui não existe (nem pode existir) linha por pessoa. */
+/* ---------- FUNIL DE LEADS (contact_messages × clicks) ----------
+   Esta tela era um contador de cliques: cinco números do mesmo tamanho, nenhum respondendo a uma
+   pergunta de negócio. Virou o funil do FORMULÁRIO, que é o único caminho com registro ponta a
+   ponta — e liga os dois bancos que não se falavam: `clicks` (agregado, anônimo) e
+   `contact_messages` (o lead).
+
+   O QUE NÃO É FUNIL (erro que esta tela não comete): dividir leads por cliques em WhatsApp. São
+   PORTAS PARALELAS — quem clica no wa.me da Encontre uma loja vai direto pro app e nunca passa
+   pelo formulário. "16% dos cliques viram lead" seria uma taxa inventada. O WhatsApp direto
+   aparece ao lado, como canal, com o que se sabe e o que não se sabe dele.
+
+   O último degrau é declaradamente DESCONHECIDO: se a pessoa apertou "enviar" dentro do WhatsApp
+   acontece no aplicativo dela. Fingir esse número seria pior que não ter. */
 const CLK_ROTULO = {
   clique_whatsapp:    'WhatsApp',
   clique_telefone:    'Telefone',
   clique_cta:         'Botões marcados (CTA)',
   clique_fab_contato: 'Botão flutuante “Fale conosco”',
   clique_fab_whatsapp:'Botão flutuante WhatsApp (página da loja)',
+  lead_whatsapp:      'Formulário → WhatsApp da unidade',
 };
+/* Espelha o VIA_UNIDADE do contato.html: os únicos assuntos que o site encaminha ao WhatsApp da
+   unidade. Os demais (prescritor, franquia, vaga, imprensa) têm destino próprio — contá-los como
+   perda inventaria um vazamento que não existe. "Acompanhamento de pedido" saiu do formulário em
+   10/08 mas segue aceito pela API, então entra aqui pro histórico não furar. */
+const ASSUNTOS_UNIDADE = new Set(['Orçamento','Dúvida sobre manipulação','Outro assunto','Acompanhamento de pedido']);
+/* Data em que o contador de encaminhamento entrou no ar. Antes disso o encaminhamento ACONTECIA e
+   não era medido: exibir 0 afirmaria que ninguém foi encaminhado. Ausência ≠ zero. */
+const FWD_DESDE = '2026-08-24';
+const diaSP = d => new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(d);
+
 let clkDias = 30;
-async function vCliques(){
+/* Cache da carga bruta. Sem ele, cada clique em 7d/30d/90d re-baixava contact_messages INTEIRA —
+   três cliques, três leituras da coleção, por um corte que é só filtro de data. O router chama
+   vCliques() sem argumento (carga fresca ao abrir a aba); o seletor de período chama com
+    e reaproveita. Os cliques vêm sempre em janela de 90 dias, a maior do seletor, pra
+   qualquer período caber no que já está em memória. */
+let _fcache = null;
+async function vCliques(usarCache){
   const v=$('#view');
-  v.innerHTML=`<div class="topbar"><div><h1 class="page">Cliques no site</h1>
-    <p class="hint">Volume de cliques nos canais de contato. Número agregado e anônimo — complementa os leads, que são só quem chegou ao fim do formulário.</p></div>
+  v.innerHTML=`<div class="topbar"><div><h1 class="page">Funil de leads</h1>
+    <p class="hint">Do formulário até a unidade. Cada número abre a lista de leads que o formou.</p></div>
     <button class="btn" id="clk-csv">⬇ Exportar CSV</button></div>
     <div id="clkbody">Carregando…</div>`;
 
-  // Corte por dia em string YYYY-MM-DD: o campo `dia` é texto, então a comparação lexicográfica
-  // equivale à cronológica e o Firestore resolve com índice de campo único (sem índice composto).
-  const corte = new Date(Date.now() - clkDias*864e5);
-  const cutoff = new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(corte);
+  const corte=new Date(Date.now()-clkDias*864e5), cutoff=diaSP(corte);
+  const tsDe=m=>{ const t=m.createdAt; if(!t) return 0; const d=t.toDate?t.toDate():new Date(t); const n=d.getTime(); return isNaN(n)?0:n; };
+  let bruto = usarCache ? _fcache : null;
+  if(!bruto){
+    // Os dois bancos em paralelo: a tela só tem sentido com os dois, e um não depende do outro.
+    const [rc,rl]=await Promise.allSettled([
+      db.collection('clicks').where('dia','>=',diaSP(new Date(Date.now()-90*864e5))).get(),
+      db.collection('contact_messages').orderBy('createdAt','desc').get(),
+    ]);
+    if(rl.status!=='fulfilled'){
+      $('#clkbody').innerHTML='<div class="empty">Não foi possível carregar os leads. Recarregue a página.</div>'; return;
+    }
+    // Clique é acessório aqui: sem ele o funil ainda fecha, então falha de leitura não derruba a tela.
+    bruto = _fcache = {
+      cliques: rc.status==='fulfilled' ? rc.value.docs.map(d=>d.data()) : [],
+      leads:   rl.value.docs.map(d=>({id:d.id,...d.data()})),
+    };
+  }
+  const docs=bruto.cliques.filter(d=>d.dia>=cutoff);
+  const lim=corte.getTime();
+  const leads=bruto.leads.filter(m=>tsDe(m)>=lim);
 
-  let snap;
-  try{ snap = await db.collection('clicks').where('dia','>=',cutoff).get(); }
-  catch(e){ $('#clkbody').innerHTML='<div class="empty">Não foi possível carregar os cliques. Recarregue a página.</div>'; return; }
-
-  const docs = snap.docs.map(d=>d.data());
-  const seletor = `<div class="seg">${[[7,'7 dias'],[30,'30 dias'],[90,'90 dias']].map(([k,l])=>
+  const seletor=`<div class="seg">${[[7,'7 dias'],[30,'30 dias'],[90,'90 dias']].map(([k,l])=>
       `<button data-clkp="${k}" class="${clkDias===k?'on':''}">${l}</button>`).join('')}</div>`;
 
-  if(!docs.length){
-    // Base vazia é estado diferente de "nada aconteceu": a medição começou em 13/08/2026, então
-    // um painel zerado logo depois disso é esperado, não é falha.
-    $('#clkbody').innerHTML=`<div class="hero"><div class="hero-head"><h3>Volume de cliques</h3>${seletor}</div>
-      <p class="dash-empty" style="padding:8px 0">Nenhum clique registrado nos últimos ${clkDias} dias.
-      A medição entrou no ar em 13/08/2026 — antes dessa data não há histórico.</p></div>`;
+  if(!leads.length){
+    $('#clkbody').innerHTML=`<div class="funil"><div class="funil__head"><h3>Funil do formulário</h3>${seletor}</div>
+      <p class="dash-empty">Nenhum lead nos últimos ${clkDias} dias.</p></div>`;
     wireClk(); return;
   }
 
-  // Soma dos mapas aninhados. Cada doc traz {total, rotulos:{...}, paginas:{...}} de UM dia+evento.
+  /* ---- funil ---- */
+  const U=leads.filter(m=>ASSUNTOS_UNIDADE.has(m.assunto));
+  const outros=leads.length-U.length;
+  /* Contadores de clique por evento. `lead_whatsapp` NÃO entra no total de cliques (não é clique):
+     somá-lo deslocaria a série histórica e o mês deixaria de ser comparável com o anterior. */
+  const porEvento={}, porPagina={}, waPorUnidade={}, leadWa={};
   const soma=(alvo,mapa)=>{ for(const k in (mapa||{})) alvo[k]=(alvo[k]||0)+(mapa[k]||0); };
-  const porEvento={}, porRotulo={}, porPagina={}, porDia={}, waPorUnidade={};
-  let total=0;
+  let totalCliques=0, fwd=0;
   docs.forEach(d=>{
-    const n=d.total||0; total+=n;
-    porEvento[d.evento]=(porEvento[d.evento]||0)+n;
-    porDia[d.dia]=(porDia[d.dia]||0)+n;
-    soma(porRotulo,d.rotulos); soma(porPagina,d.paginas);
+    const n=d.total||0;
+    if(d.evento==='lead_whatsapp'){ fwd+=n; soma(leadWa,d.rotulos); return; }
+    totalCliques+=n; porEvento[d.evento]=(porEvento[d.evento]||0)+n;
+    soma(porPagina,d.paginas);
     if(d.evento==='clique_whatsapp'||d.evento==='clique_fab_whatsapp') soma(waPorUnidade,d.rotulos);
   });
-  const ord=o=>Object.entries(o).sort((a,b)=>b[1]-a[1]);
-  const barras=(lista,tot,vazio)=>{
-    if(!lista.length) return `<p class="dash-empty">${vazio}</p>`;
-    const max=Math.max(...lista.map(x=>x[1]))||1;
-    return '<div class="bars">'+lista.slice(0,12).map(([nome,n])=>{
-      const pc=tot?Math.round(n*100/tot):0;
-      return `<div class="bar" data-tip="<b>${esc(nome)}</b><br>${n} clique(s) · ${pc}% do período">
-        <span class="nm">${esc(nome)}</span>
-        <span class="tr"><span class="fl" style="width:${Math.max(2,Math.round(n*100/max))}%"></span></span>
-        <span class="vl">${n}</span></div>`;
-    }).join('')+'</div>'+(lista.length>12?`<p class="ph">Mostrando as 12 maiores de ${lista.length}. O CSV traz todas.</p>`:'');
-  };
-  const mini=(n,l)=>`<div><div class="mn">${n}</div><div class="ml">${l}</div></div>`;
-  const dias=Object.keys(porDia).length||1;
+  const waDireto=(porEvento.clique_whatsapp||0)+(porEvento.clique_fab_whatsapp||0);
+  // O 3º degrau só tem leitura honesta se o período começar depois da medição entrar no ar.
+  const fwdParcial = cutoff < FWD_DESDE;
+
+  const motivo=k=>U.filter(m=>m.rotaMotivo===k).length;
+  const nRaio=motivo('raio'), nPropria=motivo('propria'), nRepetido=motivo('repetido');
+  /* Sem rota E com dado de roteamento gravado: o CEP não resolveu e o lead caiu no localizador
+     genérico — ninguém foi avisado de que ele existe. É o único vazamento de verdade da lista. */
+  const semRota=U.filter(m=>!m.rotaUnidade && m.rotaMotivo===null).length;
+  // Lead anterior a 11/08/2026, quando o roteamento passou a ser gravado. Não é perda: é falta de dado.
+  const semDado=U.filter(m=>m.rotaMotivo===undefined).length;
+  const roteados=nRaio+nPropria+nRepetido;
+
+  const pc=(a,b)=>b?Math.round(a*100/b)+'%':'—';
+  const step=(n,l,sub,dim)=>`<div class="fstep${dim?' dim':''}"><div class="fn">${n}</div>
+    <div class="fl">${l}</div><div class="fs">${sub}</div></div>`;
+  const gap=(val,l)=>`<div class="fgap"><span class="arw">──▶</span><span class="fpc">${val}</span><span class="fpl">${l}</span></div>`;
+  const row=(cls,n,t,d,preset)=>`<button class="leakrow ${cls}"${preset?` data-ib='${escAtr(JSON.stringify(preset))}'`:' disabled'}>
+    <span class="lv">${n}</span><span><span class="lt">${t}</span><span class="ld">${d}</span></span>
+    <span class="lg">${preset?'ver leads →':''}</span></button>`;
 
   $('#clkbody').innerHTML=`
-    <div class="hero">
-      <div class="hero-head"><h3>Volume de cliques</h3>${seletor}</div>
-      <div class="hero-stats">
-        <div><div class="n">${total}</div><div class="l">cliques em ${clkDias} dias</div></div>
-        ${mini((porEvento.clique_whatsapp||0)+(porEvento.clique_fab_whatsapp||0),'no WhatsApp<br>(links + botão flutuante)')}
-        ${mini(porEvento.clique_fab_contato||0,'no botão flutuante<br>“Fale conosco”')}
-        ${mini(Math.round(total/dias),`por dia, em média<br>${dias} dia(s) com registro`)}
+    <div class="funil">
+      <div class="funil__head"><h3>Funil do formulário</h3>
+        <span class="per">${leads.length} lead(s) em ${clkDias} dias</span>${seletor}</div>
+      <div class="fsteps">
+        ${step(leads.length,'Leads enviados','todos os assuntos')}
+        ${gap(pc(U.length,leads.length),'pedem unidade')}
+        ${step(U.length,'Pedem atendimento de unidade','orçamento, dúvida, outro assunto')}
+        ${gap(fwdParcial?'—':pc(fwd,U.length),fwdParcial?'medindo desde 24/08':'chegaram ao WhatsApp')}
+        ${step(fwdParcial&&!fwd?'s/ dado':fwd,'Encaminhados ao WhatsApp',
+               fwdParcial?'contador no ar desde 24/08/2026':'redirect após gravar o lead',fwdParcial&&!fwd)}
+        ${gap('?','fora do alcance')}
+        ${step('?','Responderam no WhatsApp','acontece no app da pessoa — o site não vê',true)}
+      </div>
+      <div class="leak">
+        <h4>Onde cada pedido de unidade parou · ${U.length} lead(s)</h4>
+        ${row('ok',nRaio,'Foram para a unidade certa','a mais próxima do CEP, dentro de 150 km')}
+        ${nPropria?row('warn',nPropria,'Sem nenhuma loja em 150 km do CEP','caíram no Brooklin (loja própria). É demanda que a rede não cobre — a fila da expansão.',{unidade:F_FORA}):''}
+        ${nRepetido?row('mute',nRepetido,'3ª repetição do mesmo e-mail fora de raio','freio anti-teste: voltaram pra unidade mais próxima mesmo longe',{unidade:F_FORA}):''}
+        ${semRota?row('err',semRota,'Nenhuma unidade recebeu','CEP não resolveu e o lead caiu no localizador genérico. Ninguém foi avisado de que ele existe.',{unidade:F_NONE}):''}
+        ${semDado?row('mute',semDado,'Sem dado de roteamento','leads anteriores a 11/08/2026, quando o painel passou a gravar quem atende'):''}
+        ${outros?row('mute',outros,'Não pedem unidade — e está certo','prescritor, franquia, vaga e imprensa têm destino próprio. Fora do funil de propósito.'):''}
       </div>
     </div>
+
+    <div class="paralelo">
+      <div class="pn">${waDireto}</div>
+      <div><div class="pt">Cliques no WhatsApp direto — porta paralela, não é degrau do funil</div>
+        <div class="pd">Quem clica no wa.me da Encontre uma loja ou no botão da página da unidade vai
+        direto pro app e <b>nunca passa pelo formulário</b> — não gera lead, não tem CEP, não tem
+        registro. É o maior canal e o mais cego: dividir lead por clique aqui daria uma taxa falsa.</div></div>
+    </div>
+
     <div class="panels">
-      <div class="panel"><h3>Por canal <span class="cnt">${Object.keys(porEvento).length} canal(is)</span></h3>
-        <p class="ph">Onde a pessoa clicou para falar com a A Fórmula.</p>
-        ${barras(ord(porEvento).map(([k,n])=>[CLK_ROTULO[k]||k,n]),total,'Sem cliques no período.')}</div>
-      <div class="panel"><h3>WhatsApp por unidade <span class="cnt">${Object.keys(waPorUnidade).length} origem(ns)</span></h3>
-        <p class="ph">Nome do card clicado na Encontre uma loja. Card do localizador, botão da página da loja ou o flutuante. “—” = link de WhatsApp fora dessas origens.</p>
-        ${barras(ord(waPorUnidade),porEvento.clique_whatsapp||0,'Nenhum clique em WhatsApp ainda.')}</div>
-      <div class="panel span2"><h3>Páginas que mais geram clique <span class="cnt">${Object.keys(porPagina).length} página(s)</span></h3>
-        <p class="ph">Em que página a pessoa estava quando clicou.</p>
-        ${barras(ord(porPagina),total,'Sem dados.')}</div>
+      <div class="panel"><h3>Unidades que receberam lead <span class="cnt">${roteados} roteado(s)</span></h3>
+        <p class="ph">Quem foi avisado de atender. Clique para ler os leads da unidade.</p>
+        ${barras(ord(cont(U,m=>unidadeDe(m))),roteados,'Nenhum lead roteado no período.','unidade')}</div>
+      <div class="panel"><h3>O que o lead pediu <span class="cnt">${leads.length} lead(s)</span></h3>
+        <p class="ph">Assunto escolhido no formulário. Clique para filtrar.</p>
+        ${barras(ord(cont(leads,m=>m.assunto)),leads.length,'Sem dados.','assunto')}</div>
+      <div class="panel"><h3>Praças sem loja por perto <span class="cnt">${nPropria+nRepetido} lead(s)</span></h3>
+        <p class="ph">Cidade de quem pediu atendimento e não tem unidade em 150 km. É o insumo da decisão de expansão.</p>
+        ${barras(ord(cont(U.filter(m=>m.foraDeRaio===true),m=>pracaDe(m))),nPropria+nRepetido,'Nenhuma no período.')}</div>
+      <div class="panel"><h3>WhatsApp direto, por origem <span class="cnt">${Object.keys(waPorUnidade).length} origem(ns)</span></h3>
+        <p class="ph">Card da Encontre uma loja, botão da página da loja ou o flutuante. Contador anônimo — não vira lead.</p>
+        ${barras(ord(waPorUnidade),waDireto,'Nenhum clique em WhatsApp ainda.')}</div>
+      <div class="panel span2"><h3>Páginas que mais geram clique de contato <span class="cnt">${totalCliques} clique(s)</span></h3>
+        <p class="ph">Onde a pessoa estava quando clicou em WhatsApp, telefone ou CTA.</p>
+        ${barras(ord(porPagina),totalCliques,'Sem dados.')}</div>
     </div>`;
+
   wireTips($('#clkbody'));
   wireClk();
+  // Vínculo: cada linha e cada barra abre a Inbox já filtrada no recorte que produziu o número.
+  $('#clkbody').querySelectorAll('[data-ib]').forEach(b=>b.addEventListener('click',()=>{
+    let p={}; try{ p=JSON.parse(b.dataset.ib); }catch(e){}
+    irParaInbox(p);
+  }));
 
   $('#clk-csv').addEventListener('click',()=>{
     const rows=[['dia','evento','rotulo','cliques']];
@@ -1365,14 +1520,43 @@ async function vCliques(){
       if(!Object.keys(r).length) rows.push([d.dia,CLK_ROTULO[d.evento]||d.evento,'',d.total||0]);
       for(const k in r) rows.push([d.dia,CLK_ROTULO[d.evento]||d.evento,k,r[k]]);
     });
+    rows.push([]); rows.push(['funil','valor']);
+    [['leads enviados',leads.length],['pedem unidade',U.length],
+     ['encaminhados ao WhatsApp',fwdParcial&&!fwd?'sem dado':fwd],['unidade certa',nRaio],
+     ['sem loja em 150 km',nPropria],['repetido fora de raio',nRepetido],
+     ['nenhuma unidade recebeu',semRota],['sem dado de roteamento',semDado],
+     ['não pedem unidade',outros],['cliques WhatsApp direto',waDireto]].forEach(r=>rows.push(r));
     const csv='﻿'+rows.map(r=>r.map(c=>`"${csvSafe(c).replace(/"/g,'""')}"`).join(';')).join('\r\n');
     const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
-    a.download=`cliques-aformula-${clkDias}d.csv`; a.click();
+    a.download=`funil-aformula-${clkDias}d.csv`; a.click();
   });
+}
+// Contagem por chave, descartando o que não tem chave (ausência não é categoria).
+function cont(lista,fn){ const o={}; lista.forEach(m=>{ const k=fn(m); if(k) o[k]=(o[k]||0)+1; }); return o; }
+const ord=o=>Object.entries(o).sort((a,b)=>b[1]-a[1]);
+/* JSON dentro de atributo com aspas simples: o esc() cuida de & < > ", mas não do apóstrofo —
+   e nome de loja com apóstrofo (nenhuma das 85 tem hoje; a próxima pode ter) encerraria o
+   atributo no meio e o botão pararia de filtrar sem erro visível. */
+const escAtr = s => esc(s).replace(/'/g,'&#39;');
+/* Barras da tela do funil. `filtro` presente → cada barra é botão que abre a Inbox naquele corte.
+   Teto de 12 com aviso explícito de quantas ficaram fora: lista cortada em silêncio se lê como
+   "é tudo o que existe". O CSV traz todas. */
+function barras(lista,tot,vazio,filtro){
+  if(!lista.length) return `<p class="dash-empty">${vazio}</p>`;
+  const max=Math.max(...lista.map(x=>x[1]))||1;
+  const tag=filtro?'button':'div';
+  return '<div class="bars">'+lista.slice(0,12).map(([nome,n])=>{
+    const p=tot?Math.round(n*100/tot):0;
+    const ib=filtro?` data-ib='${escAtr(JSON.stringify({[filtro]:nome}))}'`:'';
+    return `<${tag} class="bar"${ib} data-tip="<b>${esc(nome)}</b><br>${n} · ${p}% do período${filtro?"<br><span class='k'>clique para ver os leads</span>":''}">
+      <span class="nm">${esc(nome)}</span>
+      <span class="tr"><span class="fl" style="width:${Math.max(2,Math.round(n*100/max))}%"></span></span>
+      <span class="vl">${n}</span></${tag}>`;
+  }).join('')+'</div>'+(lista.length>12?`<p class="ph">Mostrando as 12 maiores de ${lista.length}. O CSV traz todas.</p>`:'');
 }
 function wireClk(){
   document.querySelectorAll('[data-clkp]').forEach(b=>b.addEventListener('click',()=>{
-    clkDias=parseInt(b.dataset.clkp,10); vCliques();
+    clkDias=parseInt(b.dataset.clkp,10); vCliques(true);
   }));
 }
 
