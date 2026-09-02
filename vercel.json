@@ -266,6 +266,76 @@
       "permanent": false
     },
     {
+      "source": "/cidades/:slug(maceio)",
+      "destination": "/maceio",
+      "permanent": true
+    },
+    {
+      "source": "/cidades/:slug(maceio)/",
+      "destination": "/maceio",
+      "permanent": true
+    },
+    {
+      "source": "/cidades/:slug(sao-paulo)",
+      "destination": "/sao-paulo",
+      "permanent": true
+    },
+    {
+      "source": "/cidades/:slug(sao-paulo)/",
+      "destination": "/sao-paulo",
+      "permanent": true
+    },
+    {
+      "source": "/cidades/:slug(belem)",
+      "destination": "/belem",
+      "permanent": true
+    },
+    {
+      "source": "/cidades/:slug(belem)/",
+      "destination": "/belem",
+      "permanent": true
+    },
+    {
+      "source": "/cidades/:slug(feira-de-santana)",
+      "destination": "/feira-de-santana",
+      "permanent": true
+    },
+    {
+      "source": "/cidades/:slug(feira-de-santana)/",
+      "destination": "/feira-de-santana",
+      "permanent": true
+    },
+    {
+      "source": "/cidades/:slug(fortaleza)",
+      "destination": "/fortaleza",
+      "permanent": true
+    },
+    {
+      "source": "/cidades/:slug(fortaleza)/",
+      "destination": "/fortaleza",
+      "permanent": true
+    },
+    {
+      "source": "/cidades/:slug(petrolina)",
+      "destination": "/petrolina",
+      "permanent": true
+    },
+    {
+      "source": "/cidades/:slug(petrolina)/",
+      "destination": "/petrolina",
+      "permanent": true
+    },
+    {
+      "source": "/cidades/:slug(recife)",
+      "destination": "/recife",
+      "permanent": true
+    },
+    {
+      "source": "/cidades/:slug(recife)/",
+      "destination": "/recife",
+      "permanent": true
+    },
+    {
       "source": "/cidades/:slug(salvador)",
       "destination": "/salvador",
       "permanent": true

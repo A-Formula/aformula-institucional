@@ -35,6 +35,26 @@ const CIDADES = {
     // separada e o arquivo esta congelado. Reverter = tirar o slug desta lista.
     excluir: ['salvador-caminho-de-areia'],
   },
+
+  // --- Rollout 2026-09-02. As 7 cidades multi-unidade restantes. Cada raiz foi medida
+  //     em 404 (nas duas formas de barra) ANTES de ser reivindicada.
+  //     Nenhuma exclusao aqui: as 20 unidades destas 7 cidades tem endereco e telefone
+  //     no cadastro e pagina publicada, conferidos um a um.
+  maceio: { cidade: 'Maceió', estado: 'AL', slugPagina: 'maceio' },
+  'sao-paulo': { cidade: 'São Paulo', estado: 'SP', slugPagina: 'sao-paulo' },
+  // Belem entra por decisao do operador (2026-09-02): eu recomendei deixar de fora como
+  // cidade de CONTROLE (e a unica das 7 com as 3 fichas do Google ja corretas, logo a
+  // unica capaz de separar "efeito da pagina-cidade" de "atualizacao do Google"). Ele
+  // optou por incluir. Consequencia aceita: o rollout fica sem grupo de controle.
+  belem: { cidade: 'Belém', estado: 'PA', slugPagina: 'belem' },
+  // Feira com as DUAS unidades, por decisao do operador (2026-09-02): a ficha
+  // "Permanentemente fechado" do audit de 31/08 esta na Av. Getulio Vargas 897A, que nao
+  // e nenhuma das duas publicadas (Maison = 441a, Ponto Central = 1942). E um terceiro
+  // endereco, historico, sem pagina no site.
+  'feira-de-santana': { cidade: 'Feira de Santana', estado: 'BA', slugPagina: 'feira-de-santana' },
+  fortaleza: { cidade: 'Fortaleza', estado: 'CE', slugPagina: 'fortaleza' },
+  petrolina: { cidade: 'Petrolina', estado: 'PE', slugPagina: 'petrolina' },
+  recife: { cidade: 'Recife', estado: 'PE', slugPagina: 'recife' },
 };
 
 const E = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -50,11 +70,27 @@ const waNumero = (tel) => {
   return null;
 };
 
-// "Salvador — Shopping Paralela" -> "Shopping Paralela". Mesmo criterio do build-lojas.
-const distintivo = (u) => {
-  const m = String(u.nome || '').split(/\s+[—–-]\s+/);
-  return m.length > 1 ? m.slice(1).join(' — ').trim() : '';
-};
+const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
+// CANONICO — copia verbatim do distintivo() do scripts/build-lojas.mjs, que e quem monta
+// o <h1> das 75 paginas de unidade. Duplicado de proposito (o build-lojas nao exporta e
+// importa-lo executaria o main dele), pelo mesmo motivo que o unidades-index.mjs mantem a
+// sua copia de rotulo(). Se divergir, o sintoma e a cidade rotular o card diferente do
+// <h1> da filha.
+//
+// A versao ingenua que eu tinha aqui (só split no travessao) quebrava DOIS casos reais:
+//   1) Sao Paulo: nome = "Brooklin", sem prefixo de cidade -> devolvia '' e os 4 cards
+//      sairiam todos titulados "Sao Paulo".
+//   2) "Shopping Barra | Bahia": o `|` do cadastro precisa virar travessao na exibicao.
+function distintivo(u) {
+  const nome = String(u.nome || '').trim();
+  const cidade = String(u.cidade || '').trim();
+  if (!nome) return '';
+  if (!norm(nome).includes(norm(cidade))) return nome;      // ex.: "Brooklin"
+  const resto = nome.split(/\s+[–—-]\s+/).slice(1).join(' — ')
+    .replace(/\s*\|\s*/g, ' — ').replace(/\s+/g, ' ').trim();
+  return resto || '';                                        // ex.: "Shopping Paralela"
+}
 
 const ICO = {
   pin: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 21s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>',

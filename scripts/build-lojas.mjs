@@ -778,7 +778,7 @@ function main() {
     mapa,
     '<!-- INDICE-UNIDADES:INICIO — gerado por scripts/build-lojas.mjs (nao editar a mao) -->',
     '<!-- INDICE-UNIDADES:FIM -->',
-    '  ' + indice.html(us)
+    '  ' + indice.html(us, indice.paginasCidade(ROOT, us))
   );
   if (!mapaNovo) {
     console.warn('[lojas] AVISO: marcadores INDICE-UNIDADES nao achados em encontre-uma-loja.html');

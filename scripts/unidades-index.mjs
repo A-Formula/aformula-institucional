@@ -51,16 +51,51 @@ export function unidades(ROOT) {
 
 const porUf = (us) => us.reduce((m, u) => ((m[u.uf] = m[u.uf] || []).push(u), m), {});
 
+// ---------- páginas-cidade (a PORTA de entrada delas) ----------
+// POR QUE: /salvador nasceu órfã — estava no sitemap e nenhuma página apontava para ela.
+// Página órfã é rastreada mais devagar e recebe menos autoridade interna.
+//
+// A lista NÃO é duplicada de scripts/build-cidade.mjs de propósito: é lida do DISCO, e só
+// conta como página-cidade o arquivo que realmente é uma (contém `<main id="cidade">`).
+// Assim não existe lista para divergir, e é impossível linkar para uma página que não é
+// página-cidade só porque a pasta tem o nome de uma cidade.
+const cidadeSlug = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
+  .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+export function paginasCidade(ROOT, us) {
+  const achadas = new Map();                       // cidade -> "/slug"
+  for (const cidade of new Set(us.map((u) => u.cidade))) {
+    const slug = cidadeSlug(cidade);
+    if (!slug) continue;
+    const f = path.join(ROOT, slug, 'index.html');
+    if (!fs.existsSync(f)) continue;
+    if (!fs.readFileSync(f, 'utf8').includes('<main id="cidade">')) continue;
+    achadas.set(cidade, `/${slug}`);
+  }
+  return achadas;
+}
+
 // ---------- 1) lista em HTML ----------
-export function html(us) {
+// `cidades` = Map(cidade -> href), de paginasCidade(). Ausente = comportamento anterior,
+// byte a byte: o parametro é opcional para o índice não depender do rollout.
+export function html(us, cidades = new Map()) {
   const g = porUf(us);
-  const blocos = Object.keys(g).sort((a, b) => a.localeCompare(b, 'pt-BR')).map((uf) => `
+  const blocos = Object.keys(g).sort((a, b) => a.localeCompare(b, 'pt-BR')).map((uf) => {
+    // Âncoras das páginas-cidade deste estado. Vão no FIM da <ul>, para que nenhum <li>
+    // de unidade mude de posição — a lista de unidades fica idêntica, item por item.
+    const doUf = [...new Set(g[uf].map((u) => u.cidade))]
+      .filter((c) => cidades.has(c))
+      .sort((a, b) => a.localeCompare(b, 'pt-BR'))
+      .map((c) => `              <li class="unidades-cidade"><a href="${E(cidades.get(c))}">Todas as unidades de ${E(c)}</a></li>`)
+      .join('\n');
+    return `
           <div class="unidades-uf">
             <h3>${E(uf)}</h3>
             <ul>
-${g[uf].map((u) => `              <li><a href="/encontre-uma-loja/${E(u.slug)}">${E(u.rot)}</a></li>`).join('\n')}
+${g[uf].map((u) => `              <li><a href="/encontre-uma-loja/${E(u.slug)}">${E(u.rot)}</a></li>`).join('\n')}${doUf ? '\n' + doUf : ''}
             </ul>
-          </div>`).join('');
+          </div>`;
+  }).join('');
 
   // <details> FECHADO por padrão: o operador achou a lista aberta feia e comprida.
   //

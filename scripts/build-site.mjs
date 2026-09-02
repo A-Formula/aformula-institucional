@@ -363,7 +363,7 @@ async function main() {
   // as paginas de unidade sao filhas dele e moram no sitemap-unidades.xml.
   // /salvador = pagina-CIDADE (pai das 4 unidades de Salvador). Entra explicita:
   // nao ha rollout automatico de cidade — cada uma entra por decisao do operador.
-  const urlsInst = ['/','/sobre-nos','/blog','/area-do-prescritor','/encontre-uma-loja','/contato','/pet','/receita','/salvador']
+  const urlsInst = ['/','/sobre-nos','/blog','/area-do-prescritor','/encontre-uma-loja','/contato','/pet','/receita','/salvador','/maceio','/sao-paulo','/belem','/feira-de-santana','/fortaleza','/petrolina','/recife']
     .map(pg=>`<url><loc>${BASE}${pg}</loc></url>`);
 
   const SM_NS = 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"';
