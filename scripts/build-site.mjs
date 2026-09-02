@@ -334,31 +334,63 @@ async function main() {
   const idxPath = path.join(ROOT,'index.html');
   fs.writeFileSync(idxPath, applyAll(applyPageCms(buildIndexHtml(fs.readFileSync(idxPath,'utf8'), posts), PAGES.home, homeCms)));
   if (homeCms) console.log('[build] home regenerado do CMS');
-  // 3) sitemap (com extensão de imagem: a capa de cada post entra como <image:image>,
-  //    que é o que habilita o Google Imagens. 126 URLs — muito abaixo do teto de 50k,
-  //    então NÃO se divide em vários sitemaps: seria complexidade sem ganho.)
+  // 3) sitemaps divididos por tipo + sitemap index em /sitemap.xml.
+  //    Cada URL aparece em EXATAMENTE UM filho — o index nao lista URL de pagina.
+  //    A extensao de imagem (<image:image> com a capa do post) fica so no filho do
+  //    blog, que e o unico com imagem; os outros nao declaram o namespace.
   const absUrl = u => /^https?:/i.test(u) ? u : `${BASE}/${String(u).replace(/^\//,'')}`;
   const xmlEsc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
-  const urls = posts.map(p=>{
-    // Só <image:loc>: o Google removeu o suporte a <image:title>, <image:caption>,
+  const urlsBlog = posts.map(p=>{
+    // So <image:loc>: o Google removeu o suporte a <image:title>, <image:caption>,
     // <image:geo_location> e <image:license> (spring-cleaning de sitemaps, 2022).
     const img = p.cover ? `<image:image><image:loc>${xmlEsc(absUrl(p.cover))}</image:loc></image:image>` : '';
     return `<url><loc>${BASE}${p.path}</loc><lastmod>${(p.modifiedAt||p.publishedAt).slice(0,10)}</lastmod>${img}</url>`;
   });
-  // Páginas de unidade (geradas à mão por scripts/build-lojas.mjs e commitadas).
-  // Lidas do DISCO, não do lojas.json: só entra no sitemap o que existe de fato.
+  // Paginas de unidade (geradas por scripts/build-lojas.mjs e commitadas).
+  // Lidas do DISCO, nao do lojas.json: so entra no sitemap o que existe de fato.
+  const urlsUnidades = [];
   try {
     const dirLojas = path.join(ROOT,'encontre-uma-loja');
     if (fs.existsSync(dirLojas)) {
       const slugs = fs.readdirSync(dirLojas, { withFileTypes:true })
         .filter(d=>d.isDirectory() && fs.existsSync(path.join(dirLojas,d.name,'index.html')))
         .map(d=>d.name).sort();
-      slugs.forEach(s=>urls.push(`<url><loc>${BASE}/encontre-uma-loja/${s}</loc></url>`));
-      if (slugs.length) console.log(`[build] ${slugs.length} pagina(s) de unidade no sitemap`);
+      slugs.forEach(s=>urlsUnidades.push(`<url><loc>${BASE}/encontre-uma-loja/${s}</loc></url>`));
+      if (slugs.length) console.log(`[build] ${slugs.length} pagina(s) de unidade no sitemap-unidades.xml`);
     }
   } catch (e) { console.warn('[build] sitemap de unidades falhou:', e.message); }
-  ['/','/sobre-nos','/blog','/area-do-prescritor','/encontre-uma-loja','/contato','/pet','/receita'].reverse().forEach(pg=>urls.unshift(`<url><loc>${BASE}${pg}</loc></url>`));
-  fs.writeFileSync(path.join(ROOT,'sitemap.xml'), '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+urls.join('\n')+'\n</urlset>');
+  // Institucional: as 8 estaticas. /encontre-uma-loja (o localizador) e institucional;
+  // as paginas de unidade sao filhas dele e moram no sitemap-unidades.xml.
+  // /salvador = pagina-CIDADE (pai das 4 unidades de Salvador). Entra explicita:
+  // nao ha rollout automatico de cidade — cada uma entra por decisao do operador.
+  const urlsInst = ['/','/sobre-nos','/blog','/area-do-prescritor','/encontre-uma-loja','/contato','/pet','/receita','/salvador']
+    .map(pg=>`<url><loc>${BASE}${pg}</loc></url>`);
+
+  const SM_NS = 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"';
+  const SM_NS_IMG = ' xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"';
+  const NL = String.fromCharCode(10);
+  const escreveFilho = (arquivo, urls, comImagem) => {
+    const corpo = '<?xml version="1.0" encoding="UTF-8"?>' + NL
+      + '<urlset ' + SM_NS + (comImagem ? SM_NS_IMG : '') + '>' + NL
+      + urls.join(NL) + NL + '</urlset>' + NL;
+    fs.writeFileSync(path.join(ROOT, arquivo), corpo);
+    return urls.length;
+  };
+  const filhosSm = [
+    ['sitemap-institucional.xml', urlsInst,     false],
+    ['sitemap-blog.xml',          urlsBlog,     true ],
+    ['sitemap-unidades.xml',      urlsUnidades, false],
+  ].filter(([,urls])=>urls.length);          // filho vazio nao entra no index
+  let totalSm = 0;
+  for (const [arq, urls, img] of filhosSm) totalSm += escreveFilho(arq, urls, img);
+  // Sem <lastmod> no index de proposito: seria a data do build, nao a do conteudo —
+  // dado falso que faria o Google reagendar rastreio a cada deploy.
+  fs.writeFileSync(path.join(ROOT,'sitemap.xml'),
+    '<?xml version="1.0" encoding="UTF-8"?>' + NL
+    + '<sitemapindex ' + SM_NS + '>' + NL
+    + filhosSm.map(([arq])=>`<sitemap><loc>${BASE}/${arq}</loc></sitemap>`).join(NL) + NL
+    + '</sitemapindex>' + NL);
+  console.log(`[build] sitemap index: ${filhosSm.length} filhos, ${totalSm} URLs (${filhosSm.map(([a,u])=>a.replace(/^sitemap-|\.xml$/g,'')+':'+u.length).join(' ')})`);
 
   // 4) rss.xml (fresco do Firestore — mesmo formato do scripts/gen-feeds.mjs)
   const rfc822 = iso => { try { return new Date(iso).toUTCString(); } catch { return ''; } };

@@ -46,7 +46,7 @@ const noLlms = (llms.txt.match(/encontre-uma-loja\/[a-z0-9-]+/g) || []).length;
 console.log(`  unidades citadas no llms.txt: ${noLlms}`);
 ok(noLlms >= slugs.length, `llms.txt cita ${noLlms} unidades, esperado ${slugs.length}`);
 
-const sm = await pega('/sitemap.xml');
+const sm = await pega('/sitemap-unidades.xml');   // sitemap dividido: as unidades moram no filho
 const noSitemap = (sm.txt.match(/encontre-uma-loja\/[a-z0-9-]+</g) || []).length;
 console.log(`  unidades no sitemap: ${noSitemap}`);
 

@@ -1,0 +1,25 @@
+{
+  "_LEIA": "Dado REGULADO. O gen-person.mjs se RECUSA a gerar enquanto houver campo com null ou o texto PENDENTE. Nada aqui pode ser deduzido, estimado ou copiado de outra unidade — cada valor vem do documento do profissional. Preencha, rode `node scripts/gen-person.mjs --aplicar` e confira o resultado no Rich Results Test antes de commitar.",
+
+  "escopo": "PENDENTE — 'matriz' (RT da A FORMULA SERVICOS E FRANCHISE LTDA, vale para o site institucional) ou 'unidade:<slug>' (RT de uma loja especifica). Ver a nota 'ESCOPO' no gen-person.mjs: o site institucional so pode declarar o RT da matriz.",
+
+  "nome": null,
+  "crf": {
+    "uf": null,
+    "numero": null
+  },
+  "cargo": "Farmacêutico Responsável Técnico",
+
+  "formacao": {
+    "curso": null,
+    "instituicao": null
+  },
+
+  "especializacao": [],
+
+  "sameAs": [],
+
+  "foto": null,
+
+  "_OPCIONAIS": "formacao, especializacao, sameAs e foto podem ficar vazios — o gerador simplesmente omite a propriedade do schema. OBRIGATORIOS (bloqueiam a geracao): escopo, nome, crf.uf, crf.numero, cargo."
+}
