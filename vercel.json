@@ -266,6 +266,11 @@
       "permanent": false
     },
     {
+      "source": "/cidades/:slug(salvador)",
+      "destination": "/salvador",
+      "permanent": true
+    },
+    {
       "source": "/cidades/:slug(alagoinhas|aracaju|araguaina|arapiraca|arcoverde|belem|belem-br|belem-duque|belo-horizonte|belo-jardim|boa-vista|brasilia|brumado|camacari-shopping-rivieira|campina-grande|candeias|caruaru|crateus|custodia|eunapolis|feira-de-santana|feira-de-santana-maison|florianopolis|fortaleza-aldeota|fortaleza-fatima|foz-do-iguacu-parana|ipiau|irece|itabuna|jacobina|jequie|joao-pessoa-jaguaribe|joao-pessoa-manaira|juazeiro|juazeiro-do-norte|macapa-amapa|macaubas|maceio-centro|maceio-farol|maceio-hiper-galeria|maceio-mangabeiras|maceio-rotary|mossoro-medical-center|natal|olinda-centro|palmas-to|paulo-afonso|petrolina-centro|petrolina-cidade-universitaria|picos|pocoes|porto-velho|recife-gracas|recife-shopping-recife|redencao-pa-em-breve|rio-branco|rio-de-janeiro|salgueiro|salvador-caminho-de-areia|salvador-manoel-dias|salvador-shopping-barra-bahia|salvador-shopping-paralela|santa-cruz-do-sul|santo-andre|santo-antonio-de-jesus|sao-paulo-brooklin|sao-paulo-morumbi|sao-paulo-perdizes|sao-paulo-sorocaba-em-breve|sao-paulo-tatuape|seabra|senhor-do-bonfim|serra-talhada|sinop|vitoria-da-conquista-centro)",
       "destination": "/encontre-uma-loja/:slug",
       "permanent": true

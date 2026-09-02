@@ -26,7 +26,15 @@ const BASE = 'https://www.aformulabr.com.br';
 // Cidades habilitadas. Uma entrada por cidade — NAO ha rollout automatico: cada cidade
 // entra por decisao explicita, porque cada uma tem um numero de unidades e um termo proprio.
 const CIDADES = {
-  salvador: { cidade: 'Salvador', estado: 'BA', slugPagina: 'salvador' },
+  salvador: {
+    cidade: 'Salvador', estado: 'BA', slugPagina: 'salvador',
+    // EXCLUSAO DECLARADA, nao filtro silencioso. salvador-caminho-de-areia sai da
+    // pagina-cidade por decisao do operador (2026-09-02): a ficha do Google dela esta
+    // "Permanentemente fechado" (audit de 31/08) e ele confirmou que a loja nao existe.
+    // A pagina de unidade dela NAO foi despublicada — segue no ar, intocada: e decisao
+    // separada e o arquivo esta congelado. Reverter = tirar o slug desta lista.
+    excluir: ['salvador-caminho-de-areia'],
+  },
 };
 
 const E = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -302,8 +310,14 @@ function main() {
   const parts = JSON.parse(
     fs.readFileSync(path.join(__dirname, 'template-parts.json'), 'utf8'));
 
+  const excluir = new Set(cfg.excluir || []);
   const unidades = lojas
     .filter((u) => u.cidade === cfg.cidade && aberta(u))
+    .filter((u) => {
+      if (!excluir.has(u.slug)) return true;
+      console.warn(`[cidade] ${u.slug}: EXCLUIDA por decisao do operador (ver CIDADES.excluir)`);
+      return false;
+    })
     .filter((u) => {
       // So entra na pagina-cidade a unidade que TEM pagina propria publicada: o card
       // aponta pra filha, e card que aponta pro vazio e link morto.
