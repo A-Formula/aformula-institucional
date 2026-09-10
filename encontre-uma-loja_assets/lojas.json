@@ -577,19 +577,19 @@
  },
  {
   "id": 3425,
-  "nome": "Sobral (Em Breve)",
-  "slug": "sobral-em-breve",
+  "nome": "Sobral",
+  "slug": "sobral",
   "estado": "CE",
   "cidade": "Sobral",
-  "endereco": "Sobral - CE",
-  "cep": null,
-  "lat": -3.6844057,
-  "lng": -40.3561823,
+  "endereco": "Avenida Dom José Tupinambá da Frota, 1084 - Centro, Sobral - CE, Brasil",
+  "cep": "62010-290",
+  "lat": -3.6876177,
+  "lng": -40.3474845,
   "telefone": null,
-  "celular": null,
-  "email": null,
+  "celular": "(88) 99254-8768",
+  "email": "aformulasobral@aformulabr.com.br",
   "loja_virtual": null,
-  "place_id": "ChIJF7JU1y-16gcRGibD9Badx3c"
+  "place_id": null
  },
  {
   "id": 464,

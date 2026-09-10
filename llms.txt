@@ -85,6 +85,7 @@ Cada unidade da rede tem página própria com endereço verbatim do cadastro, ho
 - [A Fórmula Fortaleza — Aldeota (CE)](https://www.aformulabr.com.br/encontre-uma-loja/fortaleza-aldeota): endereço, horário de atendimento, telefone e WhatsApp da unidade de Fortaleza.
 - [A Fórmula Fortaleza — Fátima (CE)](https://www.aformulabr.com.br/encontre-uma-loja/fortaleza-fatima): endereço, horário de atendimento, telefone e WhatsApp da unidade de Fortaleza.
 - [A Fórmula Juazeiro do Norte (CE)](https://www.aformulabr.com.br/encontre-uma-loja/juazeiro-do-norte): endereço, horário de atendimento, telefone e WhatsApp da unidade de Juazeiro do Norte.
+- [A Fórmula Sobral (CE)](https://www.aformulabr.com.br/encontre-uma-loja/sobral): endereço, horário de atendimento, telefone e WhatsApp da unidade de Sobral.
 - [A Fórmula Brasília | Asa Sul (DF)](https://www.aformulabr.com.br/encontre-uma-loja/brasilia): endereço, horário de atendimento, telefone e WhatsApp da unidade de Brasília | Asa Sul.
 - [A Fórmula Belo Horizonte (MG)](https://www.aformulabr.com.br/encontre-uma-loja/belo-horizonte): endereço, horário de atendimento, telefone e WhatsApp da unidade de Belo Horizonte.
 - [A Fórmula SINOP (MT)](https://www.aformulabr.com.br/encontre-uma-loja/sinop): endereço, horário de atendimento, telefone e WhatsApp da unidade de SINOP.
