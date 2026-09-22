@@ -112,14 +112,18 @@
        site dentro dele mesmo numa aba nova deixa duas abas iguais abertas. */
     var externo = /^https?:/i.test(destino);  // o ATRIBUTO, nao fab.href (a propriedade ja vem absoluta e daria sempre true)
     if (externo) { fab.target = "_blank"; fab.rel = "noopener"; }
-    fab.setAttribute("aria-label", externo ? "Falar no WhatsApp desta unidade" : "Falar com a unidade");
+    /* Destino INTERNO (a /pet manda para a pagina da unidade de Arapiraca): o botao fica
+       IDENTICO ao da home — mesmo desenho, mesmo rotulo "Fale conosco" —, so o link muda
+       (pedido do operador 2026-09-22). Rotulo "WhatsApp" fica para quem abre conversa
+       mesmo, ou seja as paginas de unidade. */
+    fab.setAttribute("aria-label", externo ? "Falar no WhatsApp desta unidade" : "Fale conosco — unidade A Fórmula Pet");
     // MESMO rótulo do botão do card (o slug da unidade): dois nomes para a mesma loja
     // obrigam a somar duas linhas à mão no relatório.
     var slug = waUnidade.getAttribute("data-unidade") || "";
     fab.addEventListener("click", function () {
       enviarClique("clique_fab_whatsapp", slug || document.title.slice(0, 60));
     });
-    fab.innerHTML = GLIFO + '<span>WhatsApp</span>';
+    fab.innerHTML = GLIFO + '<span>' + (externo ? 'WhatsApp' : 'Fale conosco') + '</span>';
   } else {
     /* Demais páginas: MESMO desenho, link inalterado → /contato (decisão do operador:
        "mantendo a mesma lógica e link, apenas mude o design"). O site não tem WhatsApp
