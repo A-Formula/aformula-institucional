@@ -105,10 +105,14 @@
   if (waUnidade) {
     // Página de unidade: abre o WhatsApp DAQUELA loja. O número sai do próprio link da
     // página (.loja-wa), que veio do cadastro — corrigir o lojas.json corrige o FAB.
-    fab.href = waUnidade.getAttribute("href");
-    fab.target = "_blank";
-    fab.rel = "noopener";
-    fab.setAttribute("aria-label", "Falar no WhatsApp desta unidade");
+    var destino = waUnidade.getAttribute("href");
+    fab.href = destino;
+    /* Nova aba só para destino EXTERNO (o wa.me das paginas de unidade). Na /pet o link
+       aponta para a pagina da unidade de Arapiraca — pagina do proprio site, e abrir o
+       site dentro dele mesmo numa aba nova deixa duas abas iguais abertas. */
+    var externo = /^https?:/i.test(destino);  // o ATRIBUTO, nao fab.href (a propriedade ja vem absoluta e daria sempre true)
+    if (externo) { fab.target = "_blank"; fab.rel = "noopener"; }
+    fab.setAttribute("aria-label", externo ? "Falar no WhatsApp desta unidade" : "Falar com a unidade");
     // MESMO rótulo do botão do card (o slug da unidade): dois nomes para a mesma loja
     // obrigam a somar duas linhas à mão no relatório.
     var slug = waUnidade.getAttribute("data-unidade") || "";
