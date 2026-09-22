@@ -82,7 +82,13 @@
      o glifo oficial (telefone dentro do balão), preenchido, nunca de contorno.
      O ícone é `fill`, não `stroke`: o glifo do WhatsApp é uma forma cheia, e desenhá-lo com
      traço deixa o telefone chapado e a marca errada. */
-  css.textContent = '.af-fab{position:fixed;right:22px;bottom:22px;z-index:99998;display:inline-flex;align-items:center;gap:9px;height:48px;padding:0 20px 0 16px;border-radius:999px;background:#25D366;color:#fff;font-family:inherit;font-weight:700;font-size:14px;letter-spacing:.02em;text-decoration:none;box-shadow:0 10px 28px rgba(37,211,102,.32);transition:transform .25s,box-shadow .25s,background .25s}.af-fab:hover{transform:translateY(-2px);box-shadow:0 16px 34px rgba(37,211,102,.4);background:#1DA851}.af-fab:focus-visible{outline:3px solid #075E54;outline-offset:2px}.af-fab svg{width:22px;height:22px;fill:#fff;stroke:none}@media(prefers-reduced-motion:reduce){.af-fab{transition:none}}@media(max-width:767px){.af-fab{right:14px;bottom:calc(14px + env(safe-area-inset-bottom));height:52px;width:52px;padding:0;justify-content:center}.af-fab span{display:none}.af-fab svg{width:26px;height:26px}}';
+  /* Fonte do rótulo PRESA ao arquivo, não herdada: cada página declara seu próprio conjunto
+     de pesos de Avenir (a home tem 300/400/500, a /pet tem 300/400/900), então um mesmo
+     `font-weight:700` desenhava letras diferentes em cada página — foi o que o operador viu
+     em 2026-09-22 ("a fonte do texto ainda está diferente"). Amarrando o botão ao MESMO
+     arquivo que a home usa (Avenir 500 + negrito sintético), o rótulo fica idêntico em
+     qualquer página, inclusive nas de unidade e nos posts do blog. */
+  css.textContent = '@font-face{font-family:"AF FAB";src:url("/index_assets/a16.woff2") format("woff2");font-weight:500;font-style:normal;font-display:swap}' + '.af-fab{position:fixed;right:22px;bottom:22px;z-index:99998;display:inline-flex;align-items:center;gap:9px;height:48px;padding:0 20px 0 16px;border-radius:999px;background:#25D366;color:#fff;font-family:"AF FAB",Avenir,"Segoe UI",system-ui,-apple-system,sans-serif;font-weight:700;font-size:14px;letter-spacing:.02em;text-decoration:none;box-shadow:0 10px 28px rgba(37,211,102,.32);transition:transform .25s,box-shadow .25s,background .25s}.af-fab:hover{transform:translateY(-2px);box-shadow:0 16px 34px rgba(37,211,102,.4);background:#1DA851}.af-fab:focus-visible{outline:3px solid #075E54;outline-offset:2px}.af-fab svg{width:22px;height:22px;fill:#fff;stroke:none}@media(prefers-reduced-motion:reduce){.af-fab{transition:none}}@media(max-width:767px){.af-fab{right:14px;bottom:calc(14px + env(safe-area-inset-bottom));height:52px;width:52px;padding:0;justify-content:center}.af-fab span{display:none}.af-fab svg{width:26px;height:26px}}';
   document.head.appendChild(css);
 
   var fab = document.createElement("a");
