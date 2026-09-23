@@ -54,6 +54,30 @@ const organization = {
   ],
   areaServed: { '@type': 'Country', name: 'Brasil' },
 };
+// ---- Farmácia responsável pelo site (matriz, unidade própria em Belém) ----
+// É ela que responde pelo site perante ANVISA/CRF; a rede (franqueadora SP) segue como marca.
+// Mesmos dados do bloco legal do rodapé da home — os dois têm de bater. Decisão do operador 2026-09-23.
+const MATRIZ_ID = `${BASE}/#matriz`;
+const matriz = {
+  '@type': 'Pharmacy',
+  '@id': MATRIZ_ID,
+  name: 'A Fórmula — Matriz Belém',
+  legalName: 'ART FARMA LTDA – em Recuperação Judicial',
+  taxID: '04.798.925/0001-80',
+  url: `${BASE}/`,
+  image: `${BASE}/index_assets/a17.webp`,
+  telephone: '(91) 3122-9248',
+  email: 'sac@aformulabr.com.br',
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: 'Av. Visconde de Souza Franco, 729 - Reduto',
+    addressLocality: 'Belém',
+    addressRegion: 'PA',
+    postalCode: '66055-005',
+    addressCountry: 'BR',
+  },
+  parentOrganization: { '@id': ORG_ID },
+};
 const website = {
   '@type': 'WebSite',
   '@id': SITE_ID,
@@ -61,7 +85,7 @@ const website = {
   name: 'A Fórmula',
   alternateName: ['aformulabr', 'A Fórmula Farmácia de Manipulação'],
   inLanguage: 'pt-BR',
-  publisher: { '@id': ORG_ID },
+  publisher: { '@id': MATRIZ_ID },
   // Sem potentialAction/SearchAction: o Google removeu o sitelinks search box da busca em
   // 21/11/2024 (e o relatório do Search Console junto). A marcação virou peso morto.
 };
@@ -184,7 +208,7 @@ const faqPet = faqPage('pet.html');
 const faqReceita = faqPage('receita.html');
 
 const pages = {
-  'index.html': [{ '@context': CTX, '@graph': [organization, website] }, siteNav],
+  'index.html': [{ '@context': CTX, '@graph': [organization, matriz, website] }, siteNav],
   'sobre-nos.html': [crumb(INICIO, { name: 'Sobre nós', url: `${BASE}/sobre-nos` })],
   'contato.html': [crumb(INICIO, { name: 'Contato', url: `${BASE}/contato` })],
   'encontre-uma-loja.html': [
