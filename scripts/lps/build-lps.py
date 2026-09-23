@@ -44,6 +44,20 @@ SOURCES = [
          pages={'index.html': 'orcamento-santacruzdosul-diferenciais', 'kits-e-brindes.html': 'orcamento-santacruzdosul-kitsebrindes'}, urls={}),
 ]
 
+# Troca de imagem por pagina (so nas <img>; og:image/schema seguem PNG pra previa de WhatsApp/Facebook).
+# Natal: WebP da versao otimizada que estava no ar (farmacia, 16/06). Ativos = os WebP ja publicados.
+SWAP = {
+    'natal': {
+        'assets/fachada-natal.png': os.path.join(SRC, 'natal', 'fachada-natal.webp'),
+        'assets/modelo-formula-natal.png': os.path.join(SRC, 'natal', 'modelo-formula-natal.webp'),
+        'assets/timeline-1.jpeg': os.path.join(SRC, 'natal', 'timeline-1.webp'),
+        'assets/scs-ativo-peptideos.png': os.path.join(AF, 'assets', 'scs-ativo-peptideos.webp'),
+        'assets/scs-ativo-exossomos.png': os.path.join(AF, 'assets', 'scs-ativo-exossomos.webp'),
+        'assets/scs-ativo-retinol.png': os.path.join(AF, 'assets', 'scs-ativo-retinol.webp'),
+        'assets/scs-ativo-vitc.png': os.path.join(AF, 'assets', 'scs-ativo-vitc.webp'),
+    },
+}
+
 GTM = open(os.path.join(SRC, 'gtm-petson.html'), encoding='utf-8').read()
 GTM_HEAD = re.search(r'<!-- Google Tag Manager -->[\s\S]*?<!-- End Google Tag Manager -->', GTM).group(0)
 GTM_BODY = re.search(r'<!-- Google Tag Manager \(noscript\) -->[\s\S]*?<!-- End Google Tag Manager \(noscript\) -->', GTM).group(0)
@@ -69,7 +83,14 @@ def publish(src_file, want_rel):
         print('  novo asset:', want_rel)
     used_urls.add(by_hash[h]); return by_hash[h]
 
+def absolutos(h):
+    # og:image/twitter:image e JSON-LD precisam de URL completa (previa de WhatsApp/Facebook, Google)
+    h = re.sub(r'(<meta\s[^>]*content=")(/' + OUT + r'/)', lambda m: m.group(1) + BASE + m.group(2), h)
+    return re.sub(r'<script type="application/ld\+json">[\s\S]*?</script>',
+                  lambda m: m.group(0).replace(f'"/{OUT}/', f'"{BASE}/{OUT}/'), h)
+
 def common(h, slug):
+    h = absolutos(h)
     m = TW_CDN.search(h); assert m and len(TW_CDN.findall(h)) == 1, slug
     cfg = re.sub(r'\s', '', m.group(1))
     h = TW_CDN.sub('    <link rel="stylesheet" href="__CSS__">', h, 1)
@@ -87,6 +108,10 @@ for s in SOURCES:
     slug = s['slug']
     if s['mode'] == 'af':
         h = open(s['src'], encoding='utf-8').read()
+        # troca de imagem ANTES de absolutas virarem relativas (og:image/schema absolutos ficam intactos)
+        for orig, novo in SWAP.get(s['key'], {}).items():
+            n = h.count('../../' + orig); assert n >= 1, (s['key'], orig)
+            h = h.replace('../../' + orig, publish(novo, os.path.basename(novo)))
         h = h.replace('https://a-formula-br.vercel.app/assets/', '../../assets/')
         h = h.replace(f"https://a-formula-br.vercel.app/{s['old']}/", f'{BASE}/{slug}/')
         h = h.replace(f'https://farmacia.aformulabr.com.br/{slug}/', f'{BASE}/{slug}/')
@@ -106,6 +131,9 @@ for s in SOURCES:
         for fname, pslug in s['pages'].items():
             pslug = pslug or slug
             h = open(os.path.join(s['root'], fname), encoding='utf-8').read()
+            # asset em URL absoluta do deploy antigo (og:image/schema) -> URL completa do publicado
+            for a in s['urls']:
+                h = re.sub(re.escape(a) + r'(assets/[^"\')\s?#]+)', lambda m: BASE + '/' + OUT + '/' + urllib.parse.quote(AMAP[f"{s['key']}:{urllib.parse.unquote(m.group(1))}"]), h)
             for a, b in s['urls'].items(): h = h.replace(a, b.format(BASE=BASE, slug=pslug))
             def rep(m):
                 url = '/' + OUT + '/' + urllib.parse.quote(AMAP[f"{s['key']}:{urllib.parse.unquote(m.group(2))}"])
