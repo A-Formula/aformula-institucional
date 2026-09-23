@@ -89,8 +89,16 @@ def absolutos(h):
     return re.sub(r'<script type="application/ld\+json">[\s\S]*?</script>',
                   lambda m: m.group(0).replace(f'"/{OUT}/', f'"{BASE}/{OUT}/'), h)
 
+LOGO_A = re.compile(r'(<a\s[^>]*?href=")([^"]*)("[^>]*>(?:(?!</a>)[\s\S])*?<img[^>]*logo)')
+def logo_home(h, slug):
+    # logo da navbar leva pra home do site institucional (decisao do operador 2026-09-23)
+    fim = min(x for x in (h.find('</nav>'), h.find('</header>')) if x > 0)
+    m = LOGO_A.search(h, 0, fim); assert m, (slug, 'logo da nav nao encontrado')
+    return h[:m.start()] + m.group(1) + '/' + m.group(3) + h[m.end():]
+
 def common(h, slug):
     h = absolutos(h)
+    h = logo_home(h, slug)
     m = TW_CDN.search(h); assert m and len(TW_CDN.findall(h)) == 1, slug
     cfg = re.sub(r'\s', '', m.group(1))
     h = TW_CDN.sub('    <link rel="stylesheet" href="__CSS__">', h, 1)
