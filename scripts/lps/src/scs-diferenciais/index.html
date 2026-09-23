@@ -1,0 +1,904 @@
+<!--
+  ===========================================================================
+  LP DE CONVERSÃO — A Fórmula Santa Cruz do Sul
+  Baseada na "Especificação para Desenvolvimento — Landing Page A Fórmula
+  Santa Cruz do Sul" (9 dobras). Reaproveita 100% das fontes (Inter/Newsreader)
+  e cores (brand/dark/whatsapp) já usadas no projeto — nada de tipografia ou
+  paleta novas.
+
+  PLACEHOLDERS A CONFIRMAR ANTES DE PUBLICAR:
+    - WhatsApp: 55 51 8945-8950 (todos os links wa.me / api.whatsapp.com
+      apontam para o MESMO número/destino, só o texto pré-preenchido muda
+      conforme a dobra, como pedido no spec)
+    - Endereço: R. Júlio de Castilhos, 89 - Centro, Santa Cruz do Sul - RS, 96810-046
+    - Telefone fixo / e-mail: (51) 3902-7752 | scs@aformulabr.com.br
+    - Horário: Seg-Sex 8h-19h | Sáb 8h-13h
+    - Google Meu Negócio (Dobra 7): trocar o bloco de avaliações abaixo pelo
+      plugin/widget oficial (ex.: Elfsight, EmbedSocial etc.) assim que a
+      Isa escolher o serviço. Deixei uma estrutura de fallback com o mesmo
+      visual da página para não publicar a seção vazia.
+    - Imagens da Dobra 1 e Dobra 8 baixadas do Google Drive e hospedadas em
+      /assets (fachada-scs-hero-v2.png e farmaceutica-isabelle-berger.png).
+  ===========================================================================
+-->
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orçamento em minutos | A Fórmula Santa Cruz do Sul</title>
+    <meta name="description" content="Solicite o orçamento da sua fórmula manipulada pelo WhatsApp. Entrega em até 1 hora em Santa Cruz do Sul, autorizada pela ANVISA e atendimento especializado.">
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        serif: ['Newsreader', 'Georgia', 'serif'],
+                    },
+                    colors: {
+                        brand: {
+                            DEFAULT: '#008896',
+                            light: '#00a8b8',
+                            dark: '#006d78',
+                            surface: '#F0F7F8',
+                        },
+                        dark: '#084349',
+                        whatsapp: '#25D366',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Newsreader:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
+    <style>
+        .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s cubic-bezier(0.22,1,0.36,1), transform 0.7s cubic-bezier(0.22,1,0.36,1); }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+        .reveal-delay-1 { transition-delay: 0.1s; }
+        .reveal-delay-2 { transition-delay: 0.2s; }
+        .reveal-delay-3 { transition-delay: 0.3s; }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(37,211,102,0.5); }
+            50% { box-shadow: 0 0 0 14px rgba(37,211,102,0); }
+        }
+        .whatsapp-pulse { animation: pulse-glow 2.5s ease-in-out infinite; }
+
+        .molecule-pattern { background-image: radial-gradient(rgba(255,255,255,0.16) 1.5px, transparent 1.5px); background-size: 28px 28px; }
+
+        .hero-overlay-gradient {
+            background: linear-gradient(to bottom, rgba(6,48,52,0.55) 0%, rgba(6,48,52,0.82) 60%, rgba(6,48,52,0.95) 100%);
+        }
+        @media (min-width: 768px) {
+            .hero-overlay-gradient {
+                background: linear-gradient(to right, rgba(6,48,52,0.96) 0%, rgba(6,48,52,0.88) 32%, rgba(6,48,52,0.55) 55%, rgba(6,48,52,0.15) 78%, rgba(6,48,52,0) 96%);
+            }
+        }
+        /* ---------- Dobra 5 · cards de soluções (hover realça ícone) ---------- */
+        .solucao-card:hover .ico { background: #008896; }
+        .solucao-card:hover .ico svg { color: #fff; }
+
+        /* ---------- Trustbar · barra de benefícios flutuante sobre o hero ---------- */
+        /* cores mapeadas para os tokens do projeto: brand (#008896), dark (#084349), cinza já usado no site */
+        .trustbar {
+            position: relative; z-index: 20;
+            margin-top: -56px; margin-bottom: 40px;
+            background: rgba(255,255,255,.72);
+            -webkit-backdrop-filter: blur(14px) saturate(140%);
+            backdrop-filter: blur(14px) saturate(140%);
+            border: 1px solid rgba(255,255,255,.6);
+            border-radius: 20px;
+            box-shadow: 0 8px 16px -6px rgba(8,67,73,.10), 0 24px 48px -16px rgba(8,67,73,.16), 0 40px 80px -32px rgba(8,67,73,.12);
+            display: flex; align-items: stretch; padding: 8px;
+        }
+        .trustbar .trust-item {
+            flex: 1 1 0; min-width: 0;
+            display: flex; align-items: center; gap: 14px;
+            padding: 18px 20px; border-left: 1px solid rgba(8,67,73,.12);
+        }
+        .trustbar .trust-item:first-child { border-left: 0; }
+        .trustbar .trust-item .ic {
+            flex: 0 0 42px; width: 42px; height: 42px; border-radius: 50%;
+            background: rgba(0,136,150,.10); display: grid; place-items: center; color: #008896;
+        }
+        .trustbar .trust-item .ic svg { width: 20px; height: 20px; }
+        .trustbar .trust-item .txt strong { display: block; font-size: 14px; font-weight: 700; line-height: 1.25; color: #084349; }
+        .trustbar .trust-item .txt span { display: block; margin-top: 2px; font-size: 12.5px; line-height: 1.4; color: #6b7280; }
+
+        @media (max-width: 900px) {
+            .trustbar { flex-wrap: wrap; margin-top: -44px; }
+            .trustbar .trust-item { flex: 1 1 50%; border-left: 0; }
+            .trustbar .trust-item:nth-child(even) { border-left: 1px solid rgba(8,67,73,.12); }
+            .trustbar .trust-item:nth-child(n+3) { border-top: 1px solid rgba(8,67,73,.12); }
+        }
+        @media (max-width: 560px) {
+            .trustbar { margin-top: -32px; }
+            .trustbar .trust-item { flex: 1 1 100%; border-left: 0 !important; }
+            .trustbar .trust-item:nth-child(n+2) { border-top: 1px solid rgba(8,67,73,.12); }
+        }
+
+        /* ---------- Dobra 4 · texto + diagrama (pote central + 3 cards coloridos) ---------- */
+        /* cores mapeadas para os tokens do projeto: brand (#008896), dark (#084349), cinza já usado no site */
+        .dobra4-formulas .hero3zone { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.3fr); align-items: center; gap: 40px; }
+        .dobra4-formulas .hero3zone > .copy, .dobra4-formulas .hero3zone > .diagram { min-width: 0; }
+
+        .dobra4-formulas .badge {
+            display: inline-block; padding: 8px 16px; border: 1px solid rgba(8,67,73,.18);
+            border-radius: 999px; font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+            color: #084349; margin-bottom: 16px;
+        }
+        .dobra4-formulas .headline { margin-bottom: 16px; color: #084349; }
+        .dobra4-formulas .divider { width: 160px; height: 0; border-top: 2px dotted rgba(8,67,73,.25); margin: 0 0 14px; }
+        .dobra4-formulas .subtext { color: #6b7280; font-size: 16px; line-height: 1.5; max-width: 320px; }
+
+        .dobra4-formulas .seals { display: flex; align-items: center; gap: 10px; }
+        .dobra4-formulas .seals img { height: 26px; width: auto; object-fit: contain; background: #fff; border-radius: 8px; padding: 4px 6px; box-shadow: 0 4px 10px rgba(8,67,73,.08); }
+
+        .dobra4-formulas .diagram { position: relative; width: 100%; aspect-ratio: 1000 / 560; }
+        .dobra4-formulas .connectors { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+        .dobra4-formulas .connectors line { stroke: rgba(0,136,150,.35); stroke-width: 1.5; }
+        .dobra4-formulas .connectors .node { fill: #008896; }
+
+        .dobra4-formulas .glow {
+            position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+            width: 46%; aspect-ratio: 1 / 1; border-radius: 50%; z-index: 1;
+            background: radial-gradient(closest-side, rgba(0,136,150,.16), transparent 78%);
+        }
+
+        .dobra4-formulas .stage {
+            position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+            width: 42%; height: 98%; z-index: 2; perspective: 1000px;
+        }
+        .dobra4-formulas .stage .ground {
+            position: absolute; left: 50%; bottom: 6%; transform: translateX(-50%);
+            width: 62%; height: 14px; border-radius: 50%;
+            background: radial-gradient(closest-side, rgba(8,67,73,.22), transparent 75%);
+        }
+        .dobra4-formulas .stage img {
+            position: absolute; left: 50%; top: 50%;
+            transform: translate(-50%, -50%) rotate(-8deg);
+            height: 122%; width: auto; object-fit: contain;
+            filter: drop-shadow(0 16px 22px rgba(8,67,73,.26));
+            animation: dobra4-float 5s ease-in-out infinite;
+            will-change: transform;
+        }
+        @keyframes dobra4-float {
+            0%, 100% { transform: translate(-50%, -50%) rotate(-8deg); }
+            50% { transform: translate(-50%, calc(-50% - 12px)) rotate(-8deg); }
+        }
+        @media (prefers-reduced-motion: reduce) { .dobra4-formulas .stage img { animation: none; } }
+
+        .dobra4-formulas .card {
+            position: absolute; z-index: 2; width: 24%;
+            background: #008896; color: #fff;
+            border-radius: 16px; padding: 16px 18px;
+            box-shadow: 0 16px 34px rgba(8,67,73,.14);
+        }
+        .dobra4-formulas .card h3 { font-size: 16px; font-weight: 700; line-height: 1.2; }
+        .dobra4-formulas .card p { margin-top: 7px; font-size: 12.5px; line-height: 1.45; color: rgba(255,255,255,.82); }
+        .dobra4-formulas .card.c1 { left: 2%; top: 6%; }
+        .dobra4-formulas .card.c2 { left: 2%; bottom: 6%; top: auto; }
+        .dobra4-formulas .card.c3 { right: 2%; top: 39%; }
+
+        .dobra4-formulas .dobra4-footnote { color: #6b7280; font-size: 13px; font-style: italic; margin-top: 24px; }
+
+        @media (max-width: 980px) {
+            .dobra4-formulas .hero3zone { grid-template-columns: minmax(0,1fr); text-align: center; gap: 28px; }
+            .dobra4-formulas .badge, .dobra4-formulas .divider, .dobra4-formulas .subtext { margin-inline: auto; }
+            .dobra4-formulas .seals { justify-content: center; }
+            .dobra4-formulas .diagram { aspect-ratio: auto; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+            .dobra4-formulas .connectors, .dobra4-formulas .glow { display: none; }
+            .dobra4-formulas .stage { position: relative; left: auto; top: auto; transform: none; width: 190px; height: 250px; order: 1; }
+            .dobra4-formulas .card { position: relative; inset: auto !important; left: auto; right: auto; top: auto; width: 100%; max-width: 320px; }
+            .dobra4-formulas .card.c1 { order: 2; }
+            .dobra4-formulas .card.c2 { order: 3; }
+            .dobra4-formulas .card.c3 { order: 4; }
+        }
+
+        .testimonial-mask {
+            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+        }
+        .testimonial-track { animation: testimonial-scroll 32s linear infinite; }
+        .testimonial-track:hover { animation-play-state: paused; }
+        @keyframes testimonial-scroll {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+        }
+
+        .nav-scrolled { background: rgba(255,255,255,0.97) !important; backdrop-filter: blur(12px); box-shadow: 0 1px 20px rgba(0,0,0,0.06); }
+
+        .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+
+        html, body { overflow-x: hidden; }
+    </style>
+</head>
+<body class="bg-[#FAFAF8] text-dark font-sans antialiased selection:bg-brand selection:text-white">
+
+    <!-- ==================== TOPBAR ==================== -->
+    <header id="topbar" class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-sm border-b border-black/5 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-5 md:px-10 flex items-center justify-between gap-6 h-[72px] md:h-20">
+            <a href="#inicio" class="flex items-center gap-3 shrink-0">
+                <img src="assets/logo-dark.svg" alt="A Fórmula Santa Cruz do Sul" class="h-6 md:h-8">
+            </a>
+
+            <nav class="hidden lg:flex items-center justify-center flex-1 gap-5 xl:gap-7 overflow-x-auto no-scrollbar">
+                <a href="#inicio" class="text-dark text-sm font-semibold tracking-wide hover:text-brand transition-colors whitespace-nowrap">Início</a>
+                <a href="#formulas-limpas" class="text-dark text-sm font-semibold tracking-wide hover:text-brand transition-colors whitespace-nowrap">Fórmulas limpas</a>
+                <a href="#solucoes" class="text-dark text-sm font-semibold tracking-wide hover:text-brand transition-colors whitespace-nowrap">Soluções</a>
+                <a href="#diferenciais" class="text-dark text-sm font-semibold tracking-wide hover:text-brand transition-colors whitespace-nowrap">Diferenciais</a>
+                <a href="#contato" class="text-dark text-sm font-semibold tracking-wide hover:text-brand transition-colors whitespace-nowrap">Contato</a>
+                <a href="kits-e-brindes.html" target="_blank" rel="noopener" class="text-dark text-sm font-semibold tracking-wide hover:text-brand transition-colors whitespace-nowrap">Kits e Brindes</a>
+            </nav>
+
+            <div class="flex items-center gap-2 md:gap-3 shrink-0">
+                <a href="https://api.whatsapp.com/send/?phone=555189458950&text=Ol%C3%A1!%20Gostaria%20de%20solicitar%20um%20or%C3%A7amento%20para%20uma%20f%C3%B3rmula%20manipulada." target="_blank" rel="noopener" class="inline-flex items-center gap-2 bg-whatsapp hover:brightness-95 text-white px-4 md:px-5 py-2.5 rounded-full text-xs md:text-sm font-bold transition-all hover:scale-105">
+                    <svg class="w-4 h-4 md:w-4.5 md:h-4.5 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+                    <span class="hidden xs:inline">Solicitar orçamento</span>
+                    <span class="xs:hidden">Orçamento</span>
+                </a>
+                <button id="menuBtn" class="lg:hidden text-dark p-2" aria-label="Abrir menu">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <div id="mobileMenu" class="hidden lg:hidden bg-white shadow-xl max-h-[calc(100vh-72px)] overflow-y-auto">
+            <div class="flex flex-col px-5 py-4 gap-1">
+                <a href="#inicio" class="py-3 text-dark font-semibold border-b border-gray-100">Início</a>
+                <a href="#formulas-limpas" class="py-3 text-dark font-semibold border-b border-gray-100">Fórmulas limpas</a>
+                <a href="#solucoes" class="py-3 text-dark font-semibold border-b border-gray-100">Soluções</a>
+                <a href="#diferenciais" class="py-3 text-dark font-semibold border-b border-gray-100">Diferenciais</a>
+                <a href="#contato" class="py-3 text-dark font-semibold border-b border-gray-100">Contato</a>
+                <a href="kits-e-brindes.html" target="_blank" rel="noopener" class="py-3 text-dark font-semibold">Kits e Brindes</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- ==================== WHATSAPP FLUTUANTE ==================== -->
+    <a href="https://api.whatsapp.com/send/?phone=555189458950&text=Ol%C3%A1!%20Gostaria%20de%20solicitar%20um%20or%C3%A7amento%20para%20uma%20f%C3%B3rmula%20manipulada." target="_blank" rel="noopener" class="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-whatsapp pl-4 pr-5 py-4 rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-transform whatsapp-pulse">
+        <svg class="w-7 h-7 text-white shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+        <span class="text-white font-bold text-sm hidden sm:inline whitespace-nowrap">Solicite seu orçamento</span>
+    </a>
+
+    <main>
+        <!-- ==================== DOBRA 1 · HERO ==================== -->
+        <header id="inicio" class="relative w-full pt-24 md:pt-32 pb-24 md:pb-32 bg-dark overflow-hidden">
+            <img src="assets/banner_head_mobile.png" alt="A Fórmula Santa Cruz do Sul" class="absolute inset-0 w-full h-full object-cover block md:hidden">
+            <img src="assets/banner_head.png" alt="A Fórmula Santa Cruz do Sul" class="absolute inset-0 w-full h-full object-cover hidden md:block">
+            <div class="absolute inset-0 hero-overlay-gradient"></div>
+            <div class="absolute inset-0 molecule-pattern"></div>
+
+            <div class="relative z-10 max-w-7xl mx-auto px-5 md:px-10">
+                <div class="reveal max-w-2xl">
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="w-8 h-[2px] bg-brand-light"></span>
+                        <span class="text-brand-light text-xs font-bold tracking-[0.25em] uppercase">A Fórmula Santa Cruz do Sul</span>
+                    </div>
+                    <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold text-white leading-[1.12] mb-6 tracking-tight break-words">
+                        Sua fórmula manipulada com <span class="font-serif italic font-normal text-brand-light">qualidade, agilidade</span> e segurança.
+                    </h1>
+                    <p class="text-white/75 text-lg font-light max-w-md mb-9 leading-relaxed">
+                        Solicite seu orçamento pelo WhatsApp em poucos minutos.
+                    </p>
+
+                    <a href="https://api.whatsapp.com/send/?phone=555189458950&text=Ol%C3%A1!%20J%C3%A1%20tenho%20uma%20receita%20e%20gostaria%20de%20enviar%20para%20or%C3%A7amento." target="_blank" rel="noopener" class="inline-flex items-center gap-3 bg-whatsapp hover:brightness-95 text-white px-7 py-4 rounded-full font-bold shadow-xl hover:scale-105 active:scale-95 transition-all mb-8">
+                        <svg class="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+                        Enviar receita pelo WhatsApp
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- ==================== TRUSTBAR · benefícios flutuantes sobre o hero ==================== -->
+        <div class="max-w-7xl mx-auto px-5 md:px-10">
+        <div class="trustbar reveal reveal-delay-1">
+            <div class="trust-item">
+                <span class="ic">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                </span>
+                <span class="txt"><strong>Autorizada pela ANVISA</strong><span>Segurança e conformidade sanitária</span></span>
+            </div>
+
+            <div class="trust-item">
+                <span class="ic">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </span>
+                <span class="txt"><strong>Orçamento em minutos</strong><span>Resposta rápida pelo WhatsApp</span></span>
+            </div>
+
+            <div class="trust-item">
+                <span class="ic">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1"/></svg>
+                </span>
+                <span class="txt"><strong>Entrega rápida</strong><span>Frete facilitado em Santa Cruz do Sul</span></span>
+            </div>
+
+            <div class="trust-item">
+                <span class="ic">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-5.13a4 4 0 11-8 0 4 4 0 018 0zm6 3a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                </span>
+                <span class="txt"><strong>Atendimento especializado</strong><span>Equipe técnica pra te orientar</span></span>
+            </div>
+        </div>
+        </div>
+
+        <!-- ==================== DOBRA 3 · COMO SOLICITAR SEU ORÇAMENTO ==================== -->
+        <section id="como-pedir" class="py-14 md:py-20 bg-white">
+            <div class="max-w-7xl mx-auto px-5 md:px-10">
+                <div class="max-w-xl mb-10 md:mb-12 reveal">
+                    <span class="text-xs font-bold tracking-[0.25em] uppercase text-brand mb-4 block">Simples assim</span>
+                    <h2 class="text-3xl md:text-5xl font-bold tracking-tight leading-tight">Veja como é fácil fazer <span class="font-serif italic text-brand">seu orçamento!</span></h2>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 mb-3 md:hidden">
+                    <button type="button" id="como-pedir-prev" aria-label="Passo anterior" class="w-9 h-9 rounded-full bg-white shadow ring-1 ring-black/5 flex items-center justify-center text-brand active:scale-95 transition-all disabled:opacity-30">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    </button>
+                    <button type="button" id="como-pedir-next" aria-label="Próximo passo" class="w-9 h-9 rounded-full bg-white shadow ring-1 ring-black/5 flex items-center justify-center text-brand active:scale-95 transition-all disabled:opacity-30">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </button>
+                </div>
+
+                <div class="relative mb-4">
+                    <div id="como-pedir-carousel" class="relative flex md:grid md:grid-cols-4 overflow-x-auto md:overflow-visible snap-x snap-mandatory gap-6 md:gap-6 -mx-5 px-5 md:mx-0 md:px-0 no-scrollbar">
+                        <div class="hidden md:block absolute top-7 left-[12.5%] right-[12.5%] h-0.5 bg-brand/20"></div>
+
+                        <div class="reveal shrink-0 w-[78%] md:w-auto snap-center relative flex md:flex-col items-start md:items-center gap-4 md:gap-0 md:text-center bg-brand-surface md:bg-transparent rounded-2xl md:rounded-none p-5 md:p-0">
+                            <div class="relative z-10 w-14 h-14 rounded-full bg-brand text-white flex items-center justify-center shrink-0 md:mb-5">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 12L3.269 3.126A59.769 59.769 0 0121.485 12 59.768 59.768 0 013.27 20.876L5.999 12zm0 0h7.5"/></svg>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-lg mb-1.5">Envie sua receita</h4>
+                                <p class="text-gray-500 text-sm leading-relaxed">Foto ou PDF da sua receita, direto pelo WhatsApp.</p>
+                            </div>
+                        </div>
+                        <div class="reveal reveal-delay-1 shrink-0 w-[78%] md:w-auto snap-center relative flex md:flex-col items-start md:items-center gap-4 md:gap-0 md:text-center bg-brand-surface md:bg-transparent rounded-2xl md:rounded-none p-5 md:p-0">
+                            <div class="relative z-10 w-14 h-14 rounded-full bg-brand text-white flex items-center justify-center shrink-0 md:mb-5">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155a1.125 1.125 0 01.799-.33h4.008c.621 0 1.125-.504 1.125-1.125z"/></svg>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-lg mb-1.5">Receba o orçamento</h4>
+                                <p class="text-gray-500 text-sm leading-relaxed">Rapidamente, com valor e prazo de entrega.</p>
+                            </div>
+                        </div>
+                        <div class="reveal reveal-delay-2 shrink-0 w-[78%] md:w-auto snap-center relative flex md:flex-col items-start md:items-center gap-4 md:gap-0 md:text-center bg-brand-surface md:bg-transparent rounded-2xl md:rounded-none p-5 md:p-0">
+                            <div class="relative z-10 w-14 h-14 rounded-full bg-brand text-white flex items-center justify-center shrink-0 md:mb-5">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0018.75 4.5H5.25A2.25 2.25 0 003 6.75v10.5A2.25 2.25 0 005.25 19.5z"/></svg>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-lg mb-1.5">Finalize o pagamento</h4>
+                                <p class="text-gray-500 text-sm leading-relaxed">Pague seu pedido de forma rápida e segura.</p>
+                            </div>
+                        </div>
+                        <div class="reveal reveal-delay-3 shrink-0 w-[78%] md:w-auto snap-center relative flex md:flex-col items-start md:items-center gap-4 md:gap-0 md:text-center bg-brand-surface md:bg-transparent rounded-2xl md:rounded-none p-5 md:p-0">
+                            <div class="relative z-10 w-14 h-14 rounded-full bg-brand text-white flex items-center justify-center shrink-0 md:mb-5">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-lg mb-1.5">Receba em casa</h4>
+                                <p class="text-gray-500 text-sm leading-relaxed">Em até 1h*, direto no seu endereço.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-gray-400 text-xs italic mb-8">*Frete facilitado em Santa Cruz do Sul.</p>
+
+                <a href="https://api.whatsapp.com/send/?phone=555189458950&text=Ol%C3%A1!%20Vou%20enviar%20minha%20receita%20para%20or%C3%A7amento." target="_blank" rel="noopener" class="inline-flex items-center gap-2 bg-dark hover:bg-brand text-white text-sm font-bold px-6 py-3.5 rounded-full transition-colors">
+                    Enviar minha receita
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                </a>
+            </div>
+        </section>
+
+        <!-- ==================== ENTREGA RÁPIDA ====================
+             TODO: trocar o placeholder abaixo por uma foto real de entrega rápida
+             quando a Isa enviar o material. -->
+        <section id="entrega-rapida" class="py-14 md:py-20 bg-white">
+            <div class="max-w-7xl mx-auto px-5 md:px-10 grid md:grid-cols-2 gap-10 md:gap-14 items-center">
+                <div class="reveal order-2 md:order-1">
+                    <img src="assets/entrega-rapida.png" alt="Entrega rápida A Fórmula Santa Cruz do Sul" class="w-full h-[320px] md:h-[400px] object-cover rounded-3xl shadow-xl">
+                </div>
+                <div class="reveal reveal-delay-1 order-1 md:order-2">
+                    <h2 class="text-3xl md:text-4xl font-bold tracking-tight mb-6 leading-tight">Sua fórmula em <span class="font-serif italic text-brand">até 1 hora!</span></h2>
+                    <ul class="space-y-3 mb-4">
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-brand shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            <span class="text-gray-600 leading-relaxed">Entrega gratuita em Santa Cruz do Sul</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-brand shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            <span class="text-gray-600 leading-relaxed">Sedex grátis para pedidos acima de R$ 350</span>
+                        </li>
+                    </ul>
+                    <p class="text-gray-400 text-xs italic mb-8">*Consulte a área de cobertura e as condições de envio.</p>
+                    <a href="https://api.whatsapp.com/send/?phone=555189458950&text=Ol%C3%A1!%20Quero%20minha%20f%C3%B3rmula%20em%201%20hora." target="_blank" rel="noopener" class="inline-flex items-center gap-2 bg-whatsapp hover:brightness-95 text-white text-sm font-bold px-7 py-4 rounded-full shadow-xl hover:scale-105 active:scale-95 transition-all">
+                        Quero minha fórmula em 1 hora
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== DOBRA 4 · FÓRMULAS LIMPAS ==================== -->
+        <section id="formulas-limpas" class="dobra4-formulas relative py-14 md:py-20 bg-brand-surface overflow-hidden">
+            <div class="absolute -left-24 -top-24 w-80 h-80 rounded-full bg-brand/10 blur-sm"></div>
+            <div class="absolute -right-20 -bottom-20 w-96 h-96 rounded-full bg-brand-light/10 blur-sm"></div>
+
+            <div class="hero3zone relative z-10 max-w-7xl mx-auto px-5 md:px-10">
+
+                <!-- ZONA 1: copy -->
+                <div class="reveal copy">
+                    <span class="badge">Compromisso com a saúde</span>
+                    <h2 class="headline text-3xl md:text-5xl font-bold tracking-tight leading-tight">Trabalhamos com <span class="font-serif italic text-brand">fórmulas limpas</span></h2>
+                    <div class="divider"></div>
+                    <p class="subtext mb-7">Pureza em cada cápsula, sempre que compatível com a prescrição médica.</p>
+                    <a href="https://api.whatsapp.com/send/?phone=555189458950&text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20as%20f%C3%B3rmulas%20limpas%20da%20A%20F%C3%B3rmula." target="_blank" rel="noopener" class="inline-flex items-center gap-2 bg-whatsapp hover:brightness-95 text-white text-sm font-bold px-6 py-3.5 rounded-full transition-all hover:scale-105 mb-8">
+                        Quero uma fórmula limpa
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                    </a>
+                </div>
+
+                <!-- ZONA 2: diagrama — pote no centro + 3 cards coloridos conectados -->
+                <div class="reveal reveal-delay-1 diagram">
+                    <div class="glow"></div>
+
+                    <svg class="connectors" viewBox="0 0 1000 560" preserveAspectRatio="none">
+                        <line x1="240" y1="90" x2="352" y2="90"/>
+                        <line x1="240" y1="470" x2="352" y2="470"/>
+                        <line x1="760" y1="280" x2="648" y2="280"/>
+                        <circle class="node" cx="352" cy="90" r="5"/>
+                        <circle class="node" cx="352" cy="470" r="5"/>
+                        <circle class="node" cx="648" cy="280" r="5"/>
+                    </svg>
+
+                    <div class="stage">
+                        <div class="ground"></div>
+                        <!-- DEV: trocar o src pela imagem hospedada no projeto -->
+                        <img src="assets/Pote de capsulas.png" alt="Pote de cápsulas A Fórmula">
+                    </div>
+
+                    <div class="card c1">
+                        <h3>Sem Corantes artificiais</h3>
+                        <p>Priorizamos ingredientes mais limpos na composição.</p>
+                    </div>
+                    <div class="card c2">
+                        <h3>Sem Glúten</h3>
+                        <p>Opção segura para quem tem restrição ao glúten.</p>
+                    </div>
+                    <div class="card c3">
+                        <h3>Sem Lactose</h3>
+                        <p>Fórmulas livres de lactose, para mais conforto.</p>
+                    </div>
+                </div>
+
+            </div>
+            <p class="dobra4-footnote reveal relative z-10 max-w-7xl mx-auto px-5 md:px-10 text-center">Quando compatível com a prescrição médica e disponibilidade dos insumos.</p>
+        </section>
+
+        <!-- ==================== DOBRA 5 · SOLUÇÕES PARA SUA SAÚDE ==================== -->
+        <section id="solucoes" class="relative py-14 md:py-20 bg-white overflow-hidden">
+            <div class="absolute -right-24 top-10 w-80 h-80 rounded-full bg-brand/5"></div>
+            <div class="absolute -left-24 bottom-0 w-72 h-72 rounded-full bg-brand-light/5"></div>
+
+            <div class="relative z-10 max-w-7xl mx-auto px-5 md:px-10">
+                <div class="max-w-xl mb-10 reveal">
+                    <span class="text-xs font-bold tracking-[0.25em] uppercase text-brand mb-4 block">Nosso portfólio</span>
+                    <h2 class="text-3xl md:text-5xl font-bold tracking-tight leading-tight">Soluções para <span class="font-serif italic text-brand">a sua saúde</span></h2>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+                    <div class="solucao-card group reveal bg-brand-surface rounded-3xl p-6 md:p-8 flex flex-col items-center text-center gap-3 hover:shadow-xl hover:-translate-y-1 transition-all">
+                        <div class="ico relative w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm transition-colors">
+                            <img src="assets/favicon.png" alt="" class="w-7 h-7 object-contain transition-opacity duration-200 group-hover:opacity-0">
+                            <img src="assets/favicon-branco.png" alt="" class="absolute inset-0 m-auto w-7 h-7 object-contain opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                        </div>
+                        <div>
+                            <p class="font-bold text-sm md:text-base leading-snug">Medicamentos personalizados</p>
+                            <p class="text-gray-400 text-xs md:text-sm mt-1 leading-snug">Fórmulas sob medida para cada paciente</p>
+                        </div>
+                    </div>
+                    <div class="solucao-card reveal reveal-delay-1 bg-brand-surface rounded-3xl p-6 md:p-8 flex flex-col items-center text-center gap-3 hover:shadow-xl hover:-translate-y-1 transition-all">
+                        <div class="ico w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm transition-colors">
+                            <svg class="w-7 h-7 text-brand transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
+                        </div>
+                        <div>
+                            <p class="font-bold text-sm md:text-base leading-snug">Dermocosméticos</p>
+                            <p class="text-gray-400 text-xs md:text-sm mt-1 leading-snug">Cuidados para pele e cabelo personalizados</p>
+                        </div>
+                    </div>
+                    <div class="solucao-card reveal reveal-delay-2 bg-brand-surface rounded-3xl p-6 md:p-8 flex flex-col items-center text-center gap-3 hover:shadow-xl hover:-translate-y-1 transition-all">
+                        <div class="ico w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm transition-colors">
+                            <svg class="w-7 h-7 text-brand transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/></svg>
+                        </div>
+                        <div>
+                            <p class="font-bold text-sm md:text-base leading-snug">Fitoterápicos</p>
+                            <p class="text-gray-400 text-xs md:text-sm mt-1 leading-snug">Extratos vegetais com ação terapêutica</p>
+                        </div>
+                    </div>
+                    <div class="solucao-card reveal bg-brand-surface rounded-3xl p-6 md:p-8 flex flex-col items-center text-center gap-3 hover:shadow-xl hover:-translate-y-1 transition-all">
+                        <div class="ico w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm transition-colors">
+                            <svg class="w-7 h-7 text-brand transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5"/></svg>
+                        </div>
+                        <div>
+                            <p class="font-bold text-sm md:text-base leading-snug">Suplementos</p>
+                            <p class="text-gray-400 text-xs md:text-sm mt-1 leading-snug">Vitaminas e nutrientes sob medida</p>
+                        </div>
+                    </div>
+                    <div class="solucao-card reveal reveal-delay-1 bg-brand-surface rounded-3xl p-6 md:p-8 flex flex-col items-center text-center gap-3 hover:shadow-xl hover:-translate-y-1 transition-all">
+                        <div class="ico w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm transition-colors">
+                            <svg class="w-7 h-7 text-brand transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.75a5.25 5.25 0 016.771-5.025.75.75 0 01.323 1.24l-3.628 3.628a2.25 2.25 0 001.591 1.591l3.628-3.628a.75.75 0 011.24.323 5.25 5.25 0 01-5.026 6.771c-1.13 0-2.187-.318-3.086-.868L7.98 16.937a2.25 2.25 0 11-3.184-3.184l6.454-5.834A5.19 5.19 0 0112 6.75z"/></svg>
+                        </div>
+                        <div>
+                            <p class="font-bold text-sm md:text-base leading-snug">Hormônios bioidênticos</p>
+                            <p class="text-gray-400 text-xs md:text-sm mt-1 leading-snug">Reposição hormonal individualizada</p>
+                        </div>
+                    </div>
+                    <div class="solucao-card reveal reveal-delay-2 bg-brand-surface rounded-3xl p-6 md:p-8 flex flex-col items-center text-center gap-3 hover:shadow-xl hover:-translate-y-1 transition-all">
+                        <div class="ico w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm transition-colors">
+                            <svg class="w-7 h-7 text-brand transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 21c-4.97 0-9-3.694-9-8.25 0-3.284 2.674-6.526 6.402-9.045a1.5 1.5 0 011.196 0C14.326 6.224 17 9.466 17 12.75c0 .224-.012.446-.037.665M12 21c1.657 0 3.157-.462 4.311-1.235M12 21c-1.657 0-3.157-.462-4.311-1.235"/></svg>
+                        </div>
+                        <div>
+                            <p class="font-bold text-sm md:text-base leading-snug">Homeopatia</p>
+                            <p class="text-gray-400 text-xs md:text-sm mt-1 leading-snug">Tratamento natural e individualizado</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== DOBRA 6 · DIFERENCIAIS ==================== -->
+        <section id="diferenciais" class="py-14 md:py-20 bg-brand-surface">
+            <div class="max-w-7xl mx-auto px-5 md:px-10">
+                <div class="max-w-2xl mb-10 reveal">
+                    <span class="text-xs font-bold tracking-[0.25em] uppercase text-brand mb-4 block">Nossos diferenciais</span>
+                    <h2 class="text-3xl md:text-5xl font-bold tracking-tight leading-tight">Cuidamos da sua saúde <span class="font-serif italic text-brand">em cada etapa</span> da manipulação</h2>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 mb-3 sm:hidden">
+                    <button type="button" id="diferenciais-prev" aria-label="Diferencial anterior" class="w-9 h-9 rounded-full bg-white shadow ring-1 ring-black/5 flex items-center justify-center text-brand active:scale-95 transition-all disabled:opacity-30">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    </button>
+                    <button type="button" id="diferenciais-next" aria-label="Próximo diferencial" class="w-9 h-9 rounded-full bg-white shadow ring-1 ring-black/5 flex items-center justify-center text-brand active:scale-95 transition-all disabled:opacity-30">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </button>
+                </div>
+
+                <div class="relative mb-8">
+                    <div id="diferenciais-carousel" class="flex sm:grid sm:grid-cols-2 overflow-x-auto sm:overflow-visible snap-x snap-mandatory gap-6 -mx-5 px-5 sm:mx-0 sm:px-0 no-scrollbar">
+                        <div class="reveal shrink-0 w-[82%] sm:w-auto snap-center bg-white rounded-3xl p-7 shadow-sm hover:shadow-xl transition-shadow">
+                            <div class="w-12 h-12 bg-brand/10 rounded-2xl flex items-center justify-center mb-5">
+                                <svg class="w-6 h-6 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            </div>
+                            <h4 class="font-bold text-lg mb-2">Pesagem Monitorada</h4>
+                            <p class="text-gray-500 text-sm leading-relaxed">Sistema exclusivo na região que monitora eletronicamente cada etapa da pesagem, garantindo máxima precisão e segurança na manipulação.</p>
+                        </div>
+
+                        <div class="reveal reveal-delay-1 shrink-0 w-[82%] sm:w-auto snap-center bg-white rounded-3xl p-7 shadow-sm hover:shadow-xl transition-shadow">
+                            <div class="w-12 h-12 bg-brand/10 rounded-2xl flex items-center justify-center mb-5">
+                                <svg class="w-6 h-6 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-5.13a4 4 0 11-8 0 4 4 0 018 0zm6 3a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                            </div>
+                            <h4 class="font-bold text-lg mb-2">Atendimento Especializado</h4>
+                            <p class="text-gray-500 text-sm leading-relaxed">Equipe técnica qualificada para orientar você com atenção, cuidado e atendimento personalizado.</p>
+                        </div>
+
+                        <div class="reveal reveal-delay-2 shrink-0 w-[82%] sm:w-auto snap-center bg-white rounded-3xl p-7 shadow-sm hover:shadow-xl transition-shadow">
+                            <div class="w-12 h-12 bg-brand/10 rounded-2xl flex items-center justify-center mb-5">
+                                <svg class="w-6 h-6 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                            </div>
+                            <h4 class="font-bold text-lg mb-2">Licenças para Manipulações Especiais</h4>
+                            <p class="text-gray-500 text-sm leading-relaxed">Somos habilitados para manipular hormônios, antibióticos, citostáticos, medicamentos de baixo índice terapêutico e Minoxidil, seguindo todas as exigências legais e sanitárias.</p>
+                        </div>
+
+                        <div class="reveal reveal-delay-3 shrink-0 w-[82%] sm:w-auto snap-center bg-white rounded-3xl p-7 shadow-sm hover:shadow-xl transition-shadow">
+                            <div class="w-12 h-12 bg-brand/10 rounded-2xl flex items-center justify-center mb-5">
+                                <svg class="w-6 h-6 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 3.75H6.912a2.25 2.25 0 00-2.15 1.588L2.35 13.177a2.25 2.25 0 00-.1.661V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 00-2.15-1.588H15M9 3.75c0 1.036.84 1.875 1.875 1.875h.75c1.036 0 1.875-.84 1.875-1.875M9 3.75c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875m0 0V15"/></svg>
+                            </div>
+                            <h4 class="font-bold text-lg mb-2">Diversidade de Formas Farmacêuticas</h4>
+                            <p class="text-gray-500 text-sm leading-relaxed">Manipulamos diferentes formas farmacêuticas para atender às necessidades de cada paciente, sempre conforme a prescrição médica.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="https://api.whatsapp.com/send/?phone=555189458950&text=Ol%C3%A1!%20Gostaria%20de%20conversar%20com%20a%20equipe%20da%20A%20F%C3%B3rmula%20Santa%20Cruz%20do%20Sul." target="_blank" rel="noopener" class="reveal inline-flex items-center gap-2 bg-whatsapp hover:brightness-95 text-white text-sm font-bold px-6 py-3.5 rounded-full transition-all hover:scale-105">
+                    Converse com nossa equipe
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                </a>
+            </div>
+        </section>
+
+        <!-- ==================== DOBRA 7 · PROVAS SOCIAIS ==================== -->
+        <section id="depoimentos" class="py-14 md:py-20 bg-white">
+            <div class="max-w-7xl mx-auto px-5 md:px-10">
+                <div class="max-w-2xl mb-8 reveal">
+                    <span class="text-xs font-bold tracking-[0.25em] uppercase text-brand mb-4 block">Avaliações reais</span>
+                    <h2 class="text-3xl md:text-5xl font-bold tracking-tight leading-tight">Quem já escolheu <span class="font-serif italic text-brand">A Fórmula</span>, recomenda</h2>
+                </div>
+            </div>
+
+            <!--
+              TODO(dev): substituir o bloco abaixo pelo plugin oficial de avaliações
+              do Google Meu Negócio (ex.: Elfsight "Google Reviews", EmbedSocial,
+              ou o widget que a Isa aprovar). Estrutura de fallback abaixo usa o
+              mesmo idioma visual da página para não deixar a seção vazia.
+            -->
+            <div class="relative w-full overflow-hidden testimonial-mask reveal">
+                <div class="flex w-max gap-6 testimonial-track">
+                    <div class="shrink-0 w-[300px] sm:w-[360px] bg-brand-surface rounded-3xl p-7">
+                        <div class="flex text-yellow-400 mb-4">
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                        </div>
+                        <p class="text-gray-600 text-sm leading-relaxed mb-6 italic">"Senti confiança em manipular já no primeiro atendimento. Fiquei muito satisfeito com o que recebi."</p>
+                        <p class="font-bold text-sm">Mateus Baldasso</p>
+                        <p class="text-gray-400 text-xs">Avaliação do Google</p>
+                    </div>
+                    <div class="shrink-0 w-[300px] sm:w-[360px] bg-brand-surface rounded-3xl p-7">
+                        <div class="flex text-yellow-400 mb-4">
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                        </div>
+                        <p class="text-gray-600 text-sm leading-relaxed mb-6 italic">"Excelente farmácia de manipulação! Fiz o pedido pelo WhatsApp, enviei a foto da receita e fui atendida com muita rapidez e eficiência. A manipulação da medicação também foi surpreendentemente ágil: solicitei em um dia e já pude retirar no dia seguinte. Além da agilidade em todo o processo, o atendimento foi incrível, muito atencioso e prestativo. Recomendo com toda a confiança!"</p>
+                        <p class="font-bold text-sm">Maris Meurer</p>
+                        <p class="text-gray-400 text-xs">Avaliação do Google</p>
+                    </div>
+                    <div class="shrink-0 w-[300px] sm:w-[360px] bg-brand-surface rounded-3xl p-7">
+                        <div class="flex text-yellow-400 mb-4">
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                        </div>
+                        <p class="text-gray-600 text-sm leading-relaxed mb-6 italic">"Moro em Canela/RS e encomendo da Fórmula Santa Cruz do Sul, chega perfeito e sempre no tempo certo aqui. Parabéns a toda equipe."</p>
+                        <p class="font-bold text-sm">Rogério Luce</p>
+                        <p class="text-gray-400 text-xs">Avaliação do Google</p>
+                    </div>
+                    <div class="shrink-0 w-[300px] sm:w-[360px] bg-brand-surface rounded-3xl p-7">
+                        <div class="flex text-yellow-400 mb-4">
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                        </div>
+                        <p class="text-gray-600 text-sm leading-relaxed mb-6 italic">"Farmácia excelente desde o atendimento até a entrega do produto."</p>
+                        <p class="font-bold text-sm">Daiani Chaves</p>
+                        <p class="text-gray-400 text-xs">Avaliação do Google</p>
+                    </div>
+                    <div class="shrink-0 w-[300px] sm:w-[360px] bg-brand-surface rounded-3xl p-7">
+                        <div class="flex text-yellow-400 mb-4">
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                        </div>
+                        <p class="text-gray-600 text-sm leading-relaxed mb-6 italic">"São excelentes profissionais, muito organizados! Recebi minha encomenda via correios e está tudo certo."</p>
+                        <p class="font-bold text-sm">Bmz Cachoeira</p>
+                        <p class="text-gray-400 text-xs">Avaliação do Google</p>
+                    </div>
+                    <!-- duplicado para loop contínuo -->
+                    <div class="shrink-0 w-[300px] sm:w-[360px] bg-brand-surface rounded-3xl p-7" aria-hidden="true">
+                        <div class="flex text-yellow-400 mb-4">
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                        </div>
+                        <p class="text-gray-600 text-sm leading-relaxed mb-6 italic">"Senti confiança em manipular já no primeiro atendimento. Fiquei muito satisfeito com o que recebi."</p>
+                        <p class="font-bold text-sm">Mateus Baldasso</p>
+                        <p class="text-gray-400 text-xs">Avaliação do Google</p>
+                    </div>
+                    <div class="shrink-0 w-[300px] sm:w-[360px] bg-brand-surface rounded-3xl p-7" aria-hidden="true">
+                        <div class="flex text-yellow-400 mb-4">
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                        </div>
+                        <p class="text-gray-600 text-sm leading-relaxed mb-6 italic">"Excelente farmácia de manipulação! Fiz o pedido pelo WhatsApp, enviei a foto da receita e fui atendida com muita rapidez e eficiência. A manipulação da medicação também foi surpreendentemente ágil: solicitei em um dia e já pude retirar no dia seguinte. Além da agilidade em todo o processo, o atendimento foi incrível, muito atencioso e prestativo. Recomendo com toda a confiança!"</p>
+                        <p class="font-bold text-sm">Maris Meurer</p>
+                        <p class="text-gray-400 text-xs">Avaliação do Google</p>
+                    </div>
+                    <div class="shrink-0 w-[300px] sm:w-[360px] bg-brand-surface rounded-3xl p-7" aria-hidden="true">
+                        <div class="flex text-yellow-400 mb-4">
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                        </div>
+                        <p class="text-gray-600 text-sm leading-relaxed mb-6 italic">"Moro em Canela/RS e encomendo da Fórmula Santa Cruz do Sul, chega perfeito e sempre no tempo certo aqui. Parabéns a toda equipe."</p>
+                        <p class="font-bold text-sm">Rogério Luce</p>
+                        <p class="text-gray-400 text-xs">Avaliação do Google</p>
+                    </div>
+                    <div class="shrink-0 w-[300px] sm:w-[360px] bg-brand-surface rounded-3xl p-7" aria-hidden="true">
+                        <div class="flex text-yellow-400 mb-4">
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                        </div>
+                        <p class="text-gray-600 text-sm leading-relaxed mb-6 italic">"Farmácia excelente desde o atendimento até a entrega do produto."</p>
+                        <p class="font-bold text-sm">Daiani Chaves</p>
+                        <p class="text-gray-400 text-xs">Avaliação do Google</p>
+                    </div>
+                    <div class="shrink-0 w-[300px] sm:w-[360px] bg-brand-surface rounded-3xl p-7" aria-hidden="true">
+                        <div class="flex text-yellow-400 mb-4">
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                        </div>
+                        <p class="text-gray-600 text-sm leading-relaxed mb-6 italic">"São excelentes profissionais, muito organizados! Recebi minha encomenda via correios e está tudo certo."</p>
+                        <p class="font-bold text-sm">Bmz Cachoeira</p>
+                        <p class="text-gray-400 text-xs">Avaliação do Google</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== DOBRA 8 · FARMACÊUTICA RESPONSÁVEL ==================== -->
+        <section id="farmaceutica" class="py-14 md:py-20 bg-dark relative overflow-hidden">
+            <div class="absolute inset-0 molecule-pattern"></div>
+            <div class="relative z-10 max-w-7xl mx-auto px-5 md:px-10 grid md:grid-cols-2 gap-8 md:gap-10 items-start">
+                <div class="reveal order-1">
+                    <span class="text-xs font-bold tracking-[0.25em] uppercase text-brand-light mb-4 block">Farmacêutica Responsável</span>
+                    <h2 class="text-3xl md:text-4xl font-bold tracking-tight mb-8 text-white leading-tight">Rigor técnico em<br><span class="font-serif italic font-normal">cada etapa da manipulação</span></h2>
+                    <p class="text-white/80 leading-relaxed mb-8">Na A Fórmula Santa Cruz do Sul, cada etapa é conduzida com rigor técnico e responsabilidade: da seleção criteriosa dos fornecedores ao atendimento, da manipulação ao controle de qualidade. Nosso compromisso é garantir que cada fórmula seja preparada com precisão, segurança e cuidado.</p>
+                    <div>
+                        <p class="font-bold text-white">Isabelle Berger - CRF 9470</p>
+                        <p class="text-white/60 text-sm">Farmacêutica Responsável</p>
+                    </div>
+                </div>
+
+                <div class="reveal reveal-delay-1 order-2">
+                    <div class="relative w-full max-w-md mx-auto md:mx-0 h-[340px] sm:h-[420px] md:h-[460px]">
+                        <img src="assets/farmaceutica-isabelle-berger.png" alt="Isabelle Berger, Farmacêutica Responsável da A Fórmula Santa Cruz do Sul" class="absolute inset-0 w-full h-full object-cover rounded-3xl shadow-2xl">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== DOBRA 9 · CTA FINAL + CONTATO + MAPA ==================== -->
+        <section id="contato" class="py-14 md:py-20 bg-brand-surface">
+            <div class="max-w-7xl mx-auto px-5 md:px-10">
+                <div class="max-w-2xl mx-auto text-center mb-10 reveal">
+                    <h2 class="text-3xl md:text-5xl font-bold tracking-tight mb-5 leading-tight">Solicite seu orçamento <span class="font-serif italic text-brand">agora mesmo.</span></h2>
+                    <p class="text-gray-500 text-lg font-light leading-relaxed mb-8">Envie sua receita pelo WhatsApp e receba seu orçamento com rapidez, segurança e atendimento especializado.</p>
+                    <a href="https://api.whatsapp.com/send/?phone=555189458950&text=Ol%C3%A1!%20Gostaria%20de%20solicitar%20um%20or%C3%A7amento%20para%20uma%20f%C3%B3rmula%20manipulada." target="_blank" rel="noopener" class="inline-flex items-center gap-3 bg-whatsapp hover:brightness-95 text-white px-7 py-4 rounded-full font-bold shadow-xl hover:scale-105 active:scale-95 transition-all">
+                        <svg class="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+                        Solicitar orçamento pelo WhatsApp
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ==================== FOOTER ==================== -->
+    <footer class="bg-dark text-white pt-12 pb-6 text-sm font-light">
+        <div class="max-w-7xl mx-auto px-5 md:px-10">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-8 pb-8 border-b border-white/15">
+                <div>
+                    <img src="assets/logo-white.svg" alt="A Fórmula" class="h-7 mb-6">
+                    <p class="text-white/80 leading-relaxed mb-6">A Fórmula Santa Cruz do Sul — medicamentos manipulados com qualidade, segurança e agilidade.</p>
+                    <div class="flex items-center gap-3">
+                        <div class="bg-white rounded-xl px-3 py-2"><img src="assets/selo-anvisa.png" alt="ANVISA" class="h-6 w-auto object-contain"></div>
+                        <div class="bg-white rounded-xl px-3 py-2"><img src="assets/selo-cff.png" alt="CFF" class="h-6 w-auto object-contain"></div>
+                        <div class="bg-white rounded-xl px-3 py-2"><img src="assets/selo-abf.png" alt="ABF" class="h-6 w-auto object-contain"></div>
+                        <div class="bg-white rounded-xl px-3 py-2"><img src="assets/selo-iso9001.png" alt="ISO 9001" class="h-6 w-auto object-contain"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold mb-4 uppercase tracking-[0.15em] text-xs">Endereço</h4>
+                    <p class="text-white/80 leading-relaxed mb-5">R. Júlio de Castilhos, 89<br>Centro, Santa Cruz do Sul - RS<br>CEP 96810-046</p>
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=R.+J%C3%BAlio+de+Castilhos%2C+89+-+Centro%2C+Santa+Cruz+do+Sul+-+RS%2C+96810-046" target="_blank" rel="noopener" class="inline-flex items-center gap-2 border-2 border-white/20 hover:border-brand-light text-white text-xs font-bold px-4 py-2.5 rounded-full transition-all mb-5">
+                        Traçar rota até a farmácia
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                    </a>
+
+                    <div class="reveal rounded-2xl overflow-hidden shadow-lg h-[160px] border border-white/15">
+                        <iframe
+                            src="https://www.google.com/maps?q=R.+J%C3%BAlio+de+Castilhos%2C+89+-+Centro%2C+Santa+Cruz+do+Sul+-+RS%2C+96810-046&output=embed"
+                            class="w-full h-full"
+                            style="border:0;" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Mapa A Fórmula Santa Cruz do Sul"></iframe>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold mb-4 uppercase tracking-[0.15em] text-xs">Fale conosco</h4>
+                    <a href="https://api.whatsapp.com/send/?phone=555189458950&text=Ol%C3%A1!%20Gostaria%20de%20solicitar%20um%20or%C3%A7amento%20para%20uma%20f%C3%B3rmula%20manipulada." target="_blank" rel="noopener" class="block text-brand-light hover:text-white transition-colors mb-2 font-semibold">
+                        (51) 8945-8950 <span class="text-white/40 font-normal text-xs">(WhatsApp)</span>
+                    </a>
+                    <p class="text-white/80 mb-5">(51) 3902-7752 <span class="text-white/40 text-xs">(fixo)</span></p>
+                    <p class="text-xs font-semibold text-white/50 uppercase tracking-widest mb-1">Horário de atendimento</p>
+                    <p class="text-white/80 leading-relaxed">Segunda a Sexta: 8h às 19h<br>Sábado: 8h às 13h<br>Domingo e Feriados: Fechado</p>
+                </div>
+            </div>
+
+            <div class="max-w-4xl mx-auto text-center mt-10 space-y-3">
+                <p class="text-white/70 text-xs leading-relaxed">Medicamentos manipulados devem ser utilizados conforme prescrição e orientação de profissional habilitado.</p>
+                <p class="text-white/50 text-xs italic leading-relaxed">*Consulte condições, localidades atendidas, prazos e regras para gratuidade do envio.</p>
+            </div>
+            <div class="mt-8 pt-6 border-t border-white/10 text-center text-xs text-white/50">
+                <p>Copyright &copy; A Fórmula Santa Cruz do Sul - Todos os direitos reservados</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const topbar = document.getElementById('topbar');
+        window.addEventListener('scroll', () => {
+            topbar.classList.toggle('nav-scrolled', window.scrollY > 80);
+        }, { passive: true });
+
+        const menuBtn = document.getElementById('menuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        menuBtn.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+        mobileMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => mobileMenu.classList.add('hidden')));
+
+        const obs = new IntersectionObserver((entries) => {
+            entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }});
+        }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+        document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+        // Carrosséis no mobile (Como pedir / Diferenciais) com setas de navegação (esquerda/direita)
+        function setupCarouselControls(carouselId, prevId, nextId) {
+            const carousel = document.getElementById(carouselId);
+            const prevBtn = document.getElementById(prevId);
+            const nextBtn = document.getElementById(nextId);
+            if (!carousel || !prevBtn || !nextBtn) return;
+
+            const cards = () => Array.from(carousel.children).filter(el => el.classList.contains('snap-center'));
+
+            const currentIndex = () => {
+                const items = cards();
+                const carouselLeft = carousel.getBoundingClientRect().left;
+                let closest = 0, minDiff = Infinity;
+                items.forEach((el, i) => {
+                    const diff = Math.abs(el.getBoundingClientRect().left - carouselLeft);
+                    if (diff < minDiff) { minDiff = diff; closest = i; }
+                });
+                return closest;
+            };
+
+            const scrollToIndex = (i) => {
+                const items = cards();
+                if (!items.length) return;
+                const idx = Math.max(0, Math.min(items.length - 1, i));
+                const delta = items[idx].getBoundingClientRect().left - carousel.getBoundingClientRect().left;
+                carousel.scrollBy({ left: delta, behavior: 'smooth' });
+            };
+
+            prevBtn.addEventListener('click', () => scrollToIndex(currentIndex() - 1));
+            nextBtn.addEventListener('click', () => scrollToIndex(currentIndex() + 1));
+
+            const updateButtons = () => {
+                prevBtn.disabled = carousel.scrollLeft <= 4;
+                nextBtn.disabled = carousel.scrollLeft + carousel.clientWidth >= carousel.scrollWidth - 4;
+            };
+            carousel.addEventListener('scroll', updateButtons, { passive: true });
+            updateButtons();
+        }
+        setupCarouselControls('como-pedir-carousel', 'como-pedir-prev', 'como-pedir-next');
+        setupCarouselControls('diferenciais-carousel', 'diferenciais-prev', 'diferenciais-next');
+    </script>
+</body>
+</html>
