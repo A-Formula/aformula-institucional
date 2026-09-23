@@ -40,7 +40,7 @@ const organization = {
     'https://www.instagram.com/aformulafarmacia/',
     'https://www.facebook.com/aformulafarmacia',
     'https://www.linkedin.com/company/aformulafarmacia/',
-    'https://www.youtube.com/@aformulafarmacia6374',
+    'https://www.youtube.com/@aformulafarmaciaa',
   ],
   alternateName: ['A Fórmula Farmácia de Manipulação', 'A Fórmula Farmácia'],
   slogan: 'A ciência da personalização',

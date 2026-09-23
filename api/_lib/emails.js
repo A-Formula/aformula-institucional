@@ -106,7 +106,7 @@ const F_LINHA = "#0f5763";
 const REDES = [
   ["instagram", "https://www.instagram.com/aformulafarmacia/", "Instagram"],
   ["facebook", "https://www.facebook.com/aformulafarmacia", "Facebook"],
-  ["youtube", "https://www.youtube.com/@aformulafarmacia6374", "YouTube"],
+  ["youtube", "https://www.youtube.com/@aformulafarmaciaa", "YouTube"],
   ["linkedin", "https://www.linkedin.com/company/aformulafarmacia/", "LinkedIn"],
 ];
 
