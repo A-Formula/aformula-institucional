@@ -37,6 +37,7 @@ SOURCES = [
     af('tofacitinibe-baricitinibe', 'orcamento-riodejaneiro-tofacitinibeebaricitinibe', 'tofacitinibe-baricitinibe', farm_old='tofacitinibeebaricitinibe'),
     af('scs', 'orcamento-santacruzdosul', 'scs', farm_old='a-formula-scs-live'),
     af('bh', 'orcamento-belohorizonte', 'bh'),
+    af('recife', 'orcamento-recife', 'recife'),
     af('foz', 'orcamento-foz-do-iguacu', 'foz', src=os.path.join(SRC, 'foz-live.html')),
     dict(key='tatuape', slug='orcamento-tatuape', mode='rel', root=os.path.join(SRC, 'tatuape'),
          pages={'index.html': ''}, urls={'https://a-formula-tatuape.vercel.app/': '{BASE}/{slug}/'}),
