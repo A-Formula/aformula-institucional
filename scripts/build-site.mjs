@@ -67,7 +67,7 @@ async function loadFirestore() {
 // ---- rodapé editável (settings/global.footer) — só dentro de <footer>…</footer> ----
 const FOOTER_LINKS = { sobrenos: 'Sobre nós', blog: 'Blog', prescritor: 'Área do prescritor', lgpd: 'LGPD', loja: 'Encontre uma loja' };
 const FOOTER_TEXTS = {
-  brand: 'Há 37 anos transformando manipulação em ciência, cuidado e inovação.',
+  brand: 'Há 38 anos transformando manipulação em ciência, cuidado e inovação.',
   copyright: '© A Fórmula 2026',
   legal1: 'A FÓRMULA SERVIÇOS E FRANCHISE LTDA — CNPJ: 10.760.350/0002-90',
   legal2: 'Rua Tabapuã, 627 — Itaim Bibi, São Paulo - SP',
@@ -104,14 +104,25 @@ const SOCIAL_DEFAULTS = {
   linkedin:  '"https://www.linkedin.com/company/aformulafarmacia/"',
 };
 const FRANCHISE_DEFAULT = 'https://franquia.aformulabr.com.br/seja-um-franqueado/';
+// Idade da marca commitada no HTML (fundação 20/10/1988). Texto do CMS/rodapé que ainda diga
+// 37 (gravado no Firestore antes de 20/10/2026) é levado a ANOS; o campo `years` do painel só
+// age ACIMA de ANOS — assim um painel desatualizado nunca faz o site voltar atrás.
+const ANOS = 38;
+// artigo do aniversário de 2025: título/resumo/corpo ficam como foram publicados
+const ANOS_HISTORICO = ['celebra 37 anos', 'Há 37 anos, a A Fórmula', 'Esses 37 anos marcam'];
+function trocaAnos(src, de, para) {
+  ANOS_HISTORICO.forEach((t, i) => { src = src.replaceAll(t, `\u0000H${i}\u0000`); });
+  src = src.replace(new RegExp(`\\b(HÁ|Há|há)\\s+${de}\\b`, 'g'), (_,a)=>`${a} ${para}`);
+  src = src.replace(new RegExp(`\\b${de}\\s+(anos|ANOS|Anos)\\b`, 'g'), (_,a)=>`${para} ${a}`);
+  src = src.replace(new RegExp(`(data-dc-tpl="37"[^>]*>)${de}(<\\/span>)`), (_,a,b)=>a+para+b); // stat "anos de história" (sobre-nós)
+  ANOS_HISTORICO.forEach((t, i) => { src = src.replaceAll(`\u0000H${i}\u0000`, t); });
+  return src;
+}
 export function applySettings(src, s) {
   if (!s) return src;
+  src = trocaAnos(src, 37, ANOS);
   const y = String(s.years ?? '').trim();
-  if (/^\d{2,3}$/.test(y) && y !== '37') {
-    src = src.replace(/\b(HÁ|Há|há)\s+37\b/g, (_,a)=>`${a} ${y}`);
-    src = src.replace(/\b37\s+(anos|ANOS)\b/g, (_,a)=>`${y} ${a}`);
-    src = src.replace(/(data-dc-tpl="37"[^>]*>)37(<\/span>)/, (_,a,b)=>a+y+b); // stat "anos de história" (sobre-nós)
-  }
+  if (/^\d{2,3}$/.test(y) && Number(y) > ANOS) src = trocaAnos(src, ANOS, y);
   if (isMail(s.sacEmail)) src = src.replaceAll('sac@aformulabr.com.br', s.sacEmail);
   if (isMail(s.petEmail)) src = src.replaceAll('pet@aformulabr.com.br', s.petEmail);
   if (isHttp(s.franchiseUrl)) src = src.replaceAll(FRANCHISE_DEFAULT, s.franchiseUrl);
