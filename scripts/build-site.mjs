@@ -136,8 +136,10 @@ export function applySettings(src, s) {
 // nunca teve tela no /admin, então só guardava o texto padrão e revertia silenciosamente
 // qualquer edição feita no HTML. O HTML é a fonte de verdade do hero.
 function buildIndexHtml(src, posts) {
-  // galeria de blog: 5 posts com capa mais recentes
-  const gal = posts.filter(p=>p.cover).slice(0,5);
+  // galeria de blog: 5 posts com capa mais recentes. A home e destino de anuncio do Google Ads:
+  // post com nome de medicamento GLP-1 no titulo reprova a campanha (politica de medicamentos) - fica fora da vitrine.
+  const ADS_RESTRITO = /ozempic|mounjaro|wegovy|saxenda|semaglut|tirzepat|glp-?1/i;
+  const gal = posts.filter(p=>p.cover && !ADS_RESTRITO.test(`${p.title} ${p.slug}`)).slice(0,5);
   let i = 0;
   src = src.replace(/<a class="fcard" href="[^"]*"><img src="[^"]*" alt="[^"]*"([^>]*)><span class="fcard__t">[^<]*<\/span><\/a>/g, (m, imgTail) => {
     const p = gal[i++]; if (!p) return m;
