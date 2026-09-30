@@ -26,7 +26,7 @@ GTM_ID = 'GTM-PXZXNBZ'
 
 def af(key, slug, old, src=None, farm_old=None):
     return dict(key=key, slug=slug, old=old, src=src or os.path.join(LPS, key, 'index.html'), mode='af', farm_old=farm_old)
-# pasta/fonte -> slug publico. `old` = rota antiga no a-formula-br.vercel.app; `farm_old` = rota
+# pasta/fonte -> slug publico. `old` = rota no a-formula-lps.vercel.app (ex-a-formula-br, alias); `farm_old` = rota
 # antiga no farmacia.aformulabr.com.br quando diferente do slug novo.
 SOURCES = [
     af('conquista', 'orcamento-vitoriadaconquista', 'conquista'),
@@ -38,6 +38,7 @@ SOURCES = [
     af('scs', 'orcamento-santacruzdosul', 'scs', farm_old='a-formula-scs-live'),
     af('bh', 'orcamento-belohorizonte', 'bh'),
     af('recife', 'orcamento-recife', 'recife'),
+    af('florianopolis', 'orcamento-florianopolis', 'florianopolis'),
     af('foz', 'orcamento-foz-do-iguacu', 'foz', src=os.path.join(SRC, 'foz-live.html')),
     dict(key='tatuape', slug='orcamento-tatuape', mode='rel', root=os.path.join(SRC, 'tatuape'),
          pages={'index.html': ''}, urls={'https://a-formula-tatuape.vercel.app/': '{BASE}/{slug}/'}),
@@ -121,12 +122,13 @@ for s in SOURCES:
         for orig, novo in SWAP.get(s['key'], {}).items():
             n = h.count('../../' + orig); assert n >= 1, (s['key'], orig)
             h = h.replace('../../' + orig, publish(novo, os.path.basename(novo)))
-        h = h.replace('https://a-formula-br.vercel.app/assets/', '../../assets/')
-        h = h.replace(f"https://a-formula-br.vercel.app/{s['old']}/", f'{BASE}/{slug}/')
+        for dom in ('a-formula-br', 'a-formula-lps'):  # projeto renomeado em 28/09; LPs antigas ainda citam o -br
+            h = h.replace(f'https://{dom}.vercel.app/assets/', '../../assets/')
+            h = h.replace(f"https://{dom}.vercel.app/{s['old']}/", f'{BASE}/{slug}/')
+            h = h.replace(f'https://{dom}.vercel.app/#organization', f'{BASE}/#organization')
         h = h.replace(f'https://farmacia.aformulabr.com.br/{slug}/', f'{BASE}/{slug}/')
         if s['farm_old']: h = h.replace(f"https://farmacia.aformulabr.com.br/{s['farm_old']}/", f'{BASE}/{slug}/')
         h = h.replace('https://farmacia.aformulabr.com.br/#rj', f'{BASE}/{slug}/#rj')
-        h = h.replace('https://a-formula-br.vercel.app/#organization', f'{BASE}/#organization')
         refs = set(re.findall(r'\.\./\.\./((?:assets|videos)/[^"\')\s?#]+)', re.sub(r'<!--[\s\S]*?-->', '', h)))
         for r in list(refs):  # miniaturas montadas por JS: img.replace(/\.webp$/, "-thumb.webp")
             t = re.sub(r'\.webp$', '-thumb.webp', r)
@@ -155,7 +157,7 @@ for s in SOURCES:
             h, raw, cfg = common(h, pslug)
             pages.append((pslug, h, raw, cfg))
 for slug, h, _, _ in pages:
-    left = re.findall(r'https://(?:a-formula-br\.vercel\.app|farmacia\.aformulabr\.com\.br|a-formula-tatuape\.vercel\.app)[^"\' <)]*', h)
+    left = re.findall(r'https://(?:a-formula-(?:br|lps)\.vercel\.app|farmacia\.aformulabr\.com\.br|a-formula-tatuape\.vercel\.app)[^"\' <)]*', h)
     assert not left, (slug, left)
 
 # ---- CSS por configuracao do Tailwind ----
