@@ -1,0 +1,48 @@
+# Publica a branch anos-38 (comunicação "38 anos") no aniversário da marca: 20/10/2026, 00:05 (Brasília).
+# O push na main dispara o deploy da Vercel.
+# Manual (aba Actions → "Publicar 38 anos" → Run workflow): "simular" marcado só testa a junção;
+# desmarcado publica na hora.
+name: Publicar 38 anos
+
+on:
+  schedule:
+    - cron: '5 3 20 10 *'   # 03:05 UTC = 00:05 BRT, dia 20/10
+  workflow_dispatch:
+    inputs:
+      simular:
+        description: 'Só testar a junção (não publica)'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+env:
+  ESPELHAR_STAGING: 'true'   # institucional mantém staging igual à main
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Só em 2026 (o cron de 20/10 repetiria todo ano)
+        if: github.event_name == 'schedule'
+        run: test "$(date -u +%Y)" = "2026" || { echo "fora de 2026, nada a fazer"; exit 1; }
+
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Mesclar anos-38 na main
+        env:
+          SIMULAR: ${{ github.event_name == 'workflow_dispatch' && inputs.simular }}
+        run: |
+          git config user.name "Vinisal-Design"
+          git config user.email "219493073+Vinisal-Design@users.noreply.github.com"
+          git fetch origin anos-38
+          if git merge-base --is-ancestor origin/anos-38 HEAD; then echo "anos-38 já está na main"; exit 0; fi
+          git merge --no-edit origin/anos-38 -m "publica 38 anos (aniversário 20/10/2026)"
+          git diff --stat HEAD~1 HEAD | tail -1
+          if [ "$SIMULAR" = "true" ]; then echo "SIMULAÇÃO OK: a junção funciona; nada foi publicado."; exit 0; fi
+          git push origin HEAD:main
+          if [ "$ESPELHAR_STAGING" = "true" ]; then git push origin HEAD:staging || echo "staging divergiu da main; atualizar à mão"; fi
