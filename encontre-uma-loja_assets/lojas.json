@@ -1200,6 +1200,22 @@
   "place_id": "ChIJkY1IDXazGgcREi7_R7VLZpU"
  },
  {
+  "id": 90001,
+  "nome": "Indaiatuba/SP (EM BREVE)",
+  "slug": "indaiatuba-sp-em-breve",
+  "estado": "SP",
+  "cidade": "Indaiatuba",
+  "endereco": "Indaiatuba",
+  "cep": null,
+  "lat": -23.0908356,
+  "lng": -47.2180677,
+  "telefone": null,
+  "celular": null,
+  "email": null,
+  "loja_virtual": null,
+  "place_id": null
+ },
+ {
   "id": 3462,
   "nome": "Osasco/SP (EM BREVE)",
   "slug": "osasco-sp-em-breve",
