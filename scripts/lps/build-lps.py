@@ -39,6 +39,7 @@ SOURCES = [
     af('bh', 'orcamento-belohorizonte', 'bh'),
     af('recife', 'orcamento-recife', 'recife'),
     af('florianopolis', 'orcamento-florianopolis', 'florianopolis'),
+    af('rj', 'orcamento-riodejaneiro', 'rj'),  # 05/10: www/rj era proxy do vercel.app com canonical de fora (destino incompativel no Ads)
     af('foz', 'orcamento-foz-do-iguacu', 'foz', src=os.path.join(SRC, 'foz-live.html')),
     dict(key='tatuape', slug='orcamento-tatuape', mode='rel', root=os.path.join(SRC, 'tatuape'),
          pages={'index.html': ''}, urls={'https://a-formula-tatuape.vercel.app/': '{BASE}/{slug}/'}),
