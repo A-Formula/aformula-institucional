@@ -398,6 +398,14 @@
   ],
   "rewrites": [
     {
+      "source": "/blog/saude/alternativas-naturais-ao-ozempic-e-mounjaro-para-controle-de-peso",
+      "destination": "/api/gone"
+    },
+    {
+      "source": "/blog/saude/alternativas-naturais-ao-ozempic-e-mounjaro-para-controle-de-peso/",
+      "destination": "/api/gone"
+    },
+    {
       "source": "/download/:path*",
       "destination": "/download"
     },
