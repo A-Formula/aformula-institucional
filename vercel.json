@@ -11,6 +11,26 @@
   ],
   "redirects": [
     {
+      "source": "/rj",
+      "destination": "/orcamento-riodejaneiro/",
+      "permanent": true
+    },
+    {
+      "source": "/rj/",
+      "destination": "/orcamento-riodejaneiro/",
+      "permanent": true
+    },
+    {
+      "source": "/bh",
+      "destination": "/orcamento-belohorizonte/",
+      "permanent": true
+    },
+    {
+      "source": "/bh/",
+      "destination": "/orcamento-belohorizonte/",
+      "permanent": true
+    },
+    {
       "source": "/orcamento-riodejaneiro-tofacitinibeebaricitinibe/",
       "destination": "/orcamento-riodejaneiro-autoimunes/",
       "permanent": true
@@ -416,22 +436,6 @@
     {
       "source": "/download/:path*",
       "destination": "/download"
-    },
-    {
-      "source": "/rj",
-      "destination": "https://a-formula-br.vercel.app/rj"
-    },
-    {
-      "source": "/rj/:path*",
-      "destination": "https://a-formula-br.vercel.app/rj/:path*"
-    },
-    {
-      "source": "/bh",
-      "destination": "https://a-formula-br.vercel.app/bh"
-    },
-    {
-      "source": "/bh/:path*",
-      "destination": "https://a-formula-br.vercel.app/bh/:path*"
     }
   ],
   "headers": [
