@@ -34,7 +34,7 @@ SOURCES = [
     af('brooklin', 'orcamento-brooklin', 'brooklin'),
     af('ipiau', 'orcamento-ipiau', 'ipiau'),
     af('natal', 'orcamento-natal', 'natal'),
-    af('tofacitinibe-baricitinibe', 'orcamento-riodejaneiro-tofacitinibeebaricitinibe', 'tofacitinibe-baricitinibe', farm_old='tofacitinibeebaricitinibe'),
+    af('tofacitinibe-baricitinibe', 'orcamento-riodejaneiro-autoimunes', 'tofacitinibe-baricitinibe', farm_old='tofacitinibeebaricitinibe'),
     af('scs', 'orcamento-santacruzdosul', 'scs', farm_old='a-formula-scs-live'),
     af('bh', 'orcamento-belohorizonte', 'bh'),
     af('recife', 'orcamento-recife', 'recife'),

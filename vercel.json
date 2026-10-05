@@ -11,6 +11,16 @@
   ],
   "redirects": [
     {
+      "source": "/orcamento-riodejaneiro-tofacitinibeebaricitinibe",
+      "destination": "/orcamento-riodejaneiro-autoimunes/",
+      "permanent": true
+    },
+    {
+      "source": "/orcamento-riodejaneiro-tofacitinibeebaricitinibe/:path*",
+      "destination": "/orcamento-riodejaneiro-autoimunes/",
+      "permanent": true
+    },
+    {
       "source": "/blog/saude/saiba-a-importancia-da-imunidade",
       "destination": "/blog/saude/suplementos-para-aumentar-a-imunidade",
       "permanent": true
