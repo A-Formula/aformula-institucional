@@ -22,6 +22,13 @@ const stripDangerous = h => (h==null?'':String(h))
   .replace(/\son[a-z]+\s*=\s*'[^']*'/gi,'')
   .replace(/\son[a-z]+\s*=\s*[^\s>]+/gi,'')
   .replace(/((?:href|src)\s*=\s*["']?)\s*javascript:[^"'>\s]*/gi,'$1#');
+// Links do conteúdo antigo para subdomínios que não existem mais (auditoria Google Ads, 02/10/2026).
+const LINKS_MORTOS = [
+  [/<p>(?:(?!<\/p>)[\s\S])*?formulario\.aformulabr\.com\.br\/ebook-imunidade-no-inverno[\s\S]*?<\/p>/g, ''],
+  [/https?:\/\/formulario\.aformulabr\.com\.br\/seja-um-franqueado-nova-loja\/?/g, 'https://franquia.aformulabr.com.br/seja-um-franqueado/'],
+  [/https?:\/\/loja\.aformulabrasil\.com\.br\/?/g, 'https://www.aformulabr.com.br/'],
+];
+const corrigeLinks = h => LINKS_MORTOS.reduce((s,[re,to])=>s.replace(re,to), h);
 const FALLBACK = {saude:'blog_assets/a36.webp',dicas:'blog_assets/a38.webp','cuidados-com-o-corpo':'blog_assets/a35.webp',novidades:'blog_assets/a33.webp',mercado:'blog_assets/a39.webp',beleza:'blog_assets/a37.webp',ativos:'blog_assets/a40.webp','cuidados-com-o-cabelo':'blog_assets/a34.webp','sem-categoria':'blog_assets/a38.webp'};
 const imgOf = p => p.cover || FALLBACK[p.categorySlug] || 'blog_assets/a38.jpg';
 
@@ -213,7 +220,7 @@ ${parts.header}
     </div>
   </section>
   <article class="art-wrap"><div class="art-body">
-${stripDangerous(p.contentHTML)}
+${corrigeLinks(stripDangerous(p.contentHTML))}
   </div>
   ${shareBar}
   <a class="art-back" href="/blog.html">← Voltar ao blog</a>
