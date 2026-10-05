@@ -11,6 +11,16 @@
   ],
   "redirects": [
     {
+      "source": "/orcamento-santacruzdosul-kitsebrindes/",
+      "destination": "/orcamento-santacruzdosul/",
+      "permanent": true
+    },
+    {
+      "source": "/orcamento-santacruzdosul-kitsebrindes",
+      "destination": "/orcamento-santacruzdosul/",
+      "permanent": true
+    },
+    {
       "source": "/rj",
       "destination": "/orcamento-riodejaneiro/",
       "permanent": true

@@ -44,7 +44,7 @@ SOURCES = [
     dict(key='tatuape', slug='orcamento-tatuape', mode='rel', root=os.path.join(SRC, 'tatuape'),
          pages={'index.html': ''}, urls={'https://a-formula-tatuape.vercel.app/': '{BASE}/{slug}/'}),
     dict(key='scs-diferenciais', slug='orcamento-santacruzdosul-diferenciais', mode='rel', root=os.path.join(SRC, 'scs-diferenciais'),
-         pages={'index.html': 'orcamento-santacruzdosul-diferenciais', 'kits-e-brindes.html': 'orcamento-santacruzdosul-kitsebrindes'}, urls={}),
+         pages={'index.html': 'orcamento-santacruzdosul-diferenciais'}, urls={}),
 ]
 
 # Troca de imagem por pagina (so nas <img>; og:image/schema seguem PNG pra previa de WhatsApp/Facebook).
