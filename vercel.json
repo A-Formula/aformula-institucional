@@ -398,6 +398,14 @@
   ],
   "rewrites": [
     {
+      "source": "/blog/saude/como-perder-peso-com-ajuda-de-suplementos-naturais",
+      "destination": "/api/gone"
+    },
+    {
+      "source": "/blog/saude/como-perder-peso-com-ajuda-de-suplementos-naturais/",
+      "destination": "/api/gone"
+    },
+    {
       "source": "/blog/saude/alternativas-naturais-ao-ozempic-e-mounjaro-para-controle-de-peso",
       "destination": "/api/gone"
     },

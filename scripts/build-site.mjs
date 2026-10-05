@@ -246,7 +246,6 @@ function buildBlogHtml(src, posts) {
   // "Em alta": curadoria manual dos temas de maior tráfego/clique (RANKING-125 Onda 1).
   // Ordem = ordem de exibição no carrossel. Fallback auto por categoria se algum slug sumir.
   const TREND_SLUGS = [
-    'alternativas-naturais-ao-ozempic-e-mounjaro-para-controle-de-peso',
     'os-analogos-de-glp-1-e-como-podem-ser-aliados-para-o-emagrecimento-saudavel-e-responsavel',
     'beneficios-da-creatina-na-vida-da-mulher-muito-alem-da-academia',
     'o-papel-da-suplementacao-na-saude-hormonal-masculina',
