@@ -11,6 +11,11 @@
   ],
   "redirects": [
     {
+      "source": "/orcamento-riodejaneiro-tofacitinibeebaricitinibe/",
+      "destination": "/orcamento-riodejaneiro-autoimunes/",
+      "permanent": true
+    },
+    {
       "source": "/orcamento-riodejaneiro-tofacitinibeebaricitinibe",
       "destination": "/orcamento-riodejaneiro-autoimunes/",
       "permanent": true
