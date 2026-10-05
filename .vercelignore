@@ -24,3 +24,5 @@ firebase.json
 firestore.rules
 firestore.indexes.json
 _preview-reguas
+# conteúdo arquivado: fica no git, NUNCA no deploy (senão volta ao ar em /archive/)
+archive
