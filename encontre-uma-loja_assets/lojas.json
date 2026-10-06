@@ -1216,6 +1216,22 @@
   "place_id": null
  },
  {
+  "id": 90002,
+  "nome": "Lauro de Freitas/BA (EM BREVE)",
+  "slug": "lauro-de-freitas-ba-em-breve",
+  "estado": "BA",
+  "cidade": "Lauro de Freitas",
+  "endereco": "Lauro de Freitas",
+  "cep": null,
+  "lat": -12.89242,
+  "lng": -38.3127691,
+  "telefone": null,
+  "celular": null,
+  "email": null,
+  "loja_virtual": null,
+  "place_id": null
+ },
+ {
   "id": 3462,
   "nome": "Osasco/SP (EM BREVE)",
   "slug": "osasco-sp-em-breve",
