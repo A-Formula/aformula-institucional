@@ -11,6 +11,21 @@
   ],
   "redirects": [
     {
+      "source": "/qrcode/:path+",
+      "destination": "https://admin.aformulabr.com.br/qrcode/:path+",
+      "permanent": true
+    },
+    {
+      "source": "/qrcode",
+      "destination": "https://admin.aformulabr.com.br/qrcode/",
+      "permanent": true
+    },
+    {
+      "source": "/qrcode/",
+      "destination": "https://admin.aformulabr.com.br/qrcode/",
+      "permanent": true
+    },
+    {
       "source": "/orcamento-santacruzdosul-kitsebrindes/",
       "destination": "/orcamento-santacruzdosul/",
       "permanent": true
