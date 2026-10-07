@@ -24,7 +24,7 @@ BASE, OUT = 'https://www.aformulabr.com.br', 'lp_assets'
 OUTDIR = os.path.join(INST, OUT)
 GTM_ID = 'GTM-PXZXNBZ'
 # 06/10/2026: LP sem o bloco legal da matriz (ANVISA/CRF/farmacia) — teste da versao generica p/ Google Ads
-SEM_LEGAL = {'orcamento-recife'}
+SEM_LEGAL = {'orcamento-recife', 'orcamento-belem', 'orcamento-brooklin', 'orcamento-florianopolis'}
 
 def af(key, slug, old, src=None, farm_old=None):
     return dict(key=key, slug=slug, old=old, src=src or os.path.join(LPS, key, 'index.html'), mode='af', farm_old=farm_old)
