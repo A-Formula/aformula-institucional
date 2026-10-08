@@ -25,6 +25,8 @@ OUTDIR = os.path.join(INST, OUT)
 GTM_ID = 'GTM-PXZXNBZ'
 # 06/10/2026: LP sem o bloco legal da matriz (ANVISA/CRF/farmacia) — teste da versao generica p/ Google Ads
 SEM_LEGAL = {'orcamento-recife', 'orcamento-belem', 'orcamento-brooklin', 'orcamento-florianopolis'}
+# 08/10/2026: GTM proprio da unidade, alem do GTM do Petson (mesmo snippet, outro ID)
+GTM_UNIDADE = {'orcamento-belem': 'GTM-TMKCDMHS'}
 
 def af(key, slug, old, src=None, farm_old=None):
     return dict(key=key, slug=slug, old=old, src=src or os.path.join(LPS, key, 'index.html'), mode='af', farm_old=farm_old)
@@ -111,6 +113,10 @@ def common(h, slug):
         assert h.count('<head>') == 1 and len(re.findall(r'<body[^>]*>', h)) == 1, slug
         h = h.replace('<head>', '<head>\n' + GTM_HEAD, 1)
         h = re.sub(r'(<body[^>]*>)', lambda x: x.group(1) + '\n' + GTM_BODY, h, 1)
+    if slug in GTM_UNIDADE and GTM_UNIDADE[slug] not in h:
+        gid = GTM_UNIDADE[slug]
+        h = h.replace('<head>', '<head>\n' + GTM_HEAD.replace(GTM_ID, gid), 1)
+        h = re.sub(r'(<body[^>]*>)', lambda x: x.group(1) + '\n' + GTM_BODY.replace(GTM_ID, gid), h, 1)
     assert h.count('</footer>') == 1, slug
     if slug in SEM_LEGAL: return h, m.group(1), cfg
     fm = re.search(r'</div>(\s*)</footer>', h); assert fm, slug
