@@ -28,8 +28,14 @@ import { fileURLToPath } from 'url';
 // o valor do banco ainda apontaria pro .jpg e o motor reescreveria por cima, silenciosamente.
 // Só troca quando o .webp existe de fato no disco — imagem sem derivado segue como está.
 const CMS_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+// Arte trocada ganha nome novo (os *_assets saem com cache immutable de 1 ano); o caminho
+// antigo que ficou gravado no CMS é levado ao novo.
+const ARTE_RENOMEADA = { 'index_assets/a19.webp': 'index_assets/a19-38anos.webp' }; // bloco "38 anos" da home (20/10/2026)
+const renomeada = (rel) => ARTE_RENOMEADA[rel.replace(/^(\.\/|\/)/, '').replace(/\.(jpe?g|png)$/i, '.webp')] || rel;
 export const preferirWebp = (rel) => {
-  if (!rel || !/\.(jpe?g|png)$/i.test(rel)) return rel;
+  if (!rel) return rel;
+  if (renomeada(rel) !== rel) return renomeada(rel);
+  if (!/\.(jpe?g|png)$/i.test(rel)) return rel;
   const cand = rel.replace(/\.(jpe?g|png)$/i, '.webp');
   return fs.existsSync(path.join(CMS_ROOT, cand.replace(/^\//, ''))) ? cand : rel;
 };
@@ -80,7 +86,7 @@ export const PAGES = {
     sections: [
       { key: 'hero',     tpl: 'hero',     label: 'Hero (imagem de fundo)' },
       { key: 'empresas', tpl: 'empresas', label: 'Uma das maiores empresas / pilares' },
-      { key: 'anos',     tpl: 'anos',     label: 'Há 37 anos' },
+      { key: 'anos',     tpl: 'anos',     label: 'Há 38 anos' },
       { key: 'news',     tpl: 'news',     label: 'Newsletter' },
     ],
     collections: {

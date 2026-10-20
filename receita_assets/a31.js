@@ -9,7 +9,7 @@
 
   /* Camadas de parallax: seletor + velocidade (px de deslocamento total aprox.) */
   var defs = [
-    { sel: ".anos__img",   speed: 84 },   /* imagem full-bleed do bloco "37 anos" */
+    { sel: ".anos__img",   speed: 84 },   /* imagem full-bleed do bloco "38 anos" */
     { sel: ".news__media", speed: 64 }    /* arte decorativa da newsletter */
   ];
 

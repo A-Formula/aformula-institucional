@@ -517,7 +517,7 @@ function render(u0, todas, parts, coleta) {
         // o único ativo disponível é foto de marca genérica, e usá-la diria que as 75 lojas
         // têm a mesma fachada. Entra quando houver foto real de cada unidade.
         logo: `${BASE}/index_assets/a27.webp`,
-        description: 'Rede de farmácias de manipulação com 37 anos de atuação no Brasil.',
+        description: 'Rede de farmácias de manipulação com 38 anos de atuação no Brasil.',
       },
       {
         '@type': 'WebPage',
