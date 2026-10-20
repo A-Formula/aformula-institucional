@@ -317,7 +317,11 @@ async function main() {
   const parts = JSON.parse(fs.readFileSync(path.join(__dirname,'template-parts.json'),'utf8'));
   const data = await loadFirestore();
   if (!data) return; // failsafe: mantém commitado
-  const { posts, settings, petCms, sobreCms, homeCms } = data;
+  const { posts, settings } = data;
+  // CMS de página gravado com 37 difere do HTML commitado (38) e seria reinjetado escapado
+  // (<em>/<strong>/<br> viram texto) — leva a ANOS antes de comparar, igual ao applySettings.
+  const anosCms = d => d && JSON.parse(trocaAnos(JSON.stringify(d), 37, ANOS));
+  const [petCms, sobreCms, homeCms] = [data.petCms, data.sobreCms, data.homeCms].map(anosCms);
   console.log(`[build] ${posts.length} posts do Firestore`);
 
   // 0) settings/global + rodapé → template dos artigos + páginas que o build não reescreve
