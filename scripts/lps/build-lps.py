@@ -68,7 +68,8 @@ SWAP = {
 GTM = open(os.path.join(SRC, 'gtm-petson.html'), encoding='utf-8').read()
 GTM_HEAD = re.search(r'<!-- Google Tag Manager -->[\s\S]*?<!-- End Google Tag Manager -->', GTM).group(0)
 GTM_BODY = re.search(r'<!-- Google Tag Manager \(noscript\) -->[\s\S]*?<!-- End Google Tag Manager \(noscript\) -->', GTM).group(0)
-LEGAL = re.search(r'<!-- LEGAL:START[\s\S]*?<!-- LEGAL:END -->', open(os.path.join(INST, 'pet.html'), encoding='utf-8').read()).group(0)
+_lg = re.search(r'<!-- LEGAL:START[\s\S]*?<!-- LEGAL:END -->', open(os.path.join(INST, 'pet.html'), encoding='utf-8').read())
+LEGAL = _lg.group(0) if _lg else ""  # bloco legal removido do site (2026-11-07)
 LP_CSS = ('.footer__legal--lp{margin-top:32px}\n'
           '.footer__legal--lp .footer__legal-inner{max-width:none;padding-left:0;padding-right:0}\n')
 TW_CDN = re.compile(r'[ \t]*<script src="https://cdn\.tailwindcss\.com"></script>\s*<script>\s*tailwind\.config\s*=\s*(\{[\s\S]*?\})\s*;?\s*</script>')
@@ -118,7 +119,7 @@ def common(h, slug):
         h = h.replace('<head>', '<head>\n' + GTM_HEAD.replace(GTM_ID, gid), 1)
         h = re.sub(r'(<body[^>]*>)', lambda x: x.group(1) + '\n' + GTM_BODY.replace(GTM_ID, gid), h, 1)
     assert h.count('</footer>') == 1, slug
-    if slug in SEM_LEGAL: return h, m.group(1), cfg
+    if slug in SEM_LEGAL or not LEGAL: return h, m.group(1), cfg
     fm = re.search(r'</div>(\s*)</footer>', h); assert fm, slug
     blk = LEGAL.replace('footer__legal footer__legal--escuro', 'footer__legal footer__legal--escuro footer__legal--lp', 1).replace('  </style>', LP_CSS + '  </style>', 1)
     return h[:fm.start()] + blk + '\n' + h[fm.start():], m.group(1), cfg

@@ -62,7 +62,7 @@ const matriz = {
   '@type': 'Pharmacy',
   '@id': MATRIZ_ID,
   name: 'A Fórmula — Matriz Belém',
-  legalName: 'ART FARMA LTDA – em Recuperação Judicial',
+  legalName: 'ART FARMA LTDA',
   taxID: '04.798.925/0001-80',
   url: `${BASE}/`,
   image: `${BASE}/index_assets/a17.webp`,
