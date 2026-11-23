@@ -40,3 +40,13 @@ _coleta-google/
 
 # Área do prescritor: conteúdo técnico (fórmulas/lâminas) NUNCA no git — repositório público (RDC 67/2007, 5.14)
 api/_lib/prescritor/
+
+# docs internos (23/11/2026): fora do repo publico e do deploy
+AUDITORIA-*.md
+EMAIL-*.md
+PASSO-*.md
+RELATORIO-*.md
+ROADMAP-*.md
+UNIDADES-*.xlsx
+*.xlsx
+_handoff-*.md

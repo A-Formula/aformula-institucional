@@ -26,3 +26,13 @@ firestore.indexes.json
 _preview-reguas
 # conteúdo arquivado: fica no git, NUNCA no deploy (senão volta ao ar em /archive/)
 archive
+
+# docs internos (23/11/2026): fora do repo publico e do deploy
+AUDITORIA-*.md
+EMAIL-*.md
+PASSO-*.md
+RELATORIO-*.md
+ROADMAP-*.md
+UNIDADES-*.xlsx
+*.xlsx
+_handoff-*.md

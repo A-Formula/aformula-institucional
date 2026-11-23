@@ -24,7 +24,9 @@ function autorizado(req) {
   // fora — ela NÃO sobrescreve: um curl anônimo com esse header passava no gate (verificado em
   // produção, 2026-07-28). Sem CRON_SECRET, o certo é responder 403 e a régua não rodar: fila
   // parada é visível, motor de e-mail aberto à internet não é.
-  return !!s && h === `Bearer ${s}`;
+  if (!s) return false;
+  const a = Buffer.from(h), b = Buffer.from(`Bearer ${s}`);
+  return a.length === b.length && require("crypto").timingSafeEqual(a, b); // comparação em tempo constante
 }
 
 // Consentimento. A coleção `newsletter` é o registro único de opt-in do site: os formulários de

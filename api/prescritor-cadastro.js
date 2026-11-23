@@ -22,7 +22,8 @@ function validCNPJ(v) {
 async function appendToSheet(row) {
   const sa = process.env.FIREBASE_SERVICE_ACCOUNT, sheetId = process.env.GOOGLE_SHEET_ID;
   if (!sa || !sheetId) return false;
-  const creds = JSON.parse(sa);
+  let creds;
+  try { creds = JSON.parse(sa); } catch (_) { console.error("[cadastro] FIREBASE_SERVICE_ACCOUNT inválido (conteúdo omitido)"); return false; }
   const jwt = new JWT({
     email: creds.client_email, key: creds.private_key,
     scopes: ["https://www.googleapis.com/auth/spreadsheets"],
@@ -47,7 +48,7 @@ module.exports = async (req, res) => {
   if (req.query && req.query.sistema === "1") {
     // Portal do prescritor (site próprio) chama esta API de outro domínio: libera só as origens do portal.
     const origem = String(req.headers.origin || "");
-    if (/^https:\/\/portal-do-prescritor(-[a-z0-9-]+)?\.vercel\.app$/.test(origem) || /^http:\/\/localhost:\d+$/.test(origem)) {
+    if (/^https:\/\/portal-do-prescritor(-[a-z0-9]+-a-formula1988)?\.vercel\.app$/.test(origem)) { // só o portal (produção + previews do time A Fórmula)
       res.setHeader("Access-Control-Allow-Origin", origem);
       res.setHeader("Vary", "Origin");
       res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");

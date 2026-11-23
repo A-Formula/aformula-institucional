@@ -186,7 +186,9 @@ function guard(req, res) {
     res.status(405).json({ ok: false, error: "method" });
     return null;
   }
-  const body = typeof req.body === "string" ? JSON.parse(req.body || "{}") : req.body || {};
+  let body;
+  try { body = typeof req.body === "string" ? JSON.parse(req.body || "{}") : req.body || {}; }
+  catch (_) { res.status(400).json({ ok: false, error: "json" }); return null; } // JSON inválido: 400 em vez de 500
   if (body.website) { // honeypot
     res.status(200).json({ ok: true });
     return null;
