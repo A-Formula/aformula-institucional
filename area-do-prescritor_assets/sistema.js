@@ -99,8 +99,10 @@
     return null;
   }
 
+  // A API do sistema responde pela função de cadastro (?sistema=1) — sem 13ª função na Vercel.
+  var API_URL = "/api/prescritor-cadastro?sistema=1";
   function api(qs) {
-    return S.getToken().then(function (t) { return fetch("/api/prescritor-sistema" + (qs || ""), { headers: { Authorization: "Bearer " + t } }); });
+    return S.getToken().then(function (t) { return fetch(API_URL + (qs ? "&" + qs.replace(/^\?/, "") : ""), { headers: { Authorization: "Bearer " + t } }); });
   }
 
   /* ---------- montagem ---------- */
@@ -194,7 +196,7 @@
       if (ruim.length) { msgEl.className = "afp-msg on"; msgEl.textContent = "Confira os campos destacados."; g(ruim[0][0]).focus(); return; }
       var btn = f.querySelector("button[type=submit]"); btn.disabled = true; msgEl.className = "afp-msg";
       S.getToken().then(function (t) {
-        return fetch("/api/prescritor-sistema", { method: "POST", headers: { Authorization: "Bearer " + t, "Content-Type": "application/json" }, body: JSON.stringify({ consultorio: c }) });
+        return fetch(API_URL, { method: "POST", headers: { Authorization: "Bearer " + t, "Content-Type": "application/json" }, body: JSON.stringify({ consultorio: c }) });
       }).then(function (r) { if (!r.ok) throw r.status; return r.json(); }).then(function () {
         var np = Object.assign({}, S.perfil, c, { consultorioCompleto: true }); aplicarPerfil(np);
         if (!editando) S.tab = "formulas";

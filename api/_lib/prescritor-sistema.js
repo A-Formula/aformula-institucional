@@ -7,7 +7,7 @@
 // Gravação: só no PRÓPRIO cadastro (prescribers/{prescriberId}); admin sem cadastro grava em
 // prescriber_profiles/{email}. O conteúdo técnico vem de arquivos do deploy, nunca de URL pública
 // (fórmula manipulada não pode ficar aberta ao público — RDC 67/2007, 5.14).
-const { getDb, admin, FieldValue } = require("./_lib/backend");
+const { getDb, admin, FieldValue } = require("./backend");
 
 // Conteúdo técnico no Firestore (o repositório é PÚBLICO — fórmula e lâmina nunca vão para o git):
 //   prescriber_laminas/{NN}     → lâmina com fórmulas e tags   (coleção fechada nas rules; só admin SDK lê)

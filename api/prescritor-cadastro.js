@@ -39,7 +39,12 @@ async function appendToSheet(row) {
   return r.ok;
 }
 
+// Sistema do prescritor (piloto) responde por esta mesma função via ?sistema=1 — evita uma 13ª
+// função na Vercel. Sem esse parâmetro, o cadastro abaixo segue exatamente como antes.
+const sistema = require("./_lib/prescritor-sistema");
+
 module.exports = async (req, res) => {
+  if (req.query && req.query.sistema === "1") return sistema(req, res);
   const body = guard(req, res);
   if (!body) return;
 
