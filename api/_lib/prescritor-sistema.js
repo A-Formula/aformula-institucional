@@ -40,7 +40,8 @@ async function quem(req) {
   // TRAVA DO PILOTO: o sistema só liga para admins do site ou e-mails em PRESCRITOR_PILOTO (separados por vírgula).
   // Todo o resto recebe 403 "piloto" e a página mostra a área do prescritor exatamente como era antes.
   const piloto = String(process.env.PRESCRITOR_PILOTO || "").toLowerCase().split(",").map((s) => s.trim()).filter(Boolean);
-  if (!adm.exists && piloto.indexOf(email) < 0) return { code: 403, piloto: true };
+  // 23/11/2026: piloto encerrado — sistema liberado para todo prescritor aprovado (lista mantida só como registro).
+  void piloto;
   const access = acc.exists ? acc.data() || {} : {};
   const ref = access.prescriberId ? db.collection("prescribers").doc(access.prescriberId) : db.collection("prescriber_profiles").doc(email);
   return { code: 200, db, email, access, ref };
