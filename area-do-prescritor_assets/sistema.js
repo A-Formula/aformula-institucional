@@ -115,7 +115,7 @@
       api().then(function (r) { if (!r.ok) throw new Error("api " + r.status); return r.json(); }),
       fetch("/encontre-uma-loja_assets/lojas.json").then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; })
     ]).then(function (x) {
-      S.laminas = x[0].laminas || []; S.lojas = x[1] || [];
+      S.laminas = x[0].laminas || []; S.minhas = x[0].minhas || []; S.lojas = x[1] || []; invalidar();
       aplicarPerfil(x[0].perfil || {});
       S.rx = lsGet(LS_RX, []);
       if (!S.perfil.consultorioCompleto) return viewConsultorio(false);   // 2ª etapa obrigatória
@@ -210,6 +210,7 @@
   function render() {
     var nav = [
       ["formulas", "formulas", "Formulações", "Fórmulas por condição"],
+      ["minhas", "editar", "Minhas fórmulas", (S.minhas || []).length ? (S.minhas.length + " criada" + (S.minhas.length > 1 ? "s" : "")) : "Crie do zero"],
       ["laminas", "laminas", "Lâminas técnicas", "Material completo"],
       ["prescrever", "prescrever", "Prescrever", S.rx.length ? S.rx.length + " na receita" : "Monte a receita"],
       ["receituario", "receituario", "Meu receituário", "Logo, dados e rodapé"]
@@ -229,13 +230,17 @@
     });
     var sair = S.el.querySelector("[data-sair]"); if (sair) sair.addEventListener("click", function () { var b = document.getElementById("pa-sair"); if (b) b.click(); });
     var v = S.el.querySelector("#afp-view");
-    ({ formulas: viewFormulas, laminas: viewLaminas, prescrever: viewPrescrever, receituario: viewReceituario })[S.tab](v);
+    ({ formulas: viewFormulas, minhas: viewMinhas, laminas: viewLaminas, prescrever: viewPrescrever, receituario: viewReceituario })[S.tab](v);
   }
   function head(t, p, extra) { t = t.replace(/\*(.+?)\*/g, "<em>$1</em>"); return '<header class="afp-vh"><div><h2>' + t + "</h2>" + (p ? "<p>" + p + "</p>" : "") + "</div>" + (extra || "") + "</header>"; }
 
   /* ---------- helpers de fórmula ---------- */
   function lamina(n) { return S.laminas.filter(function (x) { return x.n === n; })[0]; }
-  function original(key) { var p = key.split(":"), l = lamina(p[0]); return l ? { l: l, f: l.formulas[+p[1]] } : null; }
+  function original(key) {
+    if (!key) return null;
+    if (key.indexOf("m:") === 0) { var id = key.slice(2), mf = (S.minhas || []).filter(function (x) { return x.id === id; })[0]; return mf ? { l: MINHA_L, f: mf } : null; }
+    var p = key.split(":"), l = lamina(p[0]); return l && l.formulas[+p[1]] ? { l: l, f: l.formulas[+p[1]] } : null;
+  }
   function isBase(a) { return /^(excipiente|base\b|ve[ií]culo)/i.test(a || "") || /qsp/i.test(a || ""); }
   function ativos(f) { return (f.componentes || []).filter(function (c) { return !isBase(c.ativo); }).map(function (c) { return (c.ativo || "").replace(/\s*\(.*?\)/g, "").trim(); }); }
   function doses(f) {
@@ -247,7 +252,7 @@
   function copia(key) {
     var o = original(key).f;
     var fq = (o.quantidade || "").match(/\(([^)]+)\)/), forma = o.forma || (fq && formaDe(fq[1]) ? fq[1] : "");
-    return { src: key, nome: o.nome, forma: forma, via: o.via || "", componentes: (o.componentes || []).map(function (c) { return { ativo: c.ativo, dose: c.dose }; }), quantidade: o.quantidade || "", posologia: o.posologia || "" };
+    return { src: key, nome: o.nome, indicacao: o.indicacao || "", tags: (o.tags || []).slice(), forma: forma, via: o.via || "", componentes: (o.componentes || []).map(function (c) { return { ativo: c.ativo, dose: c.dose }; }), quantidade: o.quantidade || "", posologia: o.posologia || "" };
   }
   function naReceita(key) { return S.rx.some(function (r) { return r.src === key; }); }
 
@@ -255,6 +260,7 @@
   function editor(item, idx) {
     // item = cópia editável; idx = posição na receita (null = novo)
     var src = original(item.src), l = src && src.l, f = JSON.parse(JSON.stringify(item));
+    var modo = !item.src ? "nova" : item.src.indexOf("m:") === 0 ? "minha" : "lamina";
     var d = document.createElement("div"); d.className = "afp-modal";
     function rows() {
       return f.componentes.map(function (c, i) {
@@ -264,17 +270,19 @@
       }).join("");
     }
     d.innerHTML = '<div class="afp-dlg" role="dialog" aria-modal="true" aria-label="Editar fórmula">' +
-      '<header class="afp-dlg-h"><div><span class="afp-tag">' + esc(l ? l.titulo : "") + '</span><input class="afp-title-in" data-f="nome" value="' + esc(f.nome) + '" aria-label="Nome da fórmula"></div>' +
+      '<header class="afp-dlg-h"><div><span class="afp-tag">' + esc(modo === "nova" ? "Nova fórmula" : l ? l.titulo : "") + '</span><input class="afp-title-in" data-f="nome" value="' + esc(f.nome) + '" placeholder="Nome da fórmula" aria-label="Nome da fórmula"></div>' +
       '<button class="afp-icbtn" data-close aria-label="Fechar">' + ic("x") + "</button></header>" +
       '<div class="afp-dlg-b">' +
-      (src && src.f.indicacao ? '<p class="afp-ind">' + esc(src.f.indicacao) + "</p>" : "") +
+      (modo === "lamina" && src.f.indicacao ? '<p class="afp-ind">' + esc(src.f.indicacao) + "</p>" : "") +
+      (modo !== "lamina" ? '<label class="afp-full"><span>Indicação / descrição curta</span><input class="afp-in" data-f="indicacao" value="' + esc(f.indicacao || "") + '" placeholder="Ex.: dor articular crônica"></label>' +
+        '<label class="afp-full"><span>Tags para achar depois (separe por vírgula)</span><input class="afp-in" data-tags value="' + esc((f.tags || []).join(", ")) + '" placeholder="Ex.: articulações, dor, inflamação"></label>' : "") +
       '<div class="afp-forma" id="afp-forma"></div>' +
       '<div class="afp-comp-h"><span>Ativo</span><span>Dose</span></div><div id="afp-rows">' + rows() + "</div>" +
       '<button class="afp-ghost" data-addrow>' + ic("mais", 16) + " Adicionar ativo</button>" +
       '<label class="afp-full"><span>Quantidade</span><input class="afp-in" data-f="quantidade" value="' + esc(f.quantidade) + '" placeholder="ex.: Fazer 30 doses"></label>' +
       '<label class="afp-full"><span>Posologia</span><textarea class="afp-in" data-f="posologia" rows="2">' + esc(f.posologia) + "</textarea></label>" +
       (src && src.f.observacoes ? '<p class="afp-obs">' + esc(src.f.observacoes) + "</p>" : "") +
-      (src ? (function () {
+      (modo === "lamina" ? (function () {
         var o = src.f, chips = [];
         tagsUso(o).forEach(function (t) { chips.push('<button type="button" class="afp-tagchip" data-tag="' + esc(t) + '">' + esc(t) + "</button>"); });
         ativos(o).forEach(function (t) { chips.push('<button type="button" class="afp-tagchip afp-tag-at" data-tag="' + esc(t) + '">' + esc(t) + "</button>"); });
@@ -286,9 +294,11 @@
           }).join("") + "</div>" : "") + "</div>";
       })() : "") +
       "</div>" +
-      '<footer class="afp-dlg-f">' + (l ? '<button class="afp-link" data-lam>' + ic("laminas", 16) + " Ver lâmina</button>" : "<span></span>") +
-      '<div class="afp-dlg-fa">' + '<button class="afp-ghost" data-reset title="Voltar ativos, doses, forma e posologia para o que está na lâmina">Redefinir fórmula</button>' +
-      '<button class="afp-btn" data-save>' + ic(idx != null ? "ok" : "mais", 18) + (idx != null ? " Salvar alterações" : " Adicionar à receita") + "</button></div></footer></div>";
+      '<div class="afp-val" id="afp-val" aria-live="polite"></div>' +
+      '<footer class="afp-dlg-f">' + (modo === "lamina" ? '<button class="afp-link" data-lam>' + ic("laminas", 16) + " Ver lâmina</button>" : "<span></span>") +
+      '<div class="afp-dlg-fa">' + (item.src ? '<button class="afp-ghost" data-reset title="Voltar ao original">Redefinir</button>' : "") +
+      (modo === "minha" ? '<button class="afp-link afp-del" data-del>' + ic("lixo", 16) + " Excluir</button>" : "") + '<button class="afp-ghost" data-minha>' + ic("editar", 16) + (modo === "minha" ? " Atualizar minha fórmula" : " Salvar em Minhas fórmulas") + "</button>" +
+      '<button class="afp-btn" data-save>' + ic(idx != null ? "ok" : "mais", 18) + (idx != null ? " Salvar na receita" : " Adicionar à receita") + "</button></div></footer></div>";
     document.body.appendChild(d); document.body.classList.add("afp-lock");
     function close() { d.remove(); document.body.classList.remove("afp-lock"); document.removeEventListener("keydown", k); }
     function k(e) { if (e.key === "Escape") close(); }
@@ -299,7 +309,7 @@
     }
     wireRows();
     // seletor de forma farmacêutica — fechado por padrão; mantém a forma que vem da fórmula
-    var aberto = false, sug = copia(f.src);
+    var aberto = !f.forma && modo === "nova", sug = f.src ? copia(f.src) : { forma: "", via: "" };
     function mudou() { return (f.forma || "") !== (sug.forma || "") || (f.via || "") !== (sug.via || ""); }
     function formaUI() {
       var cur = formaDe(f.forma), box = d.querySelector("#afp-forma");
@@ -325,12 +335,45 @@
     d.querySelectorAll("[data-f]").forEach(function (inp) { inp.addEventListener("input", function () { f[inp.getAttribute("data-f")] = inp.value; }); });
     d.querySelector("[data-addrow]").addEventListener("click", function () { f.componentes.push({ ativo: "", dose: "" }); d.querySelector("#afp-rows").innerHTML = rows(); wireRows(); var ins = d.querySelectorAll('[data-k="ativo"]'); ins[ins.length - 1].focus(); });
     d.addEventListener("click", function (e) { if (e.target === d || e.target.closest("[data-close]")) close(); });
+    d.addEventListener("input", function (e) { if (e.target.classList) e.target.classList.remove("afp-bad"); });
+    var ti = d.querySelector("[data-tags]"); if (ti) ti.addEventListener("input", function () { f.tags = ti.value.split(",").map(function (x) { return x.trim().toLowerCase(); }).filter(Boolean).slice(0, 12); });
+    var confirmado = "";
+    function checar(acao) {
+      var v = validar(f), box = d.querySelector("#afp-val");
+      d.querySelectorAll(".afp-bad").forEach(function (x) { x.classList.remove("afp-bad"); });
+      if (!(f.nome || "").trim() || f.nome.trim().length < 3) d.querySelector(".afp-title-in").classList.add("afp-bad");
+      d.querySelectorAll('[data-k="dose"]').forEach(function (x) { if (!x.value.trim() && d.querySelector('[data-k="ativo"][data-i="' + x.getAttribute("data-i") + '"]').value.trim()) x.classList.add("afp-bad"); });
+      ["quantidade", "posologia"].forEach(function (k) { var x = d.querySelector('[data-f="' + k + '"]'); if (x && !x.value.trim()) x.classList.add("afp-bad"); });
+      if (v.erros.length) { box.innerHTML = '<div class="afp-val-err"><b>Antes de continuar:</b><ul>' + v.erros.map(function (e) { return "<li>" + esc(e) + "</li>"; }).join("") + "</ul></div>"; confirmado = ""; return false; }
+      if (v.avisos.length && confirmado !== acao) {
+        box.innerHTML = '<div class="afp-val-av"><b>Confira antes de seguir</b> (clique de novo para confirmar):<ul>' + v.avisos.map(function (e) { return "<li>" + esc(e) + "</li>"; }).join("") + "</ul></div>";
+        confirmado = acao; return false;
+      }
+      box.innerHTML = ""; return true;
+    }
     d.querySelector("[data-save]").addEventListener("click", function () {
+      if (!checar("rx")) return;
       f.componentes = f.componentes.filter(function (c) { return (c.ativo || "").trim(); });
       if (idx != null) S.rx[idx] = f; else S.rx.push(f);
       saveRx(); close(); render(); toast(idx != null ? "Fórmula atualizada" : "Adicionada à receita");
     });
+    d.querySelector("[data-minha]").addEventListener("click", function () {
+      if (!checar("minha")) return;
+      f.componentes = f.componentes.filter(function (c) { return (c.ativo || "").trim(); });
+      var lista = (S.minhas || []).slice(), id = modo === "minha" ? item.src.slice(2) : novoId();
+      var reg = { id: id, nome: f.nome.trim(), indicacao: (f.indicacao || "").trim(), forma: f.forma, via: f.via, componentes: f.componentes, quantidade: f.quantidade, posologia: f.posologia,
+        tags: (f.tags && f.tags.length ? f.tags : tagsUso((src && src.f) || {})).slice(0, 12), criadaEm: new Date().toISOString().slice(0, 10) };
+      var i = lista.map(function (x) { return x.id; }).indexOf(id);
+      if (i > -1) lista[i] = reg; else { if (lista.length >= 300) { d.querySelector("#afp-val").innerHTML = '<div class="afp-val-err">Limite de 300 fórmulas próprias atingido.</div>'; return; } lista.unshift(reg); }
+      var b = this; b.disabled = true;
+      salvarMinhas(lista).then(function () { close(); render(); toast(i > -1 ? "Minha fórmula atualizada" : "Salva em Minhas fórmulas"); })
+        .catch(function () { b.disabled = false; d.querySelector("#afp-val").innerHTML = '<div class="afp-val-err">Não foi possível salvar agora. Tente de novo.</div>'; });
+    });
     wireTags(d, close);
+    var del = d.querySelector("[data-del]"); if (del) del.addEventListener("click", function () {
+      if (!confirm("Excluir esta fórmula de Minhas fórmulas?")) return;
+      salvarMinhas((S.minhas || []).filter(function (x) { return x.id !== item.src.slice(2); })).then(function () { close(); render(); toast("Fórmula excluída"); });
+    });
     var lt = d.querySelector("[data-lamtag]"); if (lt) lt.addEventListener("click", function () { close(); S.tab = "laminas"; S.open = src.l.n; render(); });
     d.querySelectorAll("[data-relk]").forEach(function (b) { b.addEventListener("click", function () { close(); editor(copia(b.getAttribute("data-relk")), null); }); });
     var rs = d.querySelector("[data-reset]"); if (rs) rs.addEventListener("click", function () { close(); editor(copia(item.src), idx); });
@@ -344,7 +387,7 @@
 
   /* ---------- tags ---------- */
   function tagsUso(f) { return f.tags || []; }
-  function buscarTag(t) { S.q = t; S.esp = null; S.tab = "formulas"; render(); var n = S.el.querySelector(".afp-search input"); if (n) n.focus(); }
+  function buscarTag(t) { var tg = tagsUso({ tags: [t] })[0]; var ehTag = todas().some(function (it) { return it.x.tags.indexOf(norm(t)) > -1; }); if (ehTag) { S.f.tag = t; S.q = ""; } else { S.q = t; S.f.tag = null; } S.f.esp = null; S.tab = "formulas"; S.lim = 48; render(); }
   function relacionadas(key, n) {
     var o = original(key); if (!o) return [];
     var tg = tagsUso(o.f).map(norm), at = ativos(o.f).map(norm);
@@ -356,21 +399,82 @@
     }).filter(function (x) { return x.sc >= 3; }).sort(function (a, b) { return b.sc - a.sc; }).slice(0, n || 4).map(function (x) { return x.it; });
   }
 
-  /* ---------- formulações ---------- */
+  /* ---------- formulações: índice, busca e filtros ---------- */
+  // Fonte única: fórmulas das lâminas + "Minhas fórmulas" (chave "m:<id>"). Índice normalizado montado 1x por mudança.
+  var MINHA_L = { n: "m", titulo: "Minhas fórmulas", especialidade: "Minhas fórmulas", condicoes: [] };
+  var IDX = null;
+  function invalidar() { IDX = null; }
   function todas() {
+    if (IDX) return IDX;
     var out = [];
-    S.laminas.forEach(function (l) { (l.formulas || []).forEach(function (f, i) { out.push({ l: l, f: f, key: l.n + ":" + i }); }); });
-    return out;
+    S.laminas.forEach(function (l) { (l.formulas || []).forEach(function (f, i) { out.push({ l: l, f: f, key: l.n + ":" + i, minha: false }); }); });
+    (S.minhas || []).forEach(function (f) { out.push({ l: MINHA_L, f: f, key: "m:" + f.id, minha: true }); });
+    out.forEach(function (it) {
+      var f = it.f, fm = formaDe(f.forma) || formaDe(f.quantidade);
+      it.x = {
+        nome: norm(f.nome), tags: tagsUso(f).map(norm), ativos: ativos(f).map(norm),
+        cond: norm(it.l.titulo), ind: norm(f.indicacao),
+        forma: fm || "", via: norm(f.via || (FORMA_LIST.filter(function (x) { return x.id === fm; })[0] || {}).via || ""),
+        esp: it.l.especialidade || "Outras"
+      };
+    });
+    return (IDX = out);
+  }
+  // Pontuação: todo termo precisa aparecer (E); nome pesa mais que tag, que pesa mais que ativo.
+  function pontuar(it, termos) {
+    var x = it.x, total = 0;
+    for (var i = 0; i < termos.length; i++) {
+      var t = termos[i], s = 0;
+      if (x.nome.indexOf(t) > -1) s += (x.nome.indexOf(t) === 0 || x.nome.indexOf(" " + t) > -1) ? 10 : 7;
+      if (x.tags.some(function (g) { return g.indexOf(t) > -1; })) s += 5;
+      if (x.ativos.some(function (a) { return a.indexOf(t) > -1; })) s += 4;
+      if (x.cond.indexOf(t) > -1) s += 2;
+      if (x.ind.indexOf(t) > -1) s += 1;
+      if (!s) return 0;
+      total += s;
+    }
+    return total || 1;
+  }
+  function sugestoes() {
+    var cont = {};
+    todas().forEach(function (it) {
+      tagsUso(it.f).concat(ativos(it.f)).forEach(function (t) { var k = t.toLowerCase(); cont[k] = (cont[k] || 0) + 1; });
+    });
+    return Object.keys(cont).sort(function (a, b) { return cont[b] - cont[a]; }).slice(0, 400);
+  }
+  function topTags() {
+    var c = {}; todas().forEach(function (it) { tagsUso(it.f).forEach(function (t) { c[t] = (c[t] || 0) + 1; }); });
+    return Object.keys(c).sort(function (a, b) { return c[b] - c[a] || a.localeCompare(b); }).slice(0, 40).map(function (t) { return [t, c[t]]; });
+  }
+  S.f = { esp: null, forma: null, via: null, tag: null, origem: "todas" }; S.ordem = "rel"; S.lim = 48;
+  function filtrar() {
+    var termos = norm(S.q).split(/[\s,;]+/).filter(function (t) { return t.length > 1; });
+    var r = [];
+    todas().forEach(function (it) {
+      var x = it.x;
+      if (S.f.origem === "minhas" && !it.minha) return;
+      if (S.f.origem === "laminas" && it.minha) return;
+      if (S.f.esp && x.esp !== S.f.esp) return;
+      if (S.f.forma && x.forma !== S.f.forma) return;
+      if (S.f.via && x.via.indexOf(norm(S.f.via)) !== 0) return;
+      if (S.f.tag && x.tags.indexOf(norm(S.f.tag)) < 0) return;
+      var sc = termos.length ? pontuar(it, termos) : 1;
+      if (sc) r.push({ it: it, sc: sc });
+    });
+    if (S.ordem === "az") r.sort(function (a, b) { return a.it.x.nome.localeCompare(b.it.x.nome); });
+    else if (S.ordem === "lamina") r.sort(function (a, b) { return String(a.it.l.n).localeCompare(String(b.it.l.n)) || a.it.x.nome.localeCompare(b.it.x.nome); });
+    else r.sort(function (a, b) { return b.sc - a.sc || a.it.x.nome.localeCompare(b.it.x.nome); });
+    return r.map(function (x) { return x.it; });
   }
   function card(it) {
-    var f = it.f, on = naReceita(it.key), at = ativos(f), ds = doses(f);
-    return '<article class="afp-card' + (on ? " on" : "") + '" data-det="' + it.key + '" tabindex="0">' +
-      '<span class="afp-tag">' + esc(it.l.especialidade || "") + "</span>" +
+    var f = it.f, on = naReceita(it.key), at = ativos(f), ds = doses(f), fm = formaDe(f.forma) || formaDe(f.quantidade);
+    return '<article class="afp-card' + (on ? " on" : "") + (it.minha ? " minha" : "") + '" data-det="' + it.key + '" tabindex="0">' +
+      '<span class="afp-tag">' + (it.minha ? ic("editar", 12) + " Minha fórmula" : esc(it.l.especialidade || "")) + "</span>" +
       "<h3>" + esc(f.nome) + "</h3>" +
       (f.indicacao ? '<p class="afp-ind">' + esc(f.indicacao) + "</p>" : "") +
       (tagsUso(f).length ? '<div class="afp-tags">' + tagsUso(f).slice(0, 3).map(function (t) { return '<button type="button" class="afp-tagchip" data-tag="' + esc(t) + '">' + esc(t) + "</button>"; }).join("") + "</div>" : "") +
       (at.length ? '<p class="afp-at">' + esc(at.slice(0, 3).join(" · ")) + (at.length > 3 ? " <span>+" + (at.length - 3) + "</span>" : "") + "</p>" : "") +
-      '<div class="afp-foot"><span class="afp-meta">' + (formaDe(f.forma) || formaDe(f.quantidade) ? '<span class="afp-fbadge" title="' + esc(f.forma || "") + '">' + foto(formaDe(f.forma) || formaDe(f.quantidade), 30) + "</span>" : "") + (ds ? '<span class="afp-dose">' + esc(ds) + "</span>" : "") + "</span>" +
+      '<div class="afp-foot"><span class="afp-meta">' + (fm ? '<span class="afp-fbadge" title="' + esc(f.forma || "") + '">' + foto(fm, 30) + "</span>" : "") + (ds ? '<span class="afp-dose">' + esc(ds) + "</span>" : "") + "</span>" +
       '<span class="afp-cta">' + (on ? ic("ok", 16) + "Na receita" : ic("mais", 16) + "Prescrever") + "</span></div></article>";
   }
   function wireTags(root, after) {
@@ -384,24 +488,101 @@
       c.addEventListener("keydown", function (e) { if (e.key === "Enter") go(); });
     });
   }
-  function viewFormulas(v) {
-    var esps = []; S.laminas.forEach(function (l) { var e = l.especialidade || "Outras"; if (esps.indexOf(e) < 0) esps.push(e); }); esps.sort();
-    var q = norm(S.q);
-    var itens = todas().filter(function (it) {
-      if (S.esp && (it.l.especialidade || "Outras") !== S.esp) return false;
-      if (!q) return true;
-      return norm([it.f.nome, it.f.indicacao, it.l.titulo, tagsUso(it.f).join(" "), (it.l.condicoes || []).join(" "), (it.f.componentes || []).map(function (c) { return c.ativo; }).join(" ")].join(" ")).indexOf(q) > -1;
+  function viewFormulas(v, soMinhas) {
+    if (soMinhas) S.f.origem = "minhas"; else if (S.f.origem === "minhas" && S.tab !== "minhas") S.f.origem = "todas";
+    var lista = todas(), itens = filtrar(), vis = itens.slice(0, S.lim);
+    var esps = []; lista.forEach(function (it) { if (!it.minha && esps.indexOf(it.x.esp) < 0) esps.push(it.x.esp); }); esps.sort();
+    var formas = FORMA_LIST.filter(function (fo) { return lista.some(function (it) { return it.x.forma === fo.id; }); });
+    var vias = []; lista.forEach(function (it) { var vv = it.x.via; if (vv && vias.indexOf(vv) < 0) vias.push(vv); }); vias.sort();
+    var nMinhas = (S.minhas || []).length;
+    var ativosF = [];
+    if (S.f.esp) ativosF.push(["esp", S.f.esp]);
+    if (S.f.forma) ativosF.push(["forma", (FORMA_LIST.filter(function (x) { return x.id === S.f.forma; })[0] || {}).nome]);
+    if (S.f.via) ativosF.push(["via", "Uso " + S.f.via]);
+    if (S.f.tag) ativosF.push(["tag", "#" + S.f.tag]);
+    if (S.q) ativosF.push(["q", "“" + S.q + "”"]);
+    function sel(id, rot, ops, val) {
+      return '<label class="afp-sel"><span>' + rot + '</span><select class="afp-in" data-fsel="' + id + '"><option value="">Todas</option>' +
+        ops.map(function (o) { return '<option value="' + esc(o[0]) + '"' + (val === o[0] ? " selected" : "") + ">" + esc(o[1]) + "</option>"; }).join("") + "</select></label>";
+    }
+    v.innerHTML = (soMinhas
+        ? head("Minhas *fórmulas*", "Fórmulas criadas por você, ou variações salvas a partir das lâminas. Ficam guardadas na sua conta.",
+            '<button class="afp-btn" data-nova>' + ic("mais", 18) + " Nova fórmula</button>")
+        : head("Fórmulas por *condição*", "Busque por condição, ativo, tag ou nome. Combine filtros para chegar rápido na fórmula certa.",
+            '<button class="afp-ghost" data-nova>' + ic("mais", 16) + " Criar fórmula</button>")) +
+      '<div class="afp-tools">' +
+      '<label class="afp-search">' + ic("busca", 18) + '<input type="search" list="afp-sug" autocomplete="off" placeholder="Ex.: artrite cúrcuma · enxaqueca · melasma tópico" value="' + esc(S.q) + '">' +
+      (S.q ? '<button type="button" class="afp-icbtn" data-limpaq aria-label="Limpar busca">' + ic("x", 16) + "</button>" : "") + "</label>" +
+      '<datalist id="afp-sug">' + sugestoes().map(function (t) { return '<option value="' + esc(t) + '">'; }).join("") + "</datalist>" +
+      (soMinhas ? "" : '<div class="afp-chips"><button class="afp-chip" aria-pressed="' + !S.f.esp + '" data-e="">Todas as especialidades</button>' +
+        esps.map(function (e) { return '<button class="afp-chip" aria-pressed="' + (S.f.esp === e) + '" data-e="' + esc(e) + '">' + esc(e) + "</button>"; }).join("") + "</div>") +
+      '<div class="afp-filtros">' +
+      (soMinhas ? "" : '<div class="afp-seg" role="group" aria-label="Origem">' + [["todas", "Todas"], ["laminas", "Das lâminas"], ["minhas", "Minhas (" + nMinhas + ")"]].map(function (o) {
+        return '<button class="afp-seg-b" aria-pressed="' + (S.f.origem === o[0]) + '" data-org="' + o[0] + '">' + o[1] + "</button>"; }).join("") + "</div>") +
+      sel("forma", "Forma", formas.map(function (fo) { return [fo.id, fo.nome]; }), S.f.forma) +
+      sel("via", "Via", vias.map(function (x) { return [x, "Uso " + x]; }), S.f.via) +
+      sel("tag", "Tag", topTags().map(function (t) { return [t[0], t[0] + " (" + t[1] + ")"]; }), S.f.tag) +
+      sel("ordem", "Ordenar", [["rel", "Relevância"], ["az", "A–Z"], ["lamina", "Por lâmina"]], S.ordem).replace('<option value="">Todas</option>', "") +
+      "</div>" +
+      (ativosF.length ? '<div class="afp-ativos">' + ativosF.map(function (a) { return '<button class="afp-fchip" data-rmf="' + a[0] + '">' + esc(a[1]) + ic("x", 14) + "</button>"; }).join("") +
+        '<button class="afp-link" data-limpatudo>Limpar filtros</button></div>' : "") +
+      "</div>" +
+      '<p class="afp-count"><b>' + itens.length + "</b> fórmula" + (itens.length === 1 ? "" : "s") + (itens.length !== lista.length && !soMinhas ? " de " + lista.length : "") + "</p>" +
+      '<div class="afp-grid">' + (vis.map(card).join("") ||
+        (soMinhas && !nMinhas
+          ? '<div class="afp-emptybox">' + ic("editar", 32) + "<b>Você ainda não criou fórmulas</b><p>Crie do zero ou abra uma fórmula das lâminas, ajuste e use “Salvar em Minhas fórmulas”.</p>" + '<button class="afp-btn" data-nova>' + ic("mais", 18) + " Nova fórmula</button></div>"
+          : '<div class="afp-emptybox">' + ic("busca", 30) + "<b>Nenhuma fórmula com esses critérios</b><p>Tente menos palavras, outro termo (ex.: o ativo ou a condição) ou limpe os filtros.</p>" + (ativosF.length ? '<button class="afp-ghost" data-limpatudo>Limpar filtros</button>' : "") + "</div>")) + "</div>" +
+      (itens.length > vis.length ? '<div class="afp-mais"><button class="afp-ghost" data-mais>Mostrar mais ' + Math.min(48, itens.length - vis.length) + " de " + (itens.length - vis.length) + "</button></div>" : "");
+    var inp = v.querySelector(".afp-search input"), tmr;
+    inp.addEventListener("input", function () {
+      clearTimeout(tmr); tmr = setTimeout(function () { S.q = inp.value; S.lim = 48; var p = inp.selectionStart; render(); var n = S.el.querySelector(".afp-search input"); n.focus(); n.setSelectionRange(p, p); }, 180);
     });
-    v.innerHTML = head("Fórmulas por *condição*", "Encontre por condição, ativo ou especialidade. Clique numa fórmula para ajustar e prescrever.") +
-      '<div class="afp-tools"><label class="afp-search">' + ic("busca", 18) + '<input type="search" placeholder="Buscar: artrite, enxaqueca, cúrcuma…" value="' + esc(S.q) + '"></label>' +
-      '<div class="afp-chips"><button class="afp-chip" aria-pressed="' + !S.esp + '" data-e="">Todas</button>' +
-      esps.map(function (e) { return '<button class="afp-chip" aria-pressed="' + (S.esp === e) + '" data-e="' + esc(e) + '">' + esc(e) + "</button>"; }).join("") + "</div></div>" +
-      '<p class="afp-count">' + itens.length + " fórmula" + (itens.length === 1 ? "" : "s") + "</p>" +
-      '<div class="afp-grid">' + (itens.map(card).join("") || '<p class="afp-empty">Nenhuma fórmula encontrada para essa busca.</p>') + "</div>";
-    var inp = v.querySelector(".afp-search input");
-    inp.addEventListener("input", function () { S.q = inp.value; var p = inp.selectionStart; render(); var n = S.el.querySelector(".afp-search input"); n.focus(); n.setSelectionRange(p, p); });
-    v.querySelectorAll("[data-e]").forEach(function (b) { b.addEventListener("click", function () { S.esp = b.getAttribute("data-e") || null; render(); }); });
+    function on(sel2, fn) { v.querySelectorAll(sel2).forEach(function (b) { b.addEventListener("click", fn.bind(null, b)); }); }
+    on("[data-e]", function (b) { S.f.esp = b.getAttribute("data-e") || null; S.lim = 48; render(); });
+    on("[data-org]", function (b) { S.f.origem = b.getAttribute("data-org"); S.lim = 48; render(); });
+    v.querySelectorAll("[data-fsel]").forEach(function (s2) { s2.addEventListener("change", function () { var k = s2.getAttribute("data-fsel"); if (k === "ordem") S.ordem = s2.value || "rel"; else S.f[k] = s2.value || null; S.lim = 48; render(); }); });
+    on("[data-rmf]", function (b) { var k = b.getAttribute("data-rmf"); if (k === "q") S.q = ""; else S.f[k] = null; render(); });
+    on("[data-limpatudo]", function () { S.q = ""; S.f = { esp: null, forma: null, via: null, tag: null, origem: soMinhas ? "minhas" : "todas" }; render(); });
+    on("[data-limpaq]", function () { S.q = ""; render(); });
+    on("[data-mais]", function () { S.lim += 48; render(); });
+    on("[data-nova]", function () { novaFormula(); });
     wireCards(v);
+  }
+  function viewMinhas(v) { viewFormulas(v, true); }
+  function novaFormula() {
+    editor({ src: null, nome: "", indicacao: "", forma: "", via: "", componentes: [{ ativo: "", dose: "" }], quantidade: "", posologia: "", tags: [] }, null);
+  }
+
+  /* ---------- validação à prova de erros ---------- */
+  var UNID = /^(\d+([.,]\d+)?\s*(mg|g|mcg|µg|ug|ng|ui|%|ml|l|meq|gotas?|bilh(õ|o)es?(\s*de)?\s*ufc|milh(õ|o)es?(\s*de)?\s*ufc|ufc|mmol|cp|cps|c[áa]ps(ulas?)?)(\s*\/\s*\w+)?|qsp(\s*\d+([.,]\d+)?\s*(g|ml|mg))?|q\.?s\.?p\.?)$/i;
+  var CONTROLADOS = ["tramadol", "codeína", "codeina", "morfina", "metadona", "oxicodona", "tapentadol", "clonazepam", "diazepam", "alprazolam", "lorazepam", "bromazepam", "zolpidem",
+    "sibutramina", "anfepramona", "femproporex", "mazindol", "metilfenidato", "lisdexanfetamina", "testosterona", "oxandrolona", "nandrolona", "estanozolol", "gestrinona",
+    "isotretinoína", "isotretinoina", "topiramato", "gabapentina", "pregabalina", "fluoxetina", "sertralina", "escitalopram", "citalopram", "paroxetina", "venlafaxina",
+    "duloxetina", "bupropiona", "amitriptilina", "nortriptilina", "trazodona", "canabidiol", "cbd", "misoprostol", "carisoprodol", "ciclobenzaprina"];
+  function validar(f) {
+    var erros = [], avisos = [], vistos = {};
+    if ((f.nome || "").trim().length < 3) erros.push("Dê um nome à fórmula (mínimo 3 letras).");
+    if (!(f.forma || "").trim()) erros.push("Escolha a forma farmacêutica.");
+    var comps = (f.componentes || []).filter(function (c) { return (c.ativo || "").trim(); });
+    if (!comps.length) erros.push("Inclua pelo menos um ativo com dose.");
+    comps.forEach(function (c) {
+      var a = c.ativo.trim(), dz = (c.dose || "").trim(), k = norm(a);
+      if (!dz) erros.push("Informe a dose de “" + a + "”.");
+      else if (!UNID.test(dz)) avisos.push("Confira a dose de “" + a + "” (" + dz + "): unidade não reconhecida.");
+      if (vistos[k]) avisos.push("“" + a + "” aparece mais de uma vez."); vistos[k] = 1;
+      if (CONTROLADOS.some(function (x) { return k.indexOf(norm(x)) > -1; })) avisos.push("“" + a + "” pode estar sujeito a controle especial (Portaria 344/98): confira o tipo de receituário.");
+    });
+    if (!(f.quantidade || "").trim()) erros.push("Informe a quantidade (ex.: Fazer 30 doses).");
+    if (!(f.posologia || "").trim()) erros.push("Informe a posologia.");
+    return { erros: erros, avisos: avisos };
+  }
+
+  /* ---------- persistência de Minhas fórmulas ---------- */
+  function novoId() { return "f" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  function salvarMinhas(lista) {
+    return S.getToken().then(function (t) {
+      return fetch(API_URL, { method: "POST", headers: { Authorization: "Bearer " + t, "Content-Type": "application/json" }, body: JSON.stringify({ minhas: lista }) });
+    }).then(function (r) { if (!r.ok) throw r.status; S.minhas = lista; invalidar(); });
   }
 
   /* ---------- lâminas ---------- */

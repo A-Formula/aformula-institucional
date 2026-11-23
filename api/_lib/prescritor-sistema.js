@@ -58,6 +58,23 @@ function limpar(c) {
   return ok ? o : null;
 }
 
+const MAX_MINHAS = 300;
+function limparMinhas(lista) {
+  if (!Array.isArray(lista) || lista.length > MAX_MINHAS) return null;
+  const t = (v, n) => String(v == null ? "" : v).trim().slice(0, n);
+  const out = [];
+  for (const f of lista) {
+    const comp = (Array.isArray(f.componentes) ? f.componentes : []).slice(0, 40)
+      .map((c) => ({ ativo: t(c.ativo, 160), dose: t(c.dose, 40) })).filter((c) => c.ativo);
+    const o = { id: t(f.id, 40), nome: t(f.nome, 160), indicacao: t(f.indicacao, 300), forma: t(f.forma, 80), via: t(f.via, 40),
+      componentes: comp, quantidade: t(f.quantidade, 120), posologia: t(f.posologia, 600),
+      tags: (Array.isArray(f.tags) ? f.tags : []).slice(0, 12).map((x) => t(x, 40).toLowerCase()).filter(Boolean), criadaEm: t(f.criadaEm, 30) };
+    if (!/^[a-z0-9-]{4,40}$/.test(o.id) || o.nome.length < 3 || !comp.length) return null;
+    out.push(o);
+  }
+  return out;
+}
+
 module.exports = async (req, res) => {
   res.setHeader("Cache-Control", "private, no-store");
   res.setHeader("X-Robots-Tag", "noindex, nofollow");
@@ -67,6 +84,12 @@ module.exports = async (req, res) => {
 
   if (req.method === "POST") {
     const body = typeof req.body === "string" ? JSON.parse(req.body || "{}") : req.body || {};
+    if (body.minhas) {
+      const m = limparMinhas(body.minhas);
+      if (!m) return res.status(400).json({ ok: false, error: "validation" });
+      await q.db.collection("prescriber_minhas").doc(q.email).set({ itens: m, em: FieldValue.serverTimestamp() });
+      return res.status(200).json({ ok: true, total: m.length });
+    }
     const c = limpar(body.consultorio || {});
     if (!c) return res.status(400).json({ ok: false, error: "validation" });
     await q.ref.set({ ...c, consultorioEm: FieldValue.serverTimestamp() }, { merge: true });
@@ -75,7 +98,7 @@ module.exports = async (req, res) => {
 
   const img = String((req.query && req.query.img) || "");
   if (img) {
-    if (!/^\d{2}-\d{1,2}$/.test(img)) return res.status(404).end();
+    if (!/^\d{2,3}-\d{1,3}$/.test(img)) return res.status(404).end();
     const pg = await q.db.collection("prescriber_paginas").doc(img).get();
     if (!pg.exists || !pg.data().b64) return res.status(404).end();
     res.setHeader("Content-Type", "image/webp");
@@ -92,5 +115,7 @@ module.exports = async (req, res) => {
   };
   CAMPOS.forEach((k) => { perfil[k] = d[k] || ""; });
   perfil.consultorioCompleto = !!(d.cep && d.endereco && d.numero && d.cidadeConsultorio);
-  return res.status(200).json({ ok: true, perfil, laminas: await laminas(q.db) });
+  let minhas = [];
+  try { const m = await q.db.collection("prescriber_minhas").doc(q.email).get(); if (m.exists) minhas = m.data().itens || []; } catch (_) { /* sem fórmulas próprias */ }
+  return res.status(200).json({ ok: true, perfil, laminas: await laminas(q.db), minhas });
 };
