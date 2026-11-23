@@ -44,7 +44,19 @@ async function appendToSheet(row) {
 const sistema = require("./_lib/prescritor-sistema");
 
 module.exports = async (req, res) => {
-  if (req.query && req.query.sistema === "1") return sistema(req, res);
+  if (req.query && req.query.sistema === "1") {
+    // Portal do prescritor (site próprio) chama esta API de outro domínio: libera só as origens do portal.
+    const origem = String(req.headers.origin || "");
+    if (/^https:\/\/portal-do-prescritor(-[a-z0-9-]+)?\.vercel\.app$/.test(origem) || /^http:\/\/localhost:\d+$/.test(origem)) {
+      res.setHeader("Access-Control-Allow-Origin", origem);
+      res.setHeader("Vary", "Origin");
+      res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+      res.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
+      res.setHeader("Access-Control-Max-Age", "86400");
+    }
+    if (req.method === "OPTIONS") return res.status(204).end();
+    return sistema(req, res);
+  }
   const body = guard(req, res);
   if (!body) return;
 
