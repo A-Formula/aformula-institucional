@@ -24,6 +24,7 @@
     doses: '<rect x="3" y="8" width="18" height="8" rx="4"/><path d="M12 8v8"/>',
     escudo: '<path d="M12 3 4 6v6c0 4.5 3.4 8 8 9 4.6-1 8-4.5 8-9V6z"/>',
     editar: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m14 6 4 4"/>',
+    sair: '<path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 16l-4-4 4-4"/><path d="M6 12h10"/>',
     lixo: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
     print: '<path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/>',
     qr: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/>',
@@ -218,17 +219,22 @@
     var nome = (S.cfg && S.cfg.nome) || S.access.nome || "";
     var top = '<header class="afp-top"><div><p class="afp-eyebrow">Área do prescritor</p><h1>Olá, <em>' + esc(nome.split(" ").slice(0, 2).join(" ")) + "</em></h1>" +
       '<p class="afp-top-sub">' + esc([S.cfg && S.cfg.registro, S.cfg && S.cfg.especialidade].filter(Boolean).join(" · ")) + "</p></div>" +
-      '<button class="afp-ghost afp-sair" data-sair>Sair</button></header>';
+      '<button class="afp-ghost afp-sair" data-sair>' + ic("sair", 16) + ' Sair</button></header>';
+    var ini = nome.split(" ").filter(Boolean).slice(0, 2).map(function (w) { return w.charAt(0).toUpperCase(); }).join("") || "?";
+    var conta = '<div class="afp-conta"><div class="afp-conta-id"><span class="afp-av">' + esc(ini) + '</span><span><b>' + esc(nome.split(" ").slice(0, 2).join(" ")) + '</b><small>' + esc((S.cfg && S.cfg.registro) || "Prescritor") + '</small></span></div>' +
+      '<button type="button" class="afp-conta-bt" data-perfil>' + ic("editar", 16) + ' Meu perfil e consultório</button>' +
+      '<button type="button" class="afp-conta-bt afp-conta-out" data-sair>' + ic("sair", 16) + ' Sair da conta</button></div>';
     S.el.innerHTML = top + '<div class="afp-shell"><aside class="afp-side"><nav>' + nav.map(function (t) {
       return '<button class="afp-nav" aria-current="' + (S.tab === t[0]) + '" data-tab="' + t[0] + '"><span class="afp-navic">' + ic(t[1]) + "</span>" +
         "<span><b>" + esc(t[2]) + "</b><small>" + esc(t[3]) + "</small></span>" +
         (t[0] === "prescrever" && S.rx.length ? '<i class="afp-badge">' + S.rx.length + "</i>" : "") + "</button>";
-    }).join("") + '</nav><p class="afp-aviso">' + ic("escudo", 16) + "<span>Material exclusivo para prescritores habilitados (RDC 67/2007, item 5.14).</span></p></aside>" +
+    }).join("") + '</nav>' + conta + '<p class="afp-aviso">' + ic("escudo", 16) + "<span>Material exclusivo para prescritores habilitados (RDC 67/2007, item 5.14).</span></p></aside>" +
       '<section class="afp-main" id="afp-view"></section></div>';
     S.el.querySelectorAll("[data-tab]").forEach(function (b) {
       b.addEventListener("click", function () { S.tab = b.getAttribute("data-tab"); S.open = null; render(); window.scrollTo({ top: S.el.getBoundingClientRect().top + scrollY - 90, behavior: "smooth" }); });
     });
-    var sair = S.el.querySelector("[data-sair]"); if (sair) sair.addEventListener("click", function () { var b = document.getElementById("pa-sair"); if (b) b.click(); });
+    S.el.querySelectorAll("[data-sair]").forEach(function (sair) { sair.addEventListener("click", function () { var b = document.getElementById("pa-sair"); if (b) b.click(); }); });
+    var pf = S.el.querySelector("[data-perfil]"); if (pf) pf.addEventListener("click", function () { S.tab = "receituario"; S.open = null; render(); window.scrollTo({ top: S.el.getBoundingClientRect().top + scrollY - 90, behavior: "smooth" }); });
     var v = S.el.querySelector("#afp-view");
     ({ formulas: viewFormulas, minhas: viewMinhas, laminas: viewLaminas, prescrever: viewPrescrever, receituario: viewReceituario })[S.tab](v);
   }
