@@ -572,7 +572,9 @@ document.querySelectorAll("[data-news-form]").forEach(function(f){
 var pt=document.querySelector("[data-pw-toggle]"),pw=document.querySelector("[data-pw]");
 if(pt&&pw){pt.addEventListener("click",function(){
  var show=pw.type==="password";pw.type=show?"text":"password";
- pt.setAttribute("aria-label",show?"Ocultar senha":"Mostrar senha");});}
+ pt.setAttribute("aria-label",show?"Ocultar senha":"Mostrar senha");
+ var eo=pt.querySelector("[data-eye-open]"),ef=pt.querySelector("[data-eye-off]");
+ if(eo)eo.style.display=show?"none":"";if(ef)ef.style.display=show?"":"none";});}
 })();</script>
 <script id="polish-motion-js">(function(){
 if(!document.documentElement.classList.contains("anim"))return;
@@ -671,7 +673,7 @@ function wireLogin(){
   var fb=f.querySelector("[data-login-feedback]");
   if(fb){fb.classList.add("pa-msg");fb.style.display="";}
   var pt=card.querySelector("[data-pw-toggle]"),pw=card.querySelector("[data-pw]");
-  if(pt&&pw){pt.addEventListener("click",function(){pw.type=pw.type==="password"?"text":"password";});}
+  /* olhinho da senha: ligado uma vez só no script de cima (2 handlers se anulavam) */
   f.addEventListener("submit",function(e){
     e.preventDefault();
     var em=(card.querySelector("#presc-email")||{}).value||"", ps=(card.querySelector("#presc-pass")||{}).value||"";
