@@ -440,3 +440,6 @@ body.afp-lock .af-fab{display:none!important}
 .afp-del{color:#a02b1a!important;margin-right:auto}
 .afp-dlg-fa{flex-wrap:wrap;justify-content:flex-end}
 @media(max-width:820px){.afp-sel{max-width:none;flex:1 1 45%}.afp-seg{width:100%;overflow-x:auto}.afp-val{padding:0 18px}.afp-dlg-fa .afp-ghost{flex:1}}
+
+/* respiro entre a navbar fixa (~75px) e o banner "Olá" — o padding 9vh do <main> ficava menor que a navbar em telas baixas */
+main:has(#afp-root){padding-top:calc(76px + clamp(24px,3vw,40px)) !important}
