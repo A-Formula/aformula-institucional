@@ -37,3 +37,6 @@ PLANILHA-ACESSOS-EMPRESA.csv
 PLANILHA-ACESSOS-EMPRESA.xlsx
 
 _coleta-google/
+
+# Área do prescritor: conteúdo técnico (fórmulas/lâminas) NUNCA no git — repositório público (RDC 67/2007, 5.14)
+api/_lib/prescritor/

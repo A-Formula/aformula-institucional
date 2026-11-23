@@ -638,6 +638,8 @@ a[data-dc-tpl="64"],a[data-dc-tpl="69"],.pa-link{display:inline-block;padding:8p
 .pa-support strong{font-size:19px;display:block;margin-bottom:4px;font-weight:900}
 .pa-support a{display:inline-block;background:#fff;color:#063237;font-family:Avenir,sans-serif;font-weight:900;font-size:14px;padding:13px 26px;border-radius:999px;text-decoration:none}
 </style>
+<link rel="stylesheet" href="/area-do-prescritor_assets/sistema.css?v=6">
+<script src="/area-do-prescritor_assets/sistema.js?v=6"></script>
 <script src="/admin/vendor/firebase-app-compat.js"></script>
 <script src="/admin/vendor/firebase-auth-compat.js"></script>
 <script src="/admin/vendor/firebase-firestore-compat.js"></script>
@@ -787,6 +789,9 @@ function renderHub(user,access){
     '<div class="pa-support"><div><strong>Suporte técnico especializado</strong><p>Dúvidas de prescrição magistral? Nossa equipe técnica responde.</p></div><a href="mailto:sac@aformulabr.com.br">Falar com a equipe →</a></div>'+
   '</div>';
   mainEl.querySelector("#pa-sair").addEventListener("click",function(){auth.signOut().then(function(){location.reload();});});
+  /* Sistema do prescritor (piloto): isolado — se faltar o script ou der erro, a área segue como antes. */
+  try{ if(window.AFPresc){var afpRoot=document.createElement("div");afpRoot.id="afp-root";mainEl.querySelector("#pa-content").before(afpRoot);
+    AFPresc.mount(afpRoot,function(){return user.getIdToken();},access);} }catch(e){ var r=document.getElementById("afp-root"); if(r)r.remove(); }
   db.collection("prescriber_content").get().then(function(snap){
     var items=snap.docs.map(function(d){return d.data();}).sort(function(a,b){return (b.publishedAt||"").localeCompare(a.publishedAt||"");});
     var art=items.filter(function(i){return i.type==="artigo"||i.type==="pdf";});
